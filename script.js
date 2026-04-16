@@ -5,11 +5,13 @@ const STATE = {
     
     // Tab states
     dashboardTab: 'monthly', // 'monthly', 'quarterly', 'yearly'
-    goalsSetTab: 'monthly', // 'monthly', 'quarterly', 'yearly'
+    dashboardPeriodValue: '', // '2026-04', '2026-Q2', '2026'
+    
+    goalsSetTab: 'monthly',
     goalsManageTab: 'monthly',
     
     // Current draft goals for submission
-    activeGoalsDraft: [ { id: 1, text: '', actionPlan: '' }, { id: 2, text: '', actionPlan: '' }, { id: 3, text: '', actionPlan: '' } ],
+    activeGoalsDraft: [ { id: 1, text: '', actionPlan: '' } ],
     draftSubmitted: false, // UI state to show '승인 대기'
     
     // Submitted Goals Data
@@ -26,6 +28,15 @@ const USER_NAMES = {
     'member2': '이개발 (팀원)'
 };
 
+// --- Initializing dynamic dates ---
+function initDates() {
+    const d = new Date();
+    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    const currMonth = d.getMonth() + 1;
+    STATE.dashboardPeriodValue = `${currYear}-${String(currMonth).padStart(2, '0')}`;
+}
+initDates();
+
 // --- Helpers ---
 function getPeriodLabel(type, value) {
     if(!value) return '알 수 없음';
@@ -35,11 +46,12 @@ function getPeriodLabel(type, value) {
     return value;
 }
 
-function getCurrentPeriodLabel(type) {
+function getDefaultPeriodValue(type) {
     const d = new Date();
-    if(type === 'monthly') return `${d.getFullYear()}년 ${d.getMonth()+1}월`;
-    if(type === 'quarterly') return `${d.getFullYear()}년 ${Math.floor(d.getMonth()/3)+1}분기`;
-    return `${d.getFullYear()}년`;
+    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    if(type === 'monthly') return `${currYear}-${String(d.getMonth()+1).padStart(2, '0')}`;
+    if(type === 'quarterly') return `${currYear}-Q${Math.floor(d.getMonth()/3)+1}`;
+    return `${currYear}`;
 }
 
 // --- Menu Configuration ---
@@ -52,13 +64,21 @@ const MENU_ITEMS = [
 
 // --- Global Dispatchers ---
 window.setTab = function(view, tab) {
-    if (view === 'dashboard') STATE.dashboardTab = tab;
+    if (view === 'dashboard') {
+        STATE.dashboardTab = tab;
+        STATE.dashboardPeriodValue = getDefaultPeriodValue(tab);
+    }
     if (view === 'goals_set') { STATE.goalsSetTab = tab; STATE.draftSubmitted = false; }
     if (view === 'goals_manage') STATE.goalsManageTab = tab;
-    
     renderCurrentView();
 };
 
+window.setDashboardPeriod = function(val) {
+    STATE.dashboardPeriodValue = val;
+    renderCurrentView();
+};
+
+// Goals Set Logic
 window.addGoalRow = function() {
     if (STATE.draftSubmitted) return;
     if (STATE.activeGoalsDraft.length < 10) {
@@ -71,12 +91,9 @@ window.addGoalRow = function() {
 
 window.removeGoalRow = function(id) {
     if (STATE.draftSubmitted) return;
-    if (STATE.activeGoalsDraft.length > 3) {
-        STATE.activeGoalsDraft = STATE.activeGoalsDraft.filter(g => g.id !== id);
-        renderCurrentView();
-    } else {
-        alert('최소 3개의 목표는 설정해야 합니다.');
-    }
+    STATE.activeGoalsDraft = STATE.activeGoalsDraft.filter(g => g.id !== id);
+    if(STATE.activeGoalsDraft.length === 0) window.addGoalRow();
+    else renderCurrentView();
 };
 
 window.updateGoalText = function(id, value) {
@@ -93,7 +110,11 @@ window.submitGoals = function() {
     
     let isAllFilled = STATE.activeGoalsDraft.every(g => g.text.trim() !== '');
     if(!isAllFilled) {
-        alert('모든 목표 내용을 입력해주세요.');
+        alert('핵심 목표 내용을 모두 입력해주세요.');
+        return;
+    }
+    if(STATE.activeGoalsDraft.length < 3) {
+        alert('최소 3개의 목표를 입력해야 합니다.');
         return;
     }
     
@@ -107,7 +128,7 @@ window.submitGoals = function() {
             actionPlan: g.actionPlan,
             progress: 0,
             status: '합의 대기',
-            requestType: 'new' // 'new', 'update'
+            requestType: 'new' // 'new', 'update', 'content-update'
         });
     });
     
@@ -115,18 +136,38 @@ window.submitGoals = function() {
     renderCurrentView();
 };
 
+// Goals Manage Details Edit
+window.updateManageGoalText = function(id, value) {
+    const goal = STATE.submittedGoals.find(g => g.id == id);
+    if(goal) goal.text = value; // Direct update for now, will request separately
+};
+window.updateManageGoalPlan = function(id, value) {
+    const goal = STATE.submittedGoals.find(g => g.id == id);
+    if(goal) goal.actionPlan = value;
+};
 window.updateProgress = function(goalId, newProgress) {
     const goal = STATE.submittedGoals.find(g => g.id == goalId);
     if(goal) goal.progress = parseInt(newProgress);
-    // document update manually or via render
-    document.getElementById(`prog-val-${goalId}`).innerText = newProgress + '%';
+    const label = document.getElementById(`prog-val-${goalId}`);
+    if(label) label.innerText = newProgress + '%';
+};
+
+window.requestContentUpdate = function(goalId) {
+    const goal = STATE.submittedGoals.find(g => g.id == goalId);
+    if(goal) {
+        if(!goal.text.trim()) { alert('목표 내용을 입력하세요.'); return; }
+        goal.status = '내용 수정 대기';
+        goal.requestType = 'content-update';
+        alert('목표 내용 수정 요청이 팀장에게 전송되었습니다.');
+        renderCurrentView();
+    }
 };
 
 window.requestProgressUpdate = function(goalId) {
     const goal = STATE.submittedGoals.find(g => g.id == goalId);
     if(goal) {
-        goal.status = '확인 대기(진척률)';
-        goal.requestType = 'update';
+        goal.status = '진척률 확인 대기';
+        goal.requestType = 'progress-update';
         alert('진척률 업데이트 확인 요청이 전송되었습니다.');
         renderCurrentView();
     }
@@ -179,7 +220,28 @@ function renderDashboard(container) {
     const activeTabCls = "bg-primary text-white font-medium shadow-sm";
     const inactiveTabCls = "text-on-surface-variant hover:bg-surface-container";
 
-    const relevantGoals = STATE.submittedGoals.filter(g => g.periodType === STATE.dashboardTab);
+    // Dropdown for period
+    let periodOptionsHtml = '';
+    const d = new Date();
+    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    if (STATE.dashboardTab === 'monthly') {
+        for(let m=1; m<=12; m++) {
+            let val = `${currYear}-${String(m).padStart(2, '0')}`;
+            let sel = STATE.dashboardPeriodValue === val ? 'selected' : '';
+            periodOptionsHtml += `<option value="${val}" ${sel}>${currYear}년 ${m}월</option>`;
+        }
+    } else if (STATE.dashboardTab === 'quarterly') {
+        for(let q=1; q<=4; q++) {
+            let val = `${currYear}-Q${q}`;
+            let sel = STATE.dashboardPeriodValue === val ? 'selected' : '';
+            periodOptionsHtml += `<option value="${val}" ${sel}>${currYear}년 ${q}분기</option>`;
+        }
+    } else if (STATE.dashboardTab === 'yearly') {
+        periodOptionsHtml += `<option value="${currYear}" ${STATE.dashboardPeriodValue === String(currYear) ? 'selected':''}>${currYear}년</option>`;
+        periodOptionsHtml += `<option value="${currYear+1}" ${STATE.dashboardPeriodValue === String(currYear+1) ? 'selected':''}>${currYear+1}년</option>`;
+    }
+
+    const relevantGoals = STATE.submittedGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue);
     
     let membersWithGoals = {};
     if(STATE.user.role === 'admin') {
@@ -195,9 +257,11 @@ function renderDashboard(container) {
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-4">
                 <h3 class="font-display text-lg font-semibold">전체 구성원 목표 달성 현황</h3>
-                <span class="px-3 py-1 bg-surface-container-low text-primary text-sm font-bold rounded-lg">${getCurrentPeriodLabel(STATE.dashboardTab)}</span>
+                <select id="dash-period-selector" onchange="setDashboardPeriod(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none">
+                    ${periodOptionsHtml}
+                </select>
             </div>
-            <div class="flex items-center bg-white border border-blue-50 rounded-lg p-1">
+            <div class="flex items-center bg-white border border-blue-50 rounded-lg p-1 shadow-sm">
                 <button onclick="setTab('dashboard', 'monthly')" class="px-5 py-1.5 rounded-md text-sm transition-all ${STATE.dashboardTab === 'monthly' ? activeTabCls : inactiveTabCls}">월간</button>
                 <button onclick="setTab('dashboard', 'quarterly')" class="px-5 py-1.5 rounded-md text-sm transition-all ${STATE.dashboardTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기</button>
                 <button onclick="setTab('dashboard', 'yearly')" class="px-5 py-1.5 rounded-md text-sm transition-all ${STATE.dashboardTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간</button>
@@ -206,23 +270,27 @@ function renderDashboard(container) {
     `;
 
     if(Object.keys(membersWithGoals).length === 0) {
-        dashboardHtml += `<div class="bg-white p-10 text-center rounded-xl border border-blue-50 text-on-surface-variant">해당 기간(탭)에 설정된 목표가 없습니다.</div>`;
+        dashboardHtml += `
+        <div class="flex flex-col items-center justify-center bg-white h-64 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
+            <svg class="w-12 h-12 mb-3 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            <p>해당 기간에 조회할 체결 목표가 없습니다.</p>
+        </div>`;
     } else {
-        dashboardHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+        dashboardHtml += `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">`;
         
         for(let userId in membersWithGoals) {
             const mGoals = membersWithGoals[userId];
             const name = USER_NAMES[userId] || userId;
             
             const goalsListHtml = mGoals.map(g => `
-                <div class="mb-4 last:mb-0">
-                    <div class="flex justify-between items-start mb-1.5">
-                        <p class="text-sm font-medium leading-snug">${g.text}</p>
-                        <span class="text-xs font-bold ${g.progress >= 100 ? 'text-success' : 'text-primary'} ml-3 whitespace-nowrap">${g.progress}%</span>
+                <div class="mb-5 last:mb-0 bg-surface-container-lowest p-4 rounded-xl border border-blue-50/50">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-sm font-semibold leading-snug">${g.text}</p>
+                        <span class="text-xs font-black ${g.progress >= 100 ? 'text-success' : 'text-primary'} ml-3 whitespace-nowrap bg-blue-50 px-2 py-0.5 rounded">${g.progress}%</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
-                            <div class="${g.progress >= 100 ? 'bg-success' : 'bg-primary'} h-full rounded-full transition-all" style="width: ${g.progress}%"></div>
+                        <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden border border-black/5">
+                            <div class="${g.progress >= 100 ? 'bg-success' : 'bg-primary'} h-full transition-all" style="width: ${g.progress}%"></div>
                         </div>
                     </div>
                 </div>
@@ -231,17 +299,17 @@ function renderDashboard(container) {
             const avgProgress = mGoals.length > 0 ? Math.round(mGoals.reduce((s, g) => s + g.progress, 0) / mGoals.length) : 0;
             
             dashboardHtml += `
-                <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-6 flex flex-col h-full">
-                    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-blue-50/50">
-                        <div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary font-bold text-sm">
+                <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 flex flex-col h-full kpi-card">
+                    <div class="flex items-center gap-4 mb-6 pb-5 border-b border-blue-50/50">
+                        <div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center text-primary font-bold text-lg border border-blue-100">
                             ${name.charAt(0)}
                         </div>
                         <div>
-                            <h4 class="font-bold text-on-surface">${name}</h4>
-                            <p class="text-[11px] text-on-surface-variant mt-0.5">평균 진척률: <span class="font-bold">${avgProgress}%</span></p>
+                            <h4 class="font-bold text-on-surface text-lg">${name}</h4>
+                            <p class="text-[11px] text-on-surface-variant mt-0.5 bg-surface-container inline-block px-2 py-0.5 rounded-full font-semibold">평균 진척률: <span class="text-primary font-black">${avgProgress}%</span></p>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto">
+                    <div class="flex-1 overflow-y-auto pr-2">
                         ${goalsListHtml}
                     </div>
                 </div>
@@ -260,15 +328,17 @@ function renderGoalsSet(container) {
     
     let periodOptionsHtml = '';
     const date = new Date();
-    const currYear = date.getFullYear() >= 2026 ? date.getFullYear() : 2026;
+    const currYear = date.getFullYear() > 2025 ? date.getFullYear() : 2026;
+    const currMonth = date.getMonth() + 1;
+    const currQ = Math.floor((currMonth - 1) / 3) + 1;
     
     if (STATE.goalsSetTab === 'monthly') {
-        for(let m=1; m<=12; m++) {
+        for(let m=currMonth; m<=12; m++) {
             let val = `${currYear}-${String(m).padStart(2, '0')}`;
             periodOptionsHtml += `<option value="${val}">${currYear}년 ${m}월</option>`;
         }
     } else if (STATE.goalsSetTab === 'quarterly') {
-        for(let q=1; q<=4; q++) {
+        for(let q=currQ; q<=4; q++) {
             let val = `${currYear}-Q${q}`;
             periodOptionsHtml += `<option value="${val}">${currYear}년 ${q}분기</option>`;
         }
@@ -278,62 +348,69 @@ function renderGoalsSet(container) {
     }
 
     let guideHtml = '';
-    if(STATE.goalsSetTab === 'monthly') guideHtml = '해당 월이 도래하기 1주일 전에 해당 월 목표를 입력해야 합니다.';
-    if(STATE.goalsSetTab === 'quarterly') guideHtml = '해당 분기가 도래하기 1개월 전에 해당 분기 목표를 입력해야 합니다.';
-    if(STATE.goalsSetTab === 'yearly') guideHtml = '연도가 넘어가기 1개월 전에 해당 연도 목표를 입력해야 합니다.';
+    if(STATE.goalsSetTab === 'monthly') guideHtml = '현재 월부터 설정 가능합니다. 가급적 해당 월이 시작되기 전에 목표를 제출해 주세요.';
+    if(STATE.goalsSetTab === 'quarterly') guideHtml = '현재 분기부터 설정 가능합니다. 명확하고 구체적인 분기 OKR을 작성해 주세요.';
+    if(STATE.goalsSetTab === 'yearly') guideHtml = '연간 목표는 조직의 큰 방향성과 얼라인 되어야 합니다.';
 
     let rowsHtml = STATE.activeGoalsDraft.map((g, index) => {
         return `
-            <div class="flex gap-4 p-4 border border-blue-50/50 rounded-xl bg-surface-container-lowest">
-                <span class="text-sm font-bold text-on-surface-variant w-8 aspect-square flex items-center justify-center bg-surface-container rounded-full shrink-0">${index + 1}</span>
-                <div class="flex-1 space-y-3">
-                    <input type="text" value="${g.text}" oninput="updateGoalText(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100/80 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all" placeholder="측정 가능한 OKR 및 달성 목표 (한 줄 요약)">
-                    <textarea rows="2" oninput="updateGoalPlan(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100/80 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all text-sm resize-none" placeholder="세부 액션 플랜 입력 (여러 줄 작성 가능)...">${g.actionPlan}</textarea>
+            <div class="bg-surface-container-lowest border border-blue-100 rounded-xl p-5 relative shadow-sm hover:shadow-md transition-shadow group">
+                <div class="flex justify-between items-start mb-4">
+                    <h5 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider bg-surface-container px-2 py-1 rounded">목표 #${index + 1}</h5>
+                    ${!STATE.draftSubmitted ? `
+                    <button onclick="removeGoalRow(${g.id})" class="text-error hover:bg-error/10 p-1.5 rounded transition-colors opacity-50 group-hover:opacity-100" title="삭제">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    ` : ''}
                 </div>
-                ${!STATE.draftSubmitted ? `
-                <button onclick="removeGoalRow(${g.id})" class="p-2 text-error hover:bg-error/10 hover:shadow-sm rounded-lg h-fit transition-all" title="삭제">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-                ` : ''}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface mb-1.5 ml-1">핵심 달성 목표 (1줄 요약)</label>
+                        <input type="text" value="${g.text}" oninput="updateGoalText(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-200 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all shadow-sm font-medium" placeholder="예: MAU 20% 증가 달성">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface mb-1.5 ml-1">세부 액션 플랜 (멀티 라인 작성)</label>
+                        <textarea rows="3" oninput="updateGoalPlan(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-200 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all text-sm resize-none shadow-sm" placeholder="액션 아이템 1...&#10;액션 아이템 2...&#10;액션 아이템 3...">${g.actionPlan}</textarea>
+                    </div>
+                </div>
             </div>
         `;
     }).join('');
 
     let btnHtml = STATE.draftSubmitted 
-        ? `<button disabled class="bg-surface-container text-on-surface-variant px-8 py-3 rounded-lg font-medium tracking-wide shadow-inner">승인 대기 중</button>`
-        : `<button onclick="submitGoals()" class="bg-gradient-to-br from-primary to-primary-dim text-white px-8 py-3 rounded-lg shadow-md hover:opacity-90 font-medium tracking-wide transition-opacity">합의 요청</button>`;
+        ? `<button disabled class="bg-surface-container text-on-surface-variant px-10 py-3.5 rounded-xl font-bold tracking-wide shadow-inner cursor-not-allowed border border-blue-100">승인 대기 중</button>`
+        : `<button onclick="submitGoals()" class="bg-gradient-to-br from-primary to-primary-dim text-white px-10 py-3.5 rounded-xl shadow-[0_4px_14px_rgba(0,83,219,0.3)] hover:shadow-[0_6px_20px_rgba(0,83,219,0.4)] font-bold tracking-wide transition-all translate-y-0 hover:-translate-y-0.5">합의 요청하기</button>`;
 
     let html = `
-        <div class="flex items-center gap-8 border-b border-blue-100 mb-8 px-4">
-            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표</button>
-            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표</button>
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표</button>
+        <!-- Tabs -->
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2">
+            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 설정</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 설정</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 설정</button>
         </div>
 
-        <div class="bg-error/10 border-l-4 border-error p-4 rounded-r-lg mb-8">
-            <p class="text-sm font-medium text-error flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                ${guideHtml}
-            </p>
+        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3">
+            <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-sm font-medium text-on-surface">${guideHtml}</p>
         </div>
 
-        <div class="bg-white rounded-xl p-8 border border-blue-50 shadow-sm max-w-4xl">
-            <div class="flex items-center justify-between mb-8 pb-4 border-b border-blue-50/50">
+        <div class="bg-white rounded-2xl p-8 border border-blue-50 shadow-sm max-w-4xl mx-auto glass-panel">
+            <div class="flex items-center justify-between mb-8 pb-5 border-b border-blue-50/50">
                 <div class="flex items-center gap-4">
-                    <h3 class="font-display text-xl font-bold">새로운 목표 수립</h3>
-                    <select id="period-selector" ${STATE.draftSubmitted?'disabled':''} class="bg-surface-container-lowest border border-blue-100 rounded text-sm px-3 py-1.5 focus:border-primary focus:ring-1 outline-none font-bold text-primary">
+                    <h3 class="font-display text-2xl font-bold">🎯 목표 생성</h3>
+                    <select id="period-selector" ${STATE.draftSubmitted?'disabled':''} class="bg-surface-container-lowest border-2 border-blue-100 rounded-lg text-sm px-4 py-2 focus:border-primary outline-none font-extrabold text-primary shadow-sm cursor-pointer">
                         ${periodOptionsHtml}
                     </select>
                 </div>
                 ${!STATE.draftSubmitted ? `
-                <button onclick="addGoalRow()" class="flex items-center gap-2 px-4 py-2 bg-surface-container text-primary font-semibold rounded-lg hover:bg-primary/20 transition-colors">
+                <button onclick="addGoalRow()" class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-primary font-bold text-sm rounded-xl hover:bg-primary/10 transition-colors border border-blue-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    줄 추가
+                    목표 추가하기
                 </button>
                 ` : ''}
             </div>
             
-            <div class="space-y-4 mb-8">
+            <div class="space-y-6 mb-10">
                 ${rowsHtml}
             </div>
             
@@ -351,26 +428,49 @@ function renderGoalsManage(container) {
 
     const myGoals = STATE.submittedGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab);
     
-    let contentHtml = '<p class="text-sm text-on-surface-variant bg-white p-8 rounded-xl border border-blue-50 shadow-sm text-center">해당 기간에 조회할 목표가 없습니다.</p>';
+    let contentHtml = `
+        <div class="flex flex-col items-center justify-center bg-white h-64 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
+            <svg class="w-12 h-12 mb-3 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <p>해당 기간에 등록된 목표가 없습니다.</p>
+        </div>`;
+        
     if(myGoals.length > 0) {
         contentHtml = myGoals.map(g => `
-            <div class="bg-white rounded-xl p-6 border border-blue-50 shadow-sm mb-4">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <span class="px-2 py-1 bg-surface-container text-primary rounded font-bold text-xs mb-2 inline-block">${getPeriodLabel(g.periodType, g.periodValue)}</span>
-                        <h4 class="font-bold text-lg text-on-surface">${g.text}</h4>
-                        ${g.actionPlan ? `<p class="whitespace-pre-line text-sm text-on-surface-variant mt-2 border-l-2 border-blue-100 pl-3 leading-relaxed">${g.actionPlan}</p>` : ''}
-                    </div>
-                    <span class="px-3 py-1 bg-surface-container-low rounded-full text-xs font-bold ${g.status.includes('승인 완료')?'text-success':'text-on-surface-variant'}">${g.status}</span>
+            <div class="bg-white rounded-2xl p-6 border border-blue-50 shadow-sm mb-6 kpi-card">
+                <div class="flex items-start justify-between mb-4 pb-4 border-b border-blue-50/50">
+                    <span class="px-3 py-1 bg-surface-container text-primary rounded-full font-black text-xs">${getPeriodLabel(g.periodType, g.periodValue)}</span>
+                    <span class="px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-on-surface">${g.status}</span>
                 </div>
                 
-                <div class="flex items-center gap-6 bg-surface-container-lowest p-4 rounded-lg mt-4 border border-blue-50/50">
-                    <div class="flex-1">
-                        <div class="flex justify-between text-sm mb-1 font-bold"><span>진척률 업데이트</span><span id="prog-val-${g.id}" class="text-primary">${g.progress}%</span></div>
-                        <input type="range" min="0" max="100" value="${g.progress}" onchange="updateProgress(${g.id}, this.value)" class="w-full accent-primary">
+                <!-- Edit Content Section -->
+                <div class="mb-6 space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 ml-1">목표 핵심 텍스트</label>
+                        <input type="text" value="${g.text}" onchange="updateManageGoalText(${g.id}, this.value)" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2 text-sm font-semibold text-on-surface outline-none focus:border-primary focus:ring-1">
                     </div>
                     <div>
-                        <button onclick="requestProgressUpdate(${g.id})" class="px-4 py-2 border border-primary text-primary font-bold rounded-lg hover:bg-primary/5 transition-colors whitespace-nowrap text-sm">확인 요청</button>
+                        <label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 ml-1">액션 플랜 수정</label>
+                        <textarea rows="2" onchange="updateManageGoalPlan(${g.id}, this.value)" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-1 resize-y">${g.actionPlan}</textarea>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button onclick="requestContentUpdate(${g.id})" class="px-4 py-1.5 bg-surface-container text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors shadow-sm">내용 수정 요청</button>
+                    </div>
+                </div>
+                
+                <!-- Details Update Section -->
+                <div class="bg-surface-container-lowest p-5 rounded-xl border border-blue-100 flex items-center gap-8">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between font-bold text-sm mb-3">
+                            <span class="text-on-surface">진척률 업데이트</span>
+                            <span id="prog-val-${g.id}" class="text-primary text-xl font-black bg-blue-50 px-2 py-0.5 rounded">${g.progress}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="${g.progress}" onchange="updateProgress(${g.id}, this.value)" oninput="document.getElementById('prog-val-${g.id}').innerText=this.value+'%'" class="w-full accent-primary h-2 bg-blue-50 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div class="border-l border-blue-100 pl-8">
+                        <button onclick="requestProgressUpdate(${g.id})" class="px-6 py-2.5 bg-primary text-white font-bold rounded-xl shadow hover:shadow-md hover:bg-primary-dim transition-all whitespace-nowrap text-sm flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            진척률 확인 요청
+                        </button>
                     </div>
                 </div>
             </div>
@@ -378,12 +478,19 @@ function renderGoalsManage(container) {
     }
 
     let html = `
-        <div class="flex items-center gap-8 border-b border-blue-100 mb-8 px-4">
+        <!-- Tabs -->
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2">
             <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 관리</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 관리</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 관리</button>
         </div>
-        <div class="max-w-4xl">
+        
+        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3">
+            <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <p class="text-sm font-medium text-on-surface">입력된 필드를 수정하고 <b>[내용 수정 요청]</b> 버튼을 누르면 목표 내용이 변경 승인 요청되며, 바(Bar)를 움직여 <b>[진척률 확인 요청]</b>을 클릭하면 실시간 퍼센테이지가 업데이트 됩니다.</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto">
             ${contentHtml}
         </div>
     `;
@@ -395,26 +502,34 @@ function renderRequests(container) {
     
     let rowsHtml = '';
     if(list.length === 0) {
-        rowsHtml = `<tr><td colspan="5" class="p-8 text-center text-on-surface-variant font-medium">대기 중인 요청이 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="5" class="p-10 text-center text-on-surface-variant font-medium">현재 결재를 대기 중인 요청이 없습니다. 🎉</td></tr>`;
     } else {
         rowsHtml = list.map(g => {
             const assignee = USER_NAMES[g.userId] || g.userId;
-            const reqBadge = g.requestType === 'new' ? '<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded">신규 목표</span>' : '<span class="px-2 py-0.5 bg-[#f59e0b]/10 text-[#d97706] text-[10px] font-bold rounded">진척률 업데이트</span>';
+            let reqBadge = '';
+            if(g.requestType === 'new') reqBadge = '<span class="px-2.5 py-1 bg-primary/10 text-primary text-[11px] font-bold rounded uppercase tracking-wider">신규</span>';
+            else if(g.requestType === 'update' || g.requestType === 'progress-update') reqBadge = '<span class="px-2.5 py-1 bg-[#f59e0b]/10 text-[#d97706] text-[11px] font-bold rounded uppercase tracking-wider">진척률</span>';
+            else if(g.requestType === 'content-update') reqBadge = '<span class="px-2.5 py-1 bg-[#8b5cf6]/10 text-[#6d28d9] text-[11px] font-bold rounded uppercase tracking-wider">내용 수정</span>';
+
             return `
-            <tr class="border-b border-blue-50/50 hover:bg-surface-container-low/50 transition-colors">
-                <td class="py-4 px-6 font-medium">${assignee}</td>
-                <td class="py-4 px-6">
-                    <div class="mb-1">${reqBadge} <span class="font-bold text-xs text-on-surface ml-1">${getPeriodLabel(g.periodType, g.periodValue)}</span></div>
-                    <div class="text-sm font-medium w-64 truncate">${g.text}</div>
+            <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors">
+                <td class="py-5 px-6 font-bold text-on-surface">${assignee}</td>
+                <td class="py-5 px-6">
+                    <div class="flex items-center gap-2 mb-2">
+                        ${reqBadge} 
+                        <span class="font-extrabold text-xs text-on-surface-variant">${getPeriodLabel(g.periodType, g.periodValue)}</span>
+                    </div>
+                    <div class="text-sm font-bold w-64 truncate leading-relaxed">${g.text}</div>
+                    ${g.actionPlan ? `<div class="text-[11px] font-medium text-on-surface-variant truncate w-64 mt-1 border-l-2 border-blue-100 pl-2">${g.actionPlan.replace(/\n/g, ' ')}</div>` : ''}
                 </td>
-                <td class="py-4 px-6">
-                    <div class="font-display font-bold text-lg ${g.progress === 100 ? 'text-success' : 'text-primary'}">${g.progress}%</div>
+                <td class="py-5 px-6">
+                    <div class="font-display font-black text-2xl ${g.progress === 100 ? 'text-success' : 'text-primary'}">${g.progress}%</div>
                 </td>
-                <td class="py-4 px-6">
-                    <span class="text-xs font-bold text-on-surface-variant border border-blue-100 bg-white px-2 py-1 rounded">${g.status}</span>
+                <td class="py-5 px-6">
+                    <span class="text-xs font-bold text-on-surface-variant border border-blue-100 bg-white px-3 py-1.5 rounded-md shadow-sm">${g.status}</span>
                 </td>
-                <td class="py-4 px-6 text-right">
-                    <button onclick="approveRequest(${g.id})" class="px-4 py-2 bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-xs rounded-lg shadow-sm hover:shadow-md transition-all">승인하기</button>
+                <td class="py-5 px-6 text-right">
+                    <button onclick="approveRequest(${g.id})" class="px-6 py-2.5 bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">승인 처리</button>
                 </td>
             </tr>
             `;
@@ -422,16 +537,16 @@ function renderRequests(container) {
     }
 
     container.innerHTML = `
-        <div class="bg-white rounded-xl border border-blue-50 shadow-sm max-w-5xl overflow-hidden">
-            <h3 class="font-display font-bold text-lg p-6 border-b border-blue-50 bg-surface/30">실시간 결재 / 요청 관리</h3>
+        <h3 class="font-display font-bold text-2xl mb-6">결재함 (요청 관리)</h3>
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-5xl overflow-hidden glass-panel">
             <table class="w-full text-left">
                 <thead>
-                    <tr class="text-xs text-on-surface-variant uppercase tracking-wider bg-surface-container-lowest border-b border-blue-50/50">
-                        <th class="py-3 px-6">기안자</th>
-                        <th class="py-3 px-6">요청 유형 및 목표</th>
-                        <th class="py-3 px-6">최신 진척률</th>
-                        <th class="py-3 px-6">상태</th>
-                        <th class="py-3 px-6"></th>
+                    <tr class="text-xs text-on-surface-variant font-bold bg-surface-container-low border-b border-blue-50">
+                        <th class="py-4 px-6 w-1/5">기안자</th>
+                        <th class="py-4 px-6 w-2/5">요청 정보 (유형/내용)</th>
+                        <th class="py-4 px-6">지표</th>
+                        <th class="py-4 px-6">현재 상태</th>
+                        <th class="py-4 px-6">진행</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>

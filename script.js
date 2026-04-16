@@ -292,6 +292,25 @@ function renderCurrentView() {
     }
 }
 
+function generatePeriodOptions(tab, selectedValue) {
+    let html = '';
+    const d = new Date();
+    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    if (tab === 'monthly') {
+        const startMonth = STATE.currentView === 'dashboard' ? 1 : (d.getMonth() + 1);
+        for(let m = startMonth; m <= 12; m++) {
+            let val = `${currYear}-${String(m).padStart(2, '0')}`;
+            html += `<option value="${val}" ${selectedValue === val ? 'selected' : ''}>${currYear}년 ${m}월</option>`;
+        }
+    } else if (tab === 'quarterly') {
+        const startQ = STATE.currentView === 'dashboard' ? 1 : (Math.floor(d.getMonth()/3)+1);
+        for(let q = startQ; q <= 4; q++) html += `<option value="${currYear}-Q${q}" ${selectedValue === `${currYear}-Q${q}` ? 'selected' : ''}>${currYear}년 ${q}분기</option>`;
+    } else if (tab === 'yearly') {
+        html += `<option value="${currYear}" ${selectedValue === String(currYear) ? 'selected':''}>${currYear}년</option><option value="${currYear+1}" ${selectedValue === String(currYear+1) ? 'selected':''}>${currYear+1}년</option>`;
+    }
+    return html;
+}
+
 
 // Rendering Views
 function renderDashboard(container) {

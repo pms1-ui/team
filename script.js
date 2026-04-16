@@ -522,14 +522,16 @@ function renderGoalsSet(container) {
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
-        <div class="mb-4 w-full flex justify-between items-center">
-            <select onchange="setPeriod('goals_set', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
-                ${generatePeriodOptions(STATE.goalsSetTab, STATE.goalsSetPeriodValue)}
-            </select>
-            <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                새 OKR 추가
-            </button>
+        <div class="mb-4 w-full">
+            <div class="flex justify-between items-start">
+                <select onchange="setPeriod('goals_set', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                    ${generatePeriodOptions(STATE.goalsSetTab, STATE.goalsSetPeriodValue)}
+                </select>
+                <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    새 OKR 추가
+                </button>
+            </div>
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">

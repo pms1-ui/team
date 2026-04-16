@@ -14,14 +14,14 @@ const STATE = {
 
 // --- Dummy Data (Fallback if Baserow config is empty) ---
 const DUMMY_TASKS = [
-    { id: 1, category: 'Design', name: 'Banner Design', standardMD: 0.1 },
-    { id: 2, category: 'Design', name: 'Page Layout', standardMD: 1.0 },
-    { id: 3, category: 'Dev', name: 'API Integration', standardMD: 0.5 },
+    { id: 1, category: '디자인', name: '배너 디자인', standardMD: 0.1 },
+    { id: 2, category: '디자인', name: '메인 페이지 레이아웃', standardMD: 1.0 },
+    { id: 3, category: '개발', name: 'API 연동', standardMD: 0.5 },
 ];
 
 const DUMMY_LOGS = [
-    { id: 1, userId: 'member', date: '2026-04-15', taskId: 1, actualTime: 1.5, standardMD: 0.1, status: 'Completed', summary: 'Designed spring promo banner' },
-    { id: 2, userId: 'member', date: '2026-04-16', taskId: 2, actualTime: 8.0, standardMD: 1.0, status: 'In Progress', summary: 'Drafted main dashboard layout' },
+    { id: 1, userId: 'member', date: '2026-04-15', taskId: 1, actualTime: 1.5, standardMD: 0.1, status: '완료', summary: '봄맞이 프로모션 배너 디자인 완료' },
+    { id: 2, userId: 'member', date: '2026-04-16', taskId: 2, actualTime: 8.0, standardMD: 1.0, status: '진행 중', summary: '메인 대시보드 레이아웃 초안 작업' },
 ];
 
 // --- Baserow API Helpers ---
@@ -85,10 +85,10 @@ const VIEWS = {
 };
 
 const MENU_ITEMS = [
-    { id: 'dashboard', label: 'Dashboard', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
-    { id: 'worklog', label: 'Task Log', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'report', label: 'Performance Report', icon: '<path d="M9 17v-2m4 2v-4m4 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'admin', label: 'Resource Monitoring', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
+    { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
+    { id: 'worklog', label: '업무 일지', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
+    { id: 'report', label: '성과 리포트', icon: '<path d="M9 17v-2m4 2v-4m4 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
+    { id: 'admin', label: '리소스 모니터링', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
 ];
 
 function updateNavigation() {
@@ -115,7 +115,7 @@ function renderCurrentView() {
     content.innerHTML = '';
     const title = document.getElementById('page-title');
     const menuItem = MENU_ITEMS.find(m => m.id === STATE.currentView);
-    title.innerText = menuItem ? menuItem.label : 'Dashboard';
+    title.innerText = menuItem ? menuItem.label : '대시보드';
     
     VIEWS[STATE.currentView](content);
 }
@@ -131,42 +131,42 @@ function renderDashboard(container) {
     let html = `
         <div class="grid grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-xl p-6 kpi-card border border-blue-50">
-                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">My M/D Operation Rate</p>
+                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">나의 M/D 가동률</p>
                 <div class="flex items-end gap-3"><h3 class="text-4xl font-display font-bold text-on-surface">${rate}%</h3></div>
                 <div class="w-full bg-surface-container h-2 rounded-full mt-4"><div class="bg-primary h-2 rounded-full" style="width: ${rate}%"></div></div>
             </div>
             <div class="bg-white rounded-xl p-6 kpi-card border border-blue-50">
-                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Team Average M/D</p>
+                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">팀 평균 가동률</p>
                 <div class="flex items-end gap-3"><h3 class="text-4xl font-display font-bold text-on-surface">${teamRate}%</h3></div>
                 <div class="w-full bg-surface-container h-2 rounded-full mt-4"><div class="bg-outline h-2 rounded-full" style="width: ${teamRate}%"></div></div>
             </div>
             <div class="bg-white rounded-xl p-6 kpi-card border border-blue-50">
-                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Pending Approvals</p>
+                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">결재 대기 업무</p>
                 <div class="flex items-end gap-3"><h3 class="text-4xl font-display font-bold text-error">2</h3></div>
-                <p class="text-sm text-on-surface-variant mt-2">Requires admin review</p>
+                <p class="text-sm text-on-surface-variant mt-2">관리자 검토 필요</p>
             </div>
         </div>
         
-        <h3 class="font-display text-lg font-semibold mb-4">Recent Task Log</h3>
+        <h3 class="font-display text-lg font-semibold mb-4">최근 업무 로그</h3>
         <div class="bg-white rounded-xl border border-blue-50 overflow-hidden">
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
                     <tr class="bg-surface-container-low text-on-surface-variant border-b border-blue-50/50">
-                        <th class="py-3 px-6 font-semibold">Date</th>
-                        <th class="py-3 px-6 font-semibold">Task</th>
-                        <th class="py-3 px-6 font-semibold">Standard M/D</th>
-                        <th class="py-3 px-6 font-semibold">Actual H.</th>
-                        <th class="py-3 px-6 font-semibold">Status</th>
+                        <th class="py-3 px-6 font-semibold">일자</th>
+                        <th class="py-3 px-6 font-semibold">업무명</th>
+                        <th class="py-3 px-6 font-semibold">표준 M/D</th>
+                        <th class="py-3 px-6 font-semibold">실제 시간</th>
+                        <th class="py-3 px-6 font-semibold">상태</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-blue-50/50">
                     ${DUMMY_LOGS.filter(l => STATE.user.role === 'admin' || l.userId === STATE.user.id).map(log => {
                         const task = DUMMY_TASKS.find(t => t.id === log.taskId);
-                        const statusColor = log.status === 'Completed' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary';
+                        const statusColor = log.status === '완료' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary';
                         return `
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3 px-6 text-on-surface-variant">${log.date}</td>
-                            <td class="py-3 px-6 font-medium">${task ? task.name : 'Unknown'}</td>
+                            <td class="py-3 px-6 font-medium">${task ? task.name : '알 수 없음'}</td>
                             <td class="py-3 px-6">${log.standardMD} M/D</td>
                             <td class="py-3 px-6">${log.actualTime}h</td>
                             <td class="py-3 px-6"><span class="px-2 py-1 rounded-full text-[11px] font-bold tracking-wide ${statusColor}">${log.status}</span></td>
@@ -185,30 +185,30 @@ function renderWorkLog(container) {
     
     let html = `
         <div class="max-w-3xl bg-white rounded-xl p-8 border border-blue-50 shadow-sm">
-            <h3 class="font-display text-xl font-bold mb-6">Log New Task</h3>
+            <h3 class="font-display text-xl font-bold mb-6">새 업무 기록하기</h3>
             <form id="worklog-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-semibold mb-2 text-on-surface-variant">Select Standard Task</label>
+                    <label class="block text-sm font-semibold mb-2 text-on-surface-variant">표준 업무 선택</label>
                     <select id="task-select" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
                         ${options}
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold mb-2 text-on-surface-variant">Actual Time Spend (Hours)</label>
-                        <input type="number" step="0.5" id="actual-time" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="e.g. 4.5">
+                        <label class="block text-sm font-semibold mb-2 text-on-surface-variant">실제 투입 시간 (시간)</label>
+                        <input type="number" step="0.5" id="actual-time" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="예: 4.5">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold mb-2 text-on-surface-variant">Deliverable URL</label>
+                        <label class="block text-sm font-semibold mb-2 text-on-surface-variant">산출물 URL</label>
                         <input type="url" id="task-url" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="https://...">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-2 text-on-surface-variant">Today's Performance Summary</label>
-                    <textarea id="task-summary" rows="3" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Briefly describe outputs..."></textarea>
+                    <label class="block text-sm font-semibold mb-2 text-on-surface-variant">오늘의 성과 요약</label>
+                    <textarea id="task-summary" rows="3" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2.5 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="결과물을 간략하게 설명해주세요..."></textarea>
                 </div>
                 <div class="flex justify-end pt-4">
-                    <button type="submit" class="bg-gradient-to-br from-primary to-primary-dim text-white px-6 py-2.5 rounded-lg shadow-md hover:opacity-90 font-medium">Request Approval (Save)</button>
+                    <button type="submit" class="bg-gradient-to-br from-primary to-primary-dim text-white px-6 py-2.5 rounded-lg shadow-md hover:opacity-90 font-medium">관리자 합의 요청 (저장)</button>
                 </div>
             </form>
         </div>
@@ -227,11 +227,11 @@ function renderWorkLog(container) {
             actualTime: parseFloat(document.getElementById('actual-time').value) || 0,
             summary: document.getElementById('task-summary').value,
             url: document.getElementById('task-url').value,
-            status: 'Pending Review'
+            status: '검토 대기 중'
         };
         const success = await postWorkLog(newLog);
         if(success) {
-            alert('Task logged successfully!');
+            alert('업무 일지가 성공적으로 등록되었습니다!');
             STATE.currentView = 'dashboard';
             updateNavigation();
             renderCurrentView();
@@ -245,11 +245,11 @@ function renderReport(container) {
             <div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m4 2v-4m4 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             </div>
-            <h3 class="font-display text-xl font-bold mb-2">Weekly/Monthly Performance Report</h3>
-            <p class="text-on-surface-variant max-w-md mx-auto mb-6">Select a period to view your standardized M/D achievements aligned with OKRs.</p>
+            <h3 class="font-display text-xl font-bold mb-2">주간 / 월간 성과 리포트</h3>
+            <p class="text-on-surface-variant max-w-md mx-auto mb-6">원하는 기간을 선택하여 KPI 및 OKR과 연계된 표준 M/D 달성 현황을 확인하세요.</p>
             <div class="flex justify-center gap-4">
-                <button class="px-4 py-2 border border-blue-100 rounded-lg text-sm font-medium hover:bg-surface-container">Export PDF</button>
-                <button class="px-4 py-2 border border-blue-100 rounded-lg text-sm font-medium hover:bg-surface-container">Export CSV</button>
+                <button class="px-4 py-2 border border-blue-100 rounded-lg text-sm font-medium hover:bg-surface-container">PDF 추출</button>
+                <button class="px-4 py-2 border border-blue-100 rounded-lg text-sm font-medium hover:bg-surface-container">CSV 추출</button>
             </div>
         </div>
     `;
@@ -257,13 +257,13 @@ function renderReport(container) {
 
 function renderAdmin(container) {
     const members = [
-        { name: 'Member A', rate: 110 },
-        { name: 'Member B', rate: 95 },
-        { name: 'Member C', rate: 60 } // Red flag
+        { name: '구성원 A', rate: 110 },
+        { name: '구성원 B', rate: 95 },
+        { name: '구성원 C', rate: 60 } // Red flag
     ];
     
     let rows = members.map(m => {
-        const flag = m.rate < 80 ? `<span class="px-2 py-1 bg-error/10 text-error rounded-full text-xs font-bold">Red Flag</span>` : `<span class="px-2 py-1 bg-success/10 text-success rounded-full text-xs font-bold">On Track</span>`;
+        const flag = m.rate < 80 ? `<span class="px-3 py-1 bg-error/10 text-error rounded-full text-xs font-bold whitespace-nowrap">미달 (Red Flag)</span>` : `<span class="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-bold whitespace-nowrap">정상 궤도</span>`;
         return `
         <tr class="border-b border-blue-50/50">
             <td class="py-3 px-6 font-medium">${m.name}</td>
@@ -276,22 +276,22 @@ function renderAdmin(container) {
     container.innerHTML = `
         <div class="grid grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-xl p-6 border border-blue-50 shadow-sm">
-                <h3 class="font-display font-bold text-lg mb-4">Resource Operation Ranking</h3>
-                <table class="w-full text-left">
+                <h3 class="font-display font-bold text-lg mb-4">리소스 밀도 랭킹 (구성원 전체)</h3>
+                <table class="w-full text-left bg-surface-container-lowest">
                     <thead>
-                        <tr class="text-xs text-on-surface-variant uppercase tracking-wider">
-                            <th class="pb-2 px-6">Member</th>
-                            <th class="pb-2 px-6">M/D Rate</th>
-                            <th class="pb-2 px-6">Status</th>
+                        <tr class="text-xs text-on-surface-variant uppercase tracking-wider bg-surface-container-low border-b border-blue-50">
+                            <th class="py-3 px-6">이름</th>
+                            <th class="py-3 px-6">M/D 가동률</th>
+                            <th class="py-3 px-6">상태</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
                 </table>
             </div>
             <div class="bg-white rounded-xl p-6 border border-blue-50 shadow-sm flex flex-col items-center justify-center text-center">
-                <h3 class="font-display font-bold text-lg mb-2">ROI Analytics</h3>
-                <p class="text-sm text-on-surface-variant border border-dashed border-blue-200 p-8 rounded-lg w-full bg-surface">
-                    [Chart Placeholder]<br>Productivity vs Personnel Cost
+                <h3 class="font-display font-bold text-lg mb-2">투자 대비 생산성 (ROI) 평가</h3>
+                <p class="text-sm text-on-surface-variant border border-dashed border-blue-200 p-8 rounded-lg w-full bg-surface mt-2">
+                    [차트 위치 영억]<br><br>가동률 대비 인건비 생산성 비교 그래프
                 </p>
             </div>
         </div>
@@ -305,16 +305,16 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     const pw = document.getElementById('login-pw').value;
 
     if(pw !== '1111') {
-        alert('Invalid password');
+        alert('비밀번호가 올바르지 않습니다.');
         return;
     }
 
     if(id === 'master') {
-        STATE.user = { id: 'master', name: 'Master Admin', role: 'admin' };
+        STATE.user = { id: 'master', name: '마스터 관리자', role: 'admin' };
     } else if (id === 'member') {
-        STATE.user = { id: 'member', name: 'General Member', role: 'user' };
+        STATE.user = { id: 'member', name: '일반 구성원', role: 'user' };
     } else {
-        alert('Unknown User ID');
+        alert('존재하지 않는 사용자 ID입니다.');
         return;
     }
     
@@ -339,6 +339,5 @@ document.getElementById('btn-logout').addEventListener('click', () => {
 });
 
 // Set current date in header
-document.getElementById('current-date').innerText = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric'
-});
+const today = new Date();
+document.getElementById('current-date').innerText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;

@@ -52,6 +52,91 @@ const STATE = {
             requestType: '진척률', 
             comment: '최적화 작업 진행 중', 
             isProcessed: false 
+        },
+        { 
+            id: 103, 
+            userId: 'member', 
+            periodType: 'monthly', 
+            periodValue: '2026-04', 
+            text: '데이터 분석 역량 강화', 
+            keyResults: [
+                { id: 'kr103-1', text: '실시간 대시보드 구축 완료', progress: 75 },
+                { id: 'kr103-2', text: '데이터 파이프라인 안정성 99% 달성', progress: 85 }
+            ],
+            status: '합의 완료', 
+            requestType: null, 
+            comment: '', 
+            isProcessed: true 
+        },
+        { 
+            id: 201, 
+            userId: 'member2', 
+            periodType: 'monthly', 
+            periodValue: '2026-04', 
+            text: '고객 만족도 향상 프로젝트', 
+            keyResults: [
+                { id: 'kr201-1', text: 'CS 응답 시간 30% 단축', progress: 55 },
+                { id: 'kr201-2', text: '고객 만족도 점수 4.2 이상 달성', progress: 65 },
+                { id: 'kr201-3', text: '재구매율 15% 증가', progress: 45 }
+            ],
+            status: '합의 완료', 
+            requestType: null, 
+            comment: '', 
+            isProcessed: true 
+        },
+        { 
+            id: 202, 
+            userId: 'member2', 
+            periodType: 'monthly', 
+            periodValue: '2026-04', 
+            text: '마케팅 캠페인 효율화', 
+            keyResults: [
+                { id: 'kr202-1', text: 'ROI 25% 개선', progress: 70 },
+                { id: 'kr202-2', text: '신규 고객 유입 1000명 달성', progress: 80 }
+            ],
+            status: '합의 완료', 
+            requestType: null, 
+            comment: '', 
+            isProcessed: true 
+        },
+        { 
+            id: 203, 
+            userId: 'member2', 
+            periodType: 'monthly', 
+            periodValue: '2026-04', 
+            text: '운영 프로세스 자동화', 
+            keyResults: [
+                { id: 'kr203-1', text: '반복 업무 자동화율 60% 달성', progress: 40 },
+                { id: 'kr203-2', text: '업무 처리 시간 50% 단축', progress: 35 }
+            ],
+            tempKeyResults: [
+                { id: 'kr203-1', text: '반복 업무 자동화율 70% 달성', progress: 50 },
+                { id: 'kr203-2', text: '업무 처리 시간 50% 단축', progress: 45 }
+            ],
+            status: '승인 대기중', 
+            requestType: 'KR 내용 변경,진척률 보고', 
+            comment: '자동화 도구 추가 도입으로 목표 상향 조정 필요', 
+            isProcessed: false 
+        },
+        { 
+            id: 204, 
+            userId: 'member2', 
+            periodType: 'monthly', 
+            periodValue: '2026-04', 
+            text: '팀 협업 문화 개선', 
+            keyResults: [
+                { id: 'kr204-1', text: '주간 회의 참여율 95% 이상', progress: 90 },
+                { id: 'kr204-2', text: '크로스 팀 프로젝트 3건 이상 진행', progress: 100 }
+            ],
+            tempKeyResults: [
+                { id: 'kr204-1', text: '주간 회의 참여율 95% 이상', progress: 95 },
+                { id: 'kr204-2', text: '크로스 팀 프로젝트 3건 이상 진행', progress: 100 },
+                { id: 'kr204-3', text: '팀 만족도 조사 4.0 이상', progress: 0 }
+            ],
+            status: '승인 대기중', 
+            requestType: 'KR 항목 증감,진척률 보고', 
+            comment: '팀 만족도 측정 지표 추가 요청', 
+            isProcessed: false 
         }
     ]
 };
@@ -59,7 +144,7 @@ const STATE = {
 const USER_NAMES = {
     'master': '마스터 관리자',
     'member': '김전략',
-    'member2': '이개발'
+    'member2': '박성공'
 };
 
 // --- Initialization ---

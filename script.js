@@ -19,6 +19,14 @@ const STATE = {
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
+    // Members Data
+    members: [
+        { id: 1, name: '김전략', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
+        { id: 2, name: '박성공', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
+        { id: 3, name: '이혁신', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
+        { id: 4, name: '최효율', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
+    ],
+    
     // All Goals Data
     allGoals: [
         { 
@@ -185,7 +193,8 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
+    { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
+    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
 ];
 
 // --- Global Dispatchers ---
@@ -439,6 +448,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'goals_set') renderGoalsSet(content);
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
     else if (STATE.currentView === 'requests') renderRequests(content);
+    else if (STATE.currentView === 'members') renderMembers(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -961,3 +971,87 @@ function updateDateTime() {
 // 초기 날짜/시간 설정 및 1초마다 업데이트
 updateDateTime();
 setInterval(updateDateTime, 1000);
+
+// --- Members Management ---
+window.updateMemberField = function(id, field, value) {
+    const member = STATE.members.find(m => m.id === id);
+    if(member) {
+        member[field] = value;
+    }
+};
+
+window.addMember = function() {
+    const newId = Math.max(...STATE.members.map(m => m.id)) + 1;
+    STATE.members.push({
+        id: newId,
+        name: '',
+        team: '',
+        position: '팀원',
+        email: ''
+    });
+    renderCurrentView();
+};
+
+window.removeMember = function(id) {
+    if(STATE.members.length > 1) {
+        STATE.members = STATE.members.filter(m => m.id !== id);
+        renderCurrentView();
+    } else {
+        alert('최소 1명의 구성원이 필요합니다.');
+    }
+};
+
+function renderMembers(container) {
+    let rowsHtml = STATE.members.map((member, i) => {
+        return `
+            <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
+                <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[20%]">
+                    <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[20%]">
+                    <input type="text" value="${member.team}" oninput="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="팀명 입력">
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
+                        <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
+                        <option value="팀원" ${member.position === '팀원' ? 'selected' : ''}>팀원</option>
+                    </select>
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[30%]">
+                    <input type="email" value="${member.email}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
+                </td>
+                <td class="py-5 px-6 text-center w-24">
+                    <button onclick="removeMember(${member.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="mb-4 w-full flex justify-between items-center">
+            <div class="text-[14px] font-bold text-on-surface-variant">
+                총 <span class="text-primary font-black mx-1">${STATE.members.length}</span>명의 구성원
+            </div>
+            <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                구성원 추가
+            </button>
+        </div>
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
+            <table class="w-full text-left table-auto">
+                <thead class="bg-surface-container">
+                    <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">구성원</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
+                        <th class="py-4 px-6 text-center">관리</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `;
+}

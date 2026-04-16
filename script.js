@@ -495,21 +495,25 @@ function renderDashboard(container) {
         users = filtered;
     }
 
+    const isMobile = window.innerWidth < 1024;
+    
     let h = `
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('dashboard', 'monthly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
-            <button onclick="setTab('dashboard', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-            <button onclick="setTab('dashboard', 'yearly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <button onclick="setTab('dashboard', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
+            <button onclick="setTab('dashboard', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('dashboard', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
-            <select onchange="setPeriod('dashboard', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+            <select onchange="setPeriod('dashboard', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue)}
             </select>
         </div>
     `;
 
     if(Object.keys(users).length === 0) {
-        h += `<div class="bg-white/50 border border-dashed border-blue-200 h-64 rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">표시할 목표 데이터가 없습니다.</div>`;
+        h += `<div class="bg-white/50 border border-dashed border-blue-200 h-40 lg:h-64 rounded-xl lg:rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[12px] lg:text-[13px] text-center p-4">표시할 목표 데이터가 없습니다.</div>`;
+    } else if(isMobile) {
+        h += renderDashboardMobile(container, users);
     } else {
         for(let uid in users) {
             const name = USER_NAMES[uid] || uid;
@@ -564,7 +568,6 @@ function renderDashboard(container) {
     }
     container.innerHTML = h;
 }
-
 function renderGoalsSet(container) {
     const drafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
     if(drafts.length === 0) {
@@ -1193,3 +1196,134 @@ function closeMobileMenuOnNavigate() {
         document.body.style.overflow = '';
     }
 }
+
+
+// Wrapper functions to detect mobile and render accordingly
+const originalRenderGoalsSet = renderGoalsSet;
+const originalRenderGoalsManage = renderGoalsManage;
+const originalRenderRequests = renderRequests;
+const originalRenderMembers = renderMembers;
+
+renderGoalsSet = function(container) {
+    const drafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
+    if(drafts.length === 0) {
+        for(let i=0; i<3; i++) addOKR(i); 
+        return;
+    }
+    
+    const isMobile = window.innerWidth < 1024;
+    
+    let h = `
+        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+        </div>
+        <div class="mb-4 w-full">
+            <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-start gap-3">
+                <select onchange="setPeriod('goals_set', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                    ${generatePeriodOptions(STATE.goalsSetTab, STATE.goalsSetPeriodValue)}
+                </select>
+                <button onclick="addOKR()" class="flex items-center justify-center gap-2 px-4 py-2 bg-primary lg:bg-white border border-primary lg:border-blue-100 text-white lg:text-primary font-bold text-[13px] rounded-lg hover:bg-primary-dim lg:hover:bg-blue-50 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    새 OKR 추가
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if(isMobile) {
+        h += renderGoalsSetMobile(drafts);
+    } else {
+        originalRenderGoalsSet(container);
+        return;
+    }
+    
+    container.innerHTML = h;
+};
+
+renderGoalsManage = function(container) {
+    const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue && g.status !== '작성중');
+    const isMobile = window.innerWidth < 1024;
+    
+    let h = `
+        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
+            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+        </div>
+        <div class="mb-4 w-full">
+            <select onchange="setPeriod('goals_manage', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
+            </select>
+        </div>
+    `;
+    
+    if(isMobile) {
+        h += renderGoalsManageMobile(items);
+    } else {
+        originalRenderGoalsManage(container);
+        return;
+    }
+    
+    container.innerHTML = h;
+};
+
+renderRequests = function(container) {
+    const list = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
+    list.sort((a,b) => (a.isProcessed === b.isProcessed) ? 0 : a.isProcessed ? 1 : -1);
+    const isMobile = window.innerWidth < 1024;
+    
+    let h = `
+        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <button onclick="setTab('requests', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
+            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+        </div>
+        <div class="mb-4 w-full">
+            <select onchange="setPeriod('requests', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
+            </select>
+        </div>
+    `;
+    
+    if(isMobile) {
+        h += renderRequestsMobile(list);
+    } else {
+        originalRenderRequests(container);
+        return;
+    }
+    
+    container.innerHTML = h;
+};
+
+renderMembers = function(container) {
+    const isMobile = window.innerWidth < 1024;
+    
+    let h = `
+        <div class="mb-4 w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
+            <div class="text-[14px] font-bold text-on-surface-variant">
+                총 <span class="text-primary font-black mx-1">${STATE.members.length}</span>명의 구성원
+            </div>
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-3">
+                <button onclick="openTeamManagement()" class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    팀 관리
+                </button>
+                <button onclick="addMember()" class="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    구성원 추가
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if(isMobile) {
+        h += renderMembersMobile(STATE.members, STATE.teams);
+    } else {
+        originalRenderMembers(container);
+        return;
+    }
+    
+    container.innerHTML = h;
+};

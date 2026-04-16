@@ -11,7 +11,7 @@ const STATE = {
     goalsManageTab: 'monthly',
     
     // Current draft goals for submission
-    activeGoalsDraft: [ { id: 1, text: '', actionPlan: '' } ],
+    activeGoalsDraft: [ { id: 1, text: '', actionPlan: '' }, { id: Date.now()+1, text: '', actionPlan: '' }, { id: Date.now()+2, text: '', actionPlan: '' } ],
     draftSubmitted: false, // UI state to show '승인 대기'
     
     // Submitted Goals Data
@@ -354,23 +354,27 @@ function renderGoalsSet(container) {
 
     let rowsHtml = STATE.activeGoalsDraft.map((g, index) => {
         return `
-            <div class="bg-surface-container-lowest border border-blue-100 rounded-xl p-5 relative shadow-sm hover:shadow-md transition-shadow group">
-                <div class="flex justify-between items-start mb-4">
-                    <h5 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider bg-surface-container px-2 py-1 rounded">목표 #${index + 1}</h5>
+            <div class="bg-surface-container-lowest border border-blue-50 hover:border-primary/30 rounded-2xl p-6 relative shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-sm shadow-inner">${index + 1}</div>
+                        <h5 class="text-sm font-bold text-on-surface">OKR 목표 달성 정의서</h5>
+                    </div>
                     ${!STATE.draftSubmitted ? `
-                    <button onclick="removeGoalRow(${g.id})" class="text-error hover:bg-error/10 p-1.5 rounded transition-colors opacity-50 group-hover:opacity-100" title="삭제">
+                    <button onclick="removeGoalRow(${g.id})" class="text-error/70 hover:text-error hover:bg-error/10 px-2 py-1.5 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1 opacity-0 group-hover:opacity-100" title="삭제">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        항목 삭제
                     </button>
                     ` : ''}
                 </div>
-                <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-on-surface mb-1.5 ml-1">핵심 달성 목표 (1줄 요약)</label>
-                        <input type="text" value="${g.text}" oninput="updateGoalText(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-200 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all shadow-sm font-medium" placeholder="예: MAU 20% 증가 달성">
+                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">🔥 핵심 달성 목표 (Objective)</label>
+                        <input type="text" value="${g.text}" oninput="updateGoalText(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm font-bold text-sm text-on-surface placeholder:text-on-surface-variant/40" placeholder="예: MAU 20% 증가 달성">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-on-surface mb-1.5 ml-1">세부 액션 플랜 (멀티 라인 작성)</label>
-                        <textarea rows="3" oninput="updateGoalPlan(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-200 rounded-lg px-4 py-2.5 outline-none focus:border-primary focus:ring-1 transition-all text-sm resize-none shadow-sm" placeholder="액션 아이템 1...&#10;액션 아이템 2...&#10;액션 아이템 3...">${g.actionPlan}</textarea>
+                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">🎯 세부 액션 플랜 (Key Results)</label>
+                        <textarea rows="3" oninput="updateGoalPlan(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium text-on-surface resize-none shadow-sm placeholder:text-on-surface-variant/40 leading-relaxed" placeholder="- 신규 가입자 유치 캠페인 기획 및 오픈&#10;- 휴면 유저 푸시 알림 CTR 3% 달성&#10;- 공유하기 기능 도입"></textarea>
                     </div>
                 </div>
             </div>
@@ -379,33 +383,38 @@ function renderGoalsSet(container) {
 
     let btnHtml = STATE.draftSubmitted 
         ? `<button disabled class="bg-surface-container text-on-surface-variant px-10 py-3.5 rounded-xl font-bold tracking-wide shadow-inner cursor-not-allowed border border-blue-100">승인 대기 중</button>`
-        : `<button onclick="submitGoals()" class="bg-gradient-to-br from-primary to-primary-dim text-white px-10 py-3.5 rounded-xl shadow-[0_4px_14px_rgba(0,83,219,0.3)] hover:shadow-[0_6px_20px_rgba(0,83,219,0.4)] font-bold tracking-wide transition-all translate-y-0 hover:-translate-y-0.5">합의 요청하기</button>`;
+        : `<button onclick="submitGoals()" class="bg-gradient-to-br from-primary to-primary-dim text-white px-10 py-3.5 rounded-xl shadow-[0_4px_14px_rgba(0,83,219,0.3)] hover:shadow-[0_6px_20px_rgba(0,83,219,0.4)] font-bold tracking-wide transition-all translate-y-0 hover:-translate-y-0.5">조직장 합의 요청하기</button>`;
 
     let html = `
         <!-- Tabs -->
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2">
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2 max-w-5xl mx-auto">
             <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 설정</button>
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 설정</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 설정</button>
         </div>
 
-        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3">
+        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3 max-w-5xl mx-auto">
             <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <p class="text-sm font-medium text-on-surface">${guideHtml}</p>
         </div>
 
-        <div class="bg-white rounded-2xl p-8 border border-blue-50 shadow-sm max-w-4xl mx-auto glass-panel">
+        <div class="bg-white/80 rounded-[32px] p-8 border border-blue-50 shadow-sm max-w-5xl mx-auto backdrop-blur-sm">
             <div class="flex items-center justify-between mb-8 pb-5 border-b border-blue-50/50">
                 <div class="flex items-center gap-4">
-                    <h3 class="font-display text-2xl font-bold">🎯 목표 생성</h3>
-                    <select id="period-selector" ${STATE.draftSubmitted?'disabled':''} class="bg-surface-container-lowest border-2 border-blue-100 rounded-lg text-sm px-4 py-2 focus:border-primary outline-none font-extrabold text-primary shadow-sm cursor-pointer">
-                        ${periodOptionsHtml}
-                    </select>
+                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-2xl font-bold text-on-surface mb-1">성과 창출 셋업</h3>
+                        <select id="period-selector" ${STATE.draftSubmitted?'disabled':''} class="bg-surface-container-lowest border border-blue-100 rounded-lg text-xs px-3 py-1.5 focus:border-primary outline-none font-bold text-on-surface-variant shadow-sm cursor-pointer hover:border-primary/50 transition-colors">
+                            ${periodOptionsHtml}
+                        </select>
+                    </div>
                 </div>
                 ${!STATE.draftSubmitted ? `
-                <button onclick="addGoalRow()" class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-primary font-bold text-sm rounded-xl hover:bg-primary/10 transition-colors border border-blue-100">
+                <button onclick="addGoalRow()" class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-primary font-bold text-sm rounded-xl hover:bg-primary/20 hover:scale-105 transition-all outline-none border border-blue-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    목표 추가하기
+                    OKR 슬롯 추가
                 </button>
                 ` : ''}
             </div>
@@ -414,8 +423,9 @@ function renderGoalsSet(container) {
                 ${rowsHtml}
             </div>
             
-            <div class="flex justify-end pt-6 border-t border-blue-50/50">
+            <div class="flex flex-col items-end pt-6 border-t border-blue-50/50">
                 ${btnHtml}
+                <p class="text-[11px] text-on-surface-variant mt-3 text-right">제출 완료된 목표 내용은 관리자의 승인 전까지 조회만 가능합니다.</p>
             </div>
         </div>
     `;

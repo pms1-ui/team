@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .glass-panel {
+        @apply bg-surface-lowest backdrop-blur-xl border border-white/20 shadow-xl;
+    }
+    
+    .bg-surface-lowest {
+        background-color: rgba(255, 255, 255, 0.85);
+    }
+}
+
+/* Custom CSS Scrollbar for a cleaner analytical look */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Input Ghost Border Effect */
+.input-ghost {
+    border-color: rgba(135, 180, 243, 0.15); /* outline_variant at 15% */
+}
+.input-ghost:focus {
+    border-color: #0053db;
+    box-shadow: 0 0 0 4px rgba(0, 83, 219, 0.1);
+}
+
+/* Base button animations */
+button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* KPI Card ambient shadows */
+.kpi-card {
+    box-shadow: 0 4px 24px rgba(0, 51, 96, 0.04);
+}

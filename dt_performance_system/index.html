@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DT 전략팀 성과 기반 업무 관리 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Manrope', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#0053db',
+                        'primary-dim': '#0048c1',
+                        surface: '#f8f9ff',
+                        'surface-container': '#eff4ff',
+                        'on-surface': '#003360',
+                        'on-surface-variant': '#2f619a',
+                        error: '#9f403d',
+                        success: '#059669'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-sans antialiased overflow-hidden h-screen w-screen flex">
+
+    <!-- 로그인 화면 -->
+    <div id="login-view" class="fixed inset-0 bg-surface z-50 flex items-center justify-center">
+        <div class="glass-panel p-10 rounded-2xl w-[400px] shadow-2xl flex flex-col items-center border border-blue-100/50">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <h1 class="font-display text-2xl font-bold mb-2">DT Strategy Portal</h1>
+            <p class="text-on-surface-variant text-sm mb-8 text-center">성과 기반 업무 관리 및 리소스 모니터링 시스템</p>
+            
+            <div class="w-full mb-4">
+                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">사용자 ID</label>
+                <input type="text" id="login-id" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="master 또는 member">
+            </div>
+            <div class="w-full mb-8">
+                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">비밀번호</label>
+                <input type="password" id="login-pw" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="1111">
+            </div>
+            <button id="btn-login" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-medium py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity">
+                시스템 접속
+            </button>
+        </div>
+    </div>
+
+    <!-- 메인 레이아웃 -->
+    <div id="app-view" class="hidden w-full h-full flex">
+        <!-- 사이드바 -->
+        <aside class="w-64 bg-white border-r border-blue-50/50 flex flex-col h-full shrink-0 shadow-[4px_0_24px_rgba(0,51,96,0.02)] z-10 relative">
+            <div class="h-20 flex items-center px-6 border-b border-blue-50/50">
+                <h2 class="font-display font-bold text-lg text-primary tracking-tight">Kinetic Ledger</h2>
+            </div>
+            
+            <div class="p-6">
+                <p class="text-[10px] uppercase font-bold text-on-surface-variant/60 tracking-wider mb-4">Workspaces</p>
+                <nav class="flex flex-col gap-1" id="nav-menu">
+                    <!-- JS에서 동적 렌더링 -->
+                </nav>
+            </div>
+
+            <div class="mt-auto p-6 border-t border-blue-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold" id="user-avatar">
+                        M
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold" id="auth-user-name">Member</p>
+                        <p class="text-xs text-on-surface-variant cursor-pointer hover:text-primary" id="btn-logout">로그아웃</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 중앙 메인 콘텐츠 -->
+        <main class="flex-1 bg-surface h-full overflow-y-auto relative">
+            <!-- 헤더 -->
+            <header class="h-20 px-10 flex items-center justify-between sticky top-0 bg-surface/80 backdrop-blur-md z-20">
+                <h1 id="page-title" class="font-display text-2xl font-semibold tracking-tight">Dashboard</h1>
+                <div class="flex items-center gap-4">
+                    <span id="current-date" class="text-sm font-medium text-on-surface-variant">2026. 04. 16</span>
+                    <button class="w-10 h-10 rounded-full bg-white border border-blue-50/50 flex items-center justify-center text-on-surface relative shadow-sm hover:shadow-md transition-shadow">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span class="absolute top-2 right-2.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 동적 라우팅 컨테이너 -->
+            <div id="content-area" class="px-10 pb-10">
+                <!-- 뷰 컴포넌트들이 여길 교체함 -->
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

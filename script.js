@@ -19,6 +19,14 @@ const STATE = {
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
+    // Teams Data
+    teams: [
+        { id: 1, name: 'DT전략팀' },
+        { id: 2, name: '개발팀' },
+        { id: 3, name: '디자인팀' },
+        { id: 4, name: '마케팅팀' }
+    ],
+    
     // Members Data
     members: [
         { id: 1, name: '김전략', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
@@ -985,11 +993,100 @@ window.addMember = function() {
     STATE.members.push({
         id: newId,
         name: '',
-        team: '',
+        team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
         position: '팀원',
         email: ''
     });
     renderCurrentView();
+};
+
+// --- Team Management ---
+window.openTeamManagement = function() {
+    const teamListHtml = STATE.teams.map(team => `
+        <div class="flex items-center gap-3 p-4 bg-surface-container rounded-lg border border-blue-50 hover:border-primary/30 transition-all group">
+            <input type="text" value="${team.name}" id="team-name-${team.id}" class="flex-1 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm" placeholder="팀명 입력">
+            <button onclick="updateTeamName(${team.id})" class="px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">수정</button>
+            <button onclick="deleteTeam(${team.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
+        </div>
+    `).join('');
+
+    const content = `
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto px-2">
+            ${teamListHtml}
+            <div class="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-dashed border-blue-200">
+                <input type="text" id="new-team-name" class="flex-1 bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm" placeholder="새 팀명 입력">
+                <button onclick="addTeam()" class="px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:opacity-90 transition-all shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    팀 추가
+                </button>
+            </div>
+        </div>
+    `;
+
+    openModal('팀 관리', content, null, false);
+};
+
+window.addTeam = function() {
+    const input = document.getElementById('new-team-name');
+    const teamName = input.value.trim();
+    if(!teamName) {
+        alert('팀명을 입력하세요.');
+        return;
+    }
+    if(STATE.teams.some(t => t.name === teamName)) {
+        alert('이미 존재하는 팀명입니다.');
+        return;
+    }
+    const newId = Math.max(...STATE.teams.map(t => t.id), 0) + 1;
+    STATE.teams.push({ id: newId, name: teamName });
+    closeModal();
+    openTeamManagement();
+};
+
+window.updateTeamName = function(id) {
+    const input = document.getElementById(`team-name-${id}`);
+    const newName = input.value.trim();
+    if(!newName) {
+        alert('팀명을 입력하세요.');
+        return;
+    }
+    const team = STATE.teams.find(t => t.id === id);
+    if(!team) return;
+    
+    const oldName = team.name;
+    if(STATE.teams.some(t => t.id !== id && t.name === newName)) {
+        alert('이미 존재하는 팀명입니다.');
+        return;
+    }
+    
+    // 구성원의 팀명도 업데이트
+    STATE.members.forEach(member => {
+        if(member.team === oldName) {
+            member.team = newName;
+        }
+    });
+    
+    team.name = newName;
+    closeModal();
+    openTeamManagement();
+};
+
+window.deleteTeam = function(id) {
+    const team = STATE.teams.find(t => t.id === id);
+    if(!team) return;
+    
+    // 해당 팀에 속한 구성원이 있는지 확인
+    const membersInTeam = STATE.members.filter(m => m.team === team.name);
+    if(membersInTeam.length > 0) {
+        alert(`${team.name}에 ${membersInTeam.length}명의 구성원이 있습니다. 구성원을 먼저 다른 팀으로 이동하거나 삭제해주세요.`);
+        return;
+    }
+    
+    if(confirm(`'${team.name}' 팀을 삭제하시겠습니까?`)) {
+        STATE.teams = STATE.teams.filter(t => t.id !== id);
+        closeModal();
+        openTeamManagement();
+    }
 };
 
 window.removeMember = function(id) {
@@ -1002,6 +1099,10 @@ window.removeMember = function(id) {
 };
 
 function renderMembers(container) {
+    const teamOptions = STATE.teams.map(team => 
+        `<option value="${team.name}">${team.name}</option>`
+    ).join('');
+
     let rowsHtml = STATE.members.map((member, i) => {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
@@ -1010,7 +1111,10 @@ function renderMembers(container) {
                     <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[20%]">
-                    <input type="text" value="${member.team}" oninput="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="팀명 입력">
+                    <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
+                        <option value="">팀 선택</option>
+                        ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
+                    </select>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
@@ -1033,10 +1137,16 @@ function renderMembers(container) {
             <div class="text-[14px] font-bold text-on-surface-variant">
                 총 <span class="text-primary font-black mx-1">${STATE.members.length}</span>명의 구성원
             </div>
-            <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                구성원 추가
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="openTeamManagement()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    팀 관리
+                </button>
+                <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    구성원 추가
+                </button>
+            </div>
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">

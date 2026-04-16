@@ -13,14 +13,17 @@ const STATE = {
     goalsManageTab: 'monthly',
     goalsManagePeriodValue: '',
     
+    requestsTab: 'monthly',
+    requestsPeriodValue: '',
+    
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null }
     
     // All Goals Data
     allGoals: [
         { id: 101, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '기존 시스템 UI/UX 개편', actionPlan: '공통 컴포넌트 분리\n신규 라우팅 적용', progress: 40, status: '승인 완료', requestType: null, comment: '', isProcessed: false },
-        { id: 102, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '주요 지표 시각화 설계', actionPlan: 'Chart.js 연동', progress: 40, tempProgress: 85, status: '진척률 승인 대기', requestType: 'progress-update', comment: '디자인 적용 완료', isProcessed: false },
-        { id: 103, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '모니터링 알림 연동', actionPlan: '슬랙 웹훅 연결', progress: 0, status: '승인 대기', requestType: 'new', comment: '', isProcessed: false }
+        { id: 102, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '주요 지표 시각화 설계', actionPlan: 'Chart.js 연동', progress: 40, tempProgress: 85, status: '진척률 승인 대기중', requestType: 'progress-update', comment: '', isProcessed: false },
+        { id: 103, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '모니터링 알림 연동', actionPlan: '슬랙 웹훅 연결', progress: 0, status: '승인 대기중', requestType: 'new', comment: '', isProcessed: false }
     ]
 };
 
@@ -43,6 +46,7 @@ function initDates() {
     STATE.dashboardPeriodValue = getDefaultPeriodValue('monthly');
     STATE.goalsSetPeriodValue = getDefaultPeriodValue('monthly');
     STATE.goalsManagePeriodValue = getDefaultPeriodValue('monthly');
+    STATE.requestsPeriodValue = getDefaultPeriodValue('monthly');
 }
 initDates();
 
@@ -77,6 +81,10 @@ window.setTab = function(view, tab) {
         STATE.goalsManageTab = tab;
         STATE.goalsManagePeriodValue = getDefaultPeriodValue(tab);
     }
+    if (view === 'requests') {
+        STATE.requestsTab = tab;
+        STATE.requestsPeriodValue = getDefaultPeriodValue(tab);
+    }
     renderCurrentView();
 };
 
@@ -84,6 +92,7 @@ window.setPeriod = function(view, val) {
     if(view === 'dashboard') STATE.dashboardPeriodValue = val;
     if(view === 'goals_set') STATE.goalsSetPeriodValue = val;
     if(view === 'goals_manage') STATE.goalsManagePeriodValue = val;
+    if(view === 'requests') STATE.requestsPeriodValue = val;
     renderCurrentView();
 };
 
@@ -128,7 +137,7 @@ window.updateGoalField = function(id, field, value) {
 window.requestGoalApproval = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        if(!goal.text.trim()) { alert('달성 목표를 입력해주세요.'); return; }
+        if(!goal.text.trim()) { alert('목표를 입력해주세요.'); return; }
         goal.status = '승인 대기중';
         goal.requestType = 'new';
         goal.isProcessed = false;
@@ -190,14 +199,10 @@ window.approveRequest = function(id) {
 };
 
 window.undoApproval = function(id) {
-    openModal('승인 취소', '승인 내역을 취소하시겠습니까?', () => {
+    openModal('승인 취소', '위 승인 처리를 정말로 취소하시겠습니까?', () => {
         const goal = STATE.allGoals.find(g => g.id === id);
         if(goal) {
             goal.isProcessed = false;
-            // Restore proper status based on context to allow admin to see it again.
-            // But actually we have no "previous status" stored if it was fully cleared.
-            // Oh, requestType is null when approved... Let's just make it 'new' if we undo, or we should keep requestType when approving.
-            // Let's modify approveRequest to preserve requestType for undo context.
             goal.status = '승인 대기중';
             goal.requestType = goal.requestType || 'new'; // fallback
             closeModal();
@@ -265,7 +270,6 @@ function generatePeriodOptions(tab, selectedValue) {
     return html;
 }
 
-
 function renderDashboard(container) {
     const activeTabCls = "bg-primary text-white font-medium shadow-sm";
     const inactiveTabCls = "text-on-surface-variant hover:bg-surface-container";
@@ -283,7 +287,7 @@ function renderDashboard(container) {
     }
 
     let dashboardHtml = `
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-8 w-full">
             <div class="flex items-center gap-4">
                 <h3 class="font-display text-lg font-semibold">구성원 목표 현황</h3>
                 <select onchange="setPeriod('dashboard', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
@@ -310,7 +314,7 @@ function renderDashboard(container) {
                 <thead>
                     <tr class="bg-surface-container-low text-on-surface-variant border-b border-blue-50">
                         <th class="py-3 px-6 font-semibold w-40 text-center">이름</th>
-                        <th class="py-3 px-6 font-semibold w-1/3 text-center">달성 목표</th>
+                        <th class="py-3 px-6 font-semibold w-1/3 text-center">달성 목표 (OKR)</th>
                         <th class="py-3 px-6 font-semibold w-1/3 text-center">진척률 현황</th>
                         <th class="py-3 px-6 font-semibold text-center w-24">수치</th>
                     </tr>
@@ -327,8 +331,8 @@ function renderDashboard(container) {
                 const isFirst = idx === 0;
                 dashboardHtml += `
                     <tr class="hover:bg-surface-container-lowest/50 transition-colors">
-                        ${isFirst ? `<td class="py-3 px-6 align-top border-r border-blue-50/30" rowspan="${mGoals.length}">
-                            <div class="flex flex-col items-center gap-1.5">
+                        ${isFirst ? `<td class="py-3 px-6 align-middle border-r border-blue-50/30" rowspan="${mGoals.length}">
+                            <div class="flex flex-col items-center justify-center gap-1.5 h-full">
                                 <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-xs">${name.charAt(0)}</div>
                                 <div class="text-center">
                                     <div class="font-bold text-on-surface text-xs">${name}</div>
@@ -381,14 +385,14 @@ function renderGoalsSet(container) {
             actionHtml = `
                 <div class="flex items-center justify-center gap-2">
                     <button onclick="requestGoalApproval(${g.id})" class="bg-primary text-white py-1.5 px-4 rounded text-[13px] font-bold shadow hover:bg-primary-dim transition-colors whitespace-nowrap">승인 요청</button>
-                    <button onclick="removeGoalRow(${g.id})" class="bg-error text-white border border-error hover:bg-error/90 py-1.5 px-3 rounded transition-colors text-[13px] font-bold whitespace-nowrap shadow-sm" title="삭제">삭제</button>
+                    <button onclick="removeGoalRow(${g.id})" class="bg-error text-white border border-error py-1.5 px-3 rounded transition-colors text-[13px] font-bold whitespace-nowrap shadow-sm" title="삭제">삭제</button>
                 </div>
             `;
         } else if (isPending) {
             actionHtml = `
-                <div class="flex flex-col gap-1.5 items-center">
-                    <button onclick="cancelGoalApproval(${g.id})" class="w-full text-error border border-error hover:bg-error/10 py-1.5 px-3 rounded text-[13px] font-bold transition-colors whitespace-nowrap">요청 취소</button>
-                    <span class="text-on-surface-variant text-[12px] font-bold">승인 대기중</span>
+                <div class="flex items-center justify-center gap-2">
+                    <span class="text-on-surface-variant text-[13px] font-bold">승인 대기중</span>
+                    <button onclick="cancelGoalApproval(${g.id})" class="text-error border border-error hover:bg-error/10 py-1.5 px-3 rounded text-[13px] font-bold transition-colors whitespace-nowrap">요청 취소</button>
                 </div>
             `;
         } else if (isApproved) {
@@ -398,13 +402,13 @@ function renderGoalsSet(container) {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-3 px-4 text-center font-bold text-on-surface-variant text-[13px] border-r border-blue-50/30 w-12">${index + 1}</td>
-                <td class="py-3 px-4 w-5/12 border-r border-blue-50/30">
+                <td class="py-3 px-4 w-[35%] border-r border-blue-50/30">
                     <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-3 py-2 outline-none focus:border-primary focus:ring-1 transition-all text-[13px] font-bold text-on-surface disabled:bg-surface-container-lowest">
                 </td>
-                <td class="py-3 px-4 w-5/12 border-r border-blue-50/30">
+                <td class="py-3 px-4 w-[40%] border-r border-blue-50/30">
                     <textarea rows="2" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-3 py-2 outline-none focus:border-primary focus:ring-1 transition-all text-[13px] font-medium text-on-surface resize-none leading-relaxed disabled:bg-surface-container-lowest"></textarea>
                 </td>
-                <td class="py-3 px-4 text-center w-2/12 align-middle">
+                <td class="py-3 px-4 text-center align-middle">
                     ${actionHtml}
                 </td>
             </tr>
@@ -455,37 +459,39 @@ function renderGoalsManage(container) {
     
     let rowsHtml = '';
     if(myGoals.length === 0) {
-        rowsHtml = `<tr><td colspan="4" class="p-10 text-center text-on-surface-variant text-sm font-medium">관리 가능한 합의 목표가 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="5" class="p-10 text-center text-on-surface-variant text-sm font-medium">관리 가능한 합의 목표가 없습니다.</td></tr>`;
     } else {
-        rowsHtml = myGoals.map(g => {
+        rowsHtml = myGoals.map((g, index) => {
             const isContentPending = g.requestType === 'content-update';
             const isProgressPending = g.requestType === 'progress-update';
             const valProgress = (g.tempProgress !== undefined) ? g.tempProgress : g.progress;
 
             return `
             <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
-                <td class="py-4 px-4 w-4/12 border-r border-blue-50/30 align-top">
-                    <div class="flex flex-col gap-2">
-                        <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-lowest shadow-sm mb-1">
-                        <textarea rows="2" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-2 text-[13px] text-on-surface outline-none focus:border-primary resize-y disabled:bg-surface-container-lowest shadow-sm leading-relaxed"></textarea>
-                        ${isContentPending ? 
-                        `<span class="text-[12px] font-bold text-on-surface-variant border border-blue-50 px-2 py-1.5 rounded bg-surface-container text-center mt-2 block">수정 대기중</span>` : 
-                        `<button onclick="requestContentUpdate(${g.id})" class="mt-2 w-full py-1.5 bg-surface-container hover:bg-blue-100 border border-blue-50 text-on-surface font-bold text-[13px] rounded transition-colors shadow-sm">내용 수정 요청</button>`}
-                    </div>
+                <td class="py-4 px-3 text-center text-[13px] font-bold text-on-surface-variant border-r border-blue-50/30 w-12 align-top">${index + 1}</td>
+                <td class="py-4 px-4 w-[25%] border-r border-blue-50/30 align-top">
+                    <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-lowest shadow-sm">
                 </td>
-                <td class="py-4 px-4 w-6/12 border-r border-blue-50/30 align-top">
-                    <div class="flex flex-col gap-3">
-                        <div class="flex items-center gap-4 mt-1 bg-surface-container-lowest p-3 rounded-xl border border-blue-50">
+                <td class="py-4 px-4 w-[35%] border-r border-blue-50/30 align-top">
+                    <textarea rows="3" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-2 text-[13px] text-on-surface outline-none focus:border-primary resize-y disabled:bg-surface-container-lowest shadow-sm leading-relaxed"></textarea>
+                </td>
+                <td class="py-0 border-r border-blue-50/30 w-[30%]">
+                    <!-- Split row for progress slider to match UI separation smoothly without actually breaking tr -->
+                    <div class="p-4 h-full flex flex-col justify-center">
+                        <div class="flex items-center gap-4 bg-surface-container-lowest p-3 rounded-xl border border-blue-50 shadow-sm w-full">
+                            <span id="prog-val-${g.id}" class="text-primary text-[15px] font-black w-10 text-right">${valProgress}%</span>
                             <input type="range" min="0" max="100" value="${valProgress}" oninput="updateTempProgress(${g.id}, this.value)" ${isProgressPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
-                            <span id="prog-val-${g.id}" class="text-primary text-[15px] font-black w-12 text-right">${valProgress}%</span>
                         </div>
-                        ${isProgressPending ? 
-                        `<span class="text-[12px] font-bold text-on-surface-variant border border-blue-50 px-2 py-1.5 rounded bg-surface-container text-center block w-full mt-2">진척률 대기중</span>` : 
-                        `<button onclick="requestProgressApproval(${g.id})" class="mt-2 w-full py-1.5 bg-primary text-white font-bold text-[13px] rounded shadow-sm hover:bg-primary-dim transition-colors">진척률 반영 요청</button>`}
                     </div>
                 </td>
-                <td class="py-4 px-4 w-2/12 align-middle text-center">
-                    <span class="text-[14px] font-extrabold ${g.status.includes('대기중') ? 'text-warning' : 'text-success'}">${g.status}</span>
+                <td class="py-4 px-3 align-middle text-center w-[12%]">
+                    <div class="flex flex-col gap-2 items-center justify-center">
+                        <span class="text-[13px] font-extrabold block w-full mb-1 ${g.status.includes('대기중') ? 'text-warning' : 'text-success'}">${g.status}</span>
+                        ${isContentPending || isProgressPending ? '' : `
+                            <button onclick="requestContentUpdate(${g.id})" class="w-[100px] py-1.5 bg-surface-container hover:bg-blue-100 border border-blue-50 text-on-surface font-bold text-[12px] rounded transition-colors shadow-sm">내용 수정 요청</button>
+                            <button onclick="requestProgressApproval(${g.id})" class="w-[100px] py-1.5 bg-primary text-white font-bold text-[12px] rounded shadow-sm hover:bg-primary-dim transition-colors">진척률 요청</button>
+                        `}
+                    </div>
                 </td>
             </tr>
             `;
@@ -493,7 +499,7 @@ function renderGoalsManage(container) {
     }
 
     let html = `
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-7 px-2 w-full">
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
             <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간</button>
@@ -509,9 +515,11 @@ function renderGoalsManage(container) {
             <table class="w-full text-left table-auto">
                 <thead>
                     <tr class="text-[14px] text-on-surface-variant font-extrabold bg-surface-container-low border-b border-blue-50">
-                        <th class="py-4 px-4 text-center border-r border-blue-50/30">목표 및 속성 수정</th>
-                        <th class="py-4 px-4 text-center border-r border-blue-50/30">진척률 (%) 리포트</th>
-                        <th class="py-4 px-4 text-center">현재 상태</th>
+                        <th class="py-4 px-3 text-center border-r border-blue-50/30">No.</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">목표 (OKR)</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">세부 지표 (KPI)</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">진척률 현황</th>
+                        <th class="py-4 px-3 text-center">요청 관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -524,26 +532,35 @@ function renderGoalsManage(container) {
 }
 
 function renderRequests(container) {
-    const list = STATE.allGoals.filter(g => g.requestType !== null || g.isProcessed);
+    const activeTabCls = "border-b-2 border-primary text-primary font-bold";
+    const inactiveTabCls = "text-on-surface-variant hover:text-primary transition-colors";
+
+    // Only filter to the selected tab and period to match Manage & Setup exactly!
+    const list = STATE.allGoals.filter(g => 
+        (g.requestType !== null || g.isProcessed) &&
+        g.periodType === STATE.requestsTab && 
+        g.periodValue === STATE.requestsPeriodValue
+    );
     list.sort((a,b) => (a.isProcessed === b.isProcessed) ? 0 : a.isProcessed ? 1 : -1);
     
     let rowsHtml = '';
     if(list.length === 0) {
-        rowsHtml = `<tr><td colspan="6" class="p-10 text-center text-on-surface-variant font-medium text-sm">기록이 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="7" class="p-10 text-center text-on-surface-variant font-medium text-sm">해당 기간에 들어온 요청이 없습니다.</td></tr>`;
     } else {
         rowsHtml = list.map(g => {
             const assignee = USER_NAMES[g.userId] || g.userId;
             
-            let reqTypeLabel = '결재 적용';
+            let reqTypeLabel = '변경 없음';
             let typeColor = 'text-on-surface-variant bg-surface-container';
             
-            // Revert requestType display based on processed state dynamically or current requestType
             const effectiveRequestType = g.requestType || (g.status === '승인 완료' ? 'approved' : 'new'); 
 
             if(!g.isProcessed) {
                 if(effectiveRequestType === 'new') { reqTypeLabel = '신규 수립'; typeColor = 'bg-primary/10 text-primary'; }
                 else if(effectiveRequestType === 'progress-update') { reqTypeLabel = '진척률'; typeColor = 'bg-[#f59e0b]/10 text-[#d97706]'; }
                 else if(effectiveRequestType === 'content-update') { reqTypeLabel = '내용 수정'; typeColor = 'bg-[#8b5cf6]/10 text-[#6d28d9]'; }
+            } else {
+                reqTypeLabel = '처리 완료';
             }
 
             let progressHtml = `<div class="font-display font-black text-[15px] text-primary text-center">${g.progress}%</div>`;
@@ -560,7 +577,7 @@ function renderRequests(container) {
             const safePlan = g.actionPlan.replace(/'/g, "\\'").replace(/\n/g, "<br/>");
             
             return `
-            <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors ${g.isProcessed ? 'opacity-60 grayscale-[30%]':''}">
+            <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors ${g.isProcessed ? 'opacity-70 grayscale-[20%]':''}">
                 <td class="py-4 px-3 font-bold text-on-surface whitespace-nowrap text-[13px] text-center w-24">${assignee}</td>
                 <td class="py-4 px-3 whitespace-nowrap text-[13px] font-semibold text-center text-on-surface-variant w-28 border-x border-blue-50/30">
                     ${getPeriodLabel(g.periodType, g.periodValue)}
@@ -569,15 +586,17 @@ function renderRequests(container) {
                     <span class="px-2 py-1 ${typeColor} text-[11px] font-bold rounded block w-full">${reqTypeLabel}</span>
                 </td>
                 <td class="py-4 px-5 text-left border-r border-blue-50/30">
-                    <div class="text-[13px] font-bold text-on-surface mb-1">${g.text}</div>
-                    <button onclick="openModal('세부 액션 플랜 상세보기', '${safePlan}')" class="text-primary hover:text-primary-dim font-bold text-[11px] transition-colors underline underline-offset-2">세부 액션 플랜(KPI) 보기</button>
+                    <div class="text-[13px] font-bold text-on-surface leading-snug">${g.text}</div>
+                </td>
+                <td class="py-4 px-3 text-center w-36 border-r border-blue-50/30">
+                    <button onclick="openModal('세부 지표(KPI) 상세보기', '${safePlan}')" class="px-3 py-1.5 bg-surface-container hover:bg-blue-100 text-primary font-bold text-[11px] rounded transition-colors whitespace-nowrap shadow-sm border border-blue-50 tracking-wide">세부 KPI 뷰어</button>
                 </td>
                 <td class="py-4 px-3 text-center w-36 border-r border-blue-50/30">
                     ${progressHtml}
                 </td>
                 <td class="py-4 px-4 text-center whitespace-nowrap w-32">
                     ${g.isProcessed 
-                        ? `<button onclick="undoApproval(${g.id})" class="px-4 py-1.5 bg-surface-container text-on-surface-variant hover:text-error hover:bg-error/10 font-bold text-[12px] rounded-lg border border-blue-50 transition-colors">완료 (클릭 시 취소)</button>` 
+                        ? `<button onclick="undoApproval(${g.id})" class="px-5 py-2 bg-success text-white hover:bg-success/80 font-bold text-[12px] rounded-lg border border-success transition-colors shadow">완료</button>` 
                         : `<button onclick="approveRequest(${g.id})" class="px-5 py-2 bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-[12px] rounded-xl shadow hover:scale-[1.02] transition-transform">승인 처리</button>`
                     }
                 </td>
@@ -586,7 +605,19 @@ function renderRequests(container) {
         }).join('');
     }
 
-    container.innerHTML = `
+    let html = `
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
+            <button onclick="setTab('requests', 'monthly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 요청</button>
+            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 요청</button>
+            <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 요청</button>
+        </div>
+
+        <div class="mb-4 w-full">
+            <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded text-[13px] px-3 py-1.5 outline-none cursor-pointer">
+                ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
+            </select>
+        </div>
+
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">
                 <thead>
@@ -594,21 +625,22 @@ function renderRequests(container) {
                         <th class="py-4 px-3 text-center">기안자</th>
                         <th class="py-4 px-3 text-center border-x border-blue-50/30">기간</th>
                         <th class="py-4 px-3 text-center border-r border-blue-50/30">성격</th>
-                        <th class="py-4 px-5 text-center border-r border-blue-50/30">목표(OKR) 내용</th>
-                        <th class="py-4 px-3 text-center border-r border-blue-50/30">진척률 현황</th>
-                        <th class="py-4 px-4 text-center">처리</th>
+                        <th class="py-4 px-5 text-center border-r border-blue-50/30">목표 (OKR)</th>
+                        <th class="py-4 px-3 text-center border-r border-blue-50/30">세부 지표 (KPI)</th>
+                        <th class="py-4 px-3 text-center border-r border-blue-50/30">진척률(%) 현황</th>
+                        <th class="py-4 px-4 text-center">요청 관리</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
             </table>
         </div>
     `;
+    container.innerHTML = html;
 }
 
 function renderModal(container) {
     if(!STATE.modalData) return;
     
-    // Confirm Style vs Info Style
     const hasAction = typeof STATE.modalData.onConfirmAction === 'function';
 
     const modalHtml = `
@@ -639,8 +671,6 @@ function renderModal(container) {
 }
 
 // --- App Initialization & Login ---
-// (Unchanged logic omitted for brevity, but full file included to ensure it parses)
-
 document.getElementById('btn-login').addEventListener('click', () => {
     const id = document.getElementById('login-id').value;
     const pw = document.getElementById('login-pw').value;

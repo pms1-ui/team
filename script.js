@@ -301,9 +301,9 @@ function renderDashboard(container) {
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="bg-surface-container-low text-on-surface-variant border-b border-blue-50">
-                        <th class="py-3 px-6 font-semibold w-40">이름</th>
-                        <th class="py-3 px-6 font-semibold w-1/3">달성 목표</th>
-                        <th class="py-3 px-6 font-semibold w-1/3">진척률 현황</th>
+                        <th class="py-3 px-6 font-semibold w-40 text-center">이름</th>
+                        <th class="py-3 px-6 font-semibold w-1/3 text-center">달성 목표</th>
+                        <th class="py-3 px-6 font-semibold w-1/3 text-center">진척률 현황</th>
                         <th class="py-3 px-6 font-semibold text-center w-24">수치</th>
                     </tr>
                 </thead>
@@ -313,8 +313,6 @@ function renderDashboard(container) {
         for(let userId in membersWithGoals) {
             const mGoals = membersWithGoals[userId];
             const name = USER_NAMES[userId] || userId;
-            
-            // Average progress
             const avgProgress = mGoals.length > 0 ? Math.round(mGoals.reduce((s, g) => s + g.progress, 0) / mGoals.length) : 0;
 
             mGoals.forEach((g, idx) => {
@@ -322,16 +320,16 @@ function renderDashboard(container) {
                 dashboardHtml += `
                     <tr class="hover:bg-surface-container-lowest/50 transition-colors">
                         ${isFirst ? `<td class="py-3 px-6 align-top border-r border-blue-50/30" rowspan="${mGoals.length}">
-                            <div class="flex items-center gap-3">
+                            <div class="flex flex-col items-center gap-1.5">
                                 <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-xs">${name.charAt(0)}</div>
-                                <div>
-                                    <div class="font-bold text-on-surface">${name}</div>
+                                <div class="text-center">
+                                    <div class="font-bold text-on-surface text-xs">${name}</div>
                                     <div class="text-[10px] text-on-surface-variant mt-0.5">평균: <span class="font-bold text-primary">${avgProgress}%</span></div>
                                 </div>
                             </div>
                         </td>` : ''}
                         <td class="py-3 px-6">
-                            <p class="font-medium text-on-surface leading-snug">${g.text}</p>
+                            <p class="font-medium text-on-surface text-xs leading-relaxed">${g.text}</p>
                         </td>
                         <td class="py-3 px-6 align-middle">
                             <div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
@@ -339,13 +337,12 @@ function renderDashboard(container) {
                             </div>
                         </td>
                         <td class="py-3 px-6 text-center">
-                            <span class="font-black text-xs ${g.progress >= 100 ? 'text-success' : 'text-primary'}">${g.progress}%</span>
+                            <span class="font-black text-[11px] ${g.progress >= 100 ? 'text-success' : 'text-primary'}">${g.progress}%</span>
                         </td>
                     </tr>
                 `;
             });
         }
-        
         dashboardHtml += `</tbody></table></div>`;
     }
     
@@ -358,21 +355,11 @@ function renderGoalsSet(container) {
 
     // Ensure 3 default rows
     let myDrafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
-    
     if (myDrafts.length === 0) {
         for(let i=0; i<3; i++) {
             STATE.allGoals.push({
-                id: Date.now() + i,
-                userId: STATE.user.id,
-                periodType: STATE.goalsSetTab,
-                periodValue: STATE.goalsSetPeriodValue,
-                text: '',
-                actionPlan: '',
-                progress: 0,
-                status: '작성중',
-                requestType: null,
-                comment: '',
-                isProcessed: false
+                id: Date.now() + i, userId: STATE.user.id, periodType: STATE.goalsSetTab, periodValue: STATE.goalsSetPeriodValue,
+                text: '', actionPlan: '', progress: 0, status: '작성중', requestType: null, comment: '', isProcessed: false
             });
         }
         myDrafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
@@ -383,60 +370,72 @@ function renderGoalsSet(container) {
         const isPending = g.status === '승인 대기';
         const isApproved = g.status === '승인 완료';
 
-        let buttonsHtml = '';
+        let actionHtml = '';
         if (isEditable) {
-            buttonsHtml = `<button onclick="requestGoalApproval(${g.id})" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-primary-dim transition-colors">승인 요청</button>`;
+            actionHtml = `
+                <div class="flex flex-col gap-1 items-center">
+                    <button onclick="requestGoalApproval(${g.id})" class="w-full bg-primary text-white py-1.5 px-3 rounded text-[11px] font-bold shadow hover:bg-primary-dim transition-colors whitespace-nowrap">승인 요청</button>
+                    <button onclick="removeGoalRow(${g.id})" class="text-error/70 hover:text-error hover:bg-error/10 w-full rounded py-1 transition-colors text-[10px] font-bold mt-1" title="항목 삭제">삭제</button>
+                </div>
+            `;
         } else if (isPending) {
-            buttonsHtml = `
-                <button onclick="cancelGoalApproval(${g.id})" class="text-error border border-error/50 hover:bg-error/10 px-4 py-2 rounded-lg text-sm font-bold transition-colors">요청 취소</button>
-                <button disabled class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg text-sm font-bold cursor-not-allowed border border-blue-50">승인 대기중</button>
+            actionHtml = `
+                <div class="flex flex-col gap-1.5 items-center">
+                    <button disabled class="w-full bg-surface-container text-on-surface-variant py-1.5 px-3 rounded text-[11px] font-bold whitespace-nowrap border border-blue-50 cursor-not-allowed">승인 대기중</button>
+                    <button onclick="cancelGoalApproval(${g.id})" class="w-full text-error border border-error/50 hover:bg-error/10 py-1.5 px-3 rounded text-[11px] font-bold transition-colors whitespace-nowrap">요청 취소</button>
+                </div>
             `;
         } else if (isApproved) {
-            buttonsHtml = `<button disabled class="bg-success/10 text-success border border-success/30 px-4 py-2 rounded-lg text-sm font-bold cursor-default">승인 완료</button>`;
+            actionHtml = `<button disabled class="w-full bg-success/10 text-success border border-success/30 py-1.5 px-3 rounded text-[11px] font-bold cursor-default whitespace-nowrap">승인 완료</button>`;
         }
 
         return `
-            <div class="bg-surface-container-lowest border border-blue-50 rounded-2xl p-5 relative shadow-sm group mb-6 hover:border-primary/30 transition-all">
-                <div class="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
-                    <div>
-                        <label class="block text-[13px] font-extrabold text-on-surface mb-2">핵심 달성 목표</label>
-                        <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 transition-all shadow-sm font-medium text-sm text-on-surface">
-                    </div>
-                    <div>
-                        <label class="block text-[13px] font-extrabold text-on-surface mb-2">세부 액션 플랜</label>
-                        <textarea rows="3" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 transition-all text-sm font-medium text-on-surface resize-none shadow-sm leading-relaxed"></textarea>
-                    </div>
-                </div>
-                <div class="flex items-center justify-end mt-4 gap-2 pt-4 border-t border-blue-50 border-dashed">
-                    ${buttonsHtml}
-                    ${isEditable ? `
-                    <button onclick="removeGoalRow(${g.id})" class="text-on-surface-variant hover:text-error px-2 py-1.5 rounded-lg transition-colors ml-2" title="항목 삭제">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>` : ''}
-                </div>
-            </div>
+            <tr class="hover:bg-surface-container-lowest/50 transition-colors group">
+                <td class="py-3 px-4 text-center font-bold text-on-surface-variant text-[11px] w-12 border-r border-blue-50/30">${index + 1}</td>
+                <td class="py-3 px-4 w-5/12 border-r border-blue-50/30">
+                    <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-3 py-2 outline-none focus:border-primary focus:ring-1 transition-all text-[12px] font-bold text-on-surface disabled:bg-surface-container-lowest">
+                </td>
+                <td class="py-3 px-4 w-5/12 border-r border-blue-50/30">
+                    <textarea rows="2" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-3 py-2 outline-none focus:border-primary focus:ring-1 transition-all text-[12px] font-medium text-on-surface resize-none leading-relaxed disabled:bg-surface-container-lowest"></textarea>
+                </td>
+                <td class="py-3 px-4 text-center w-2/12 align-middle">
+                    ${actionHtml}
+                </td>
+            </tr>
         `;
     }).join('');
 
     let html = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2 max-w-5xl mx-auto">
-            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 설정</button>
-            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 설정</button>
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 설정</button>
+            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간</button>
         </div>
 
-        <div class="max-w-5xl mx-auto mb-6 flex items-center justify-between">
-            <select onchange="setPeriod('goals_set', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
+        <div class="max-w-5xl mx-auto mb-5 flex items-center justify-between">
+            <select onchange="setPeriod('goals_set', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded text-[13px] px-3 py-1.5 outline-none cursor-pointer">
                 ${generatePeriodOptions(STATE.goalsSetTab, STATE.goalsSetPeriodValue)}
             </select>
-            <button onclick="addGoalRow()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-sm rounded-lg hover:bg-blue-50 transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                항목 추가
+            <button onclick="addGoalRow()" class="flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[11px] rounded hover:bg-blue-50 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                추가
             </button>
         </div>
 
-        <div class="max-w-5xl mx-auto">
-            ${rowsHtml}
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-5xl mx-auto overflow-hidden">
+            <table class="w-full text-left table-auto">
+                <thead>
+                    <tr class="text-[11px] text-on-surface-variant font-extrabold bg-surface-container-low border-b border-blue-50">
+                        <th class="py-3 px-4 text-center border-r border-blue-50/30">No.</th>
+                        <th class="py-3 px-4 text-center border-r border-blue-50/30">핵심 달성 목표</th>
+                        <th class="py-3 px-4 text-center border-r border-blue-50/30">세부 액션 플랜</th>
+                        <th class="py-3 px-4 text-center">결재 조작</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-50/50">
+                    ${rowsHtml}
+                </tbody>
+            </table>
         </div>
     `;
     container.innerHTML = html;
@@ -446,146 +445,138 @@ function renderGoalsManage(container) {
     const activeTabCls = "border-b-2 border-primary text-primary font-bold";
     const inactiveTabCls = "text-on-surface-variant hover:text-primary transition-colors";
 
-    // Manage approved or pending progress goals
     const myGoals = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue && (g.status === '승인 완료' || g.status.includes('승인 대기') || g.status.includes('수정 대기')));
     
-    let contentHtml = `
-        <div class="flex flex-col items-center justify-center bg-white py-20 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
-            <p>합의(승인) 완료된 목표가 없습니다.</p>
-        </div>`;
-        
-    if(myGoals.length > 0) {
-        contentHtml = myGoals.map(g => {
+    let rowsHtml = '';
+    if(myGoals.length === 0) {
+        rowsHtml = `<tr><td colspan="4" class="p-10 text-center text-on-surface-variant text-sm font-medium">관리 가능한 합의 목표가 없습니다.</td></tr>`;
+    } else {
+        rowsHtml = myGoals.map(g => {
             const isProgressPending = g.requestType === 'progress-update';
             const isContentPending = g.requestType === 'content-update';
             const valProgress = (g.tempProgress !== undefined) ? g.tempProgress : g.progress;
 
             return `
-            <div class="bg-white rounded-2xl p-6 border border-blue-50 shadow-sm mb-6">
-                <!-- Content Editor -->
-                <div class="mb-5 pb-5 border-b border-blue-50/50">
-                    <div class="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-4 mb-3">
-                        <div>
-                            <label class="block text-xs font-bold text-on-surface-variant mb-1">핵심 달성 목표 수정</label>
-                            <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${isContentPending?'disabled':''} class="w-full bg-surface-container-lowest border border-blue-50 rounded-lg px-3 py-2 text-sm font-bold text-on-surface outline-none focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-on-surface-variant mb-1">세부 액션 플랜 수정</label>
-                            <textarea rows="2" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${isContentPending?'disabled':''} class="w-full bg-surface-container-lowest border border-blue-50 rounded-lg px-3 py-2 text-sm text-on-surface outline-none focus:border-primary resize-y leading-relaxed"></textarea>
-                        </div>
+            <tr class="hover:bg-surface-container-lowest/50 transition-colors">
+                <td class="py-4 px-4 w-4/12 border-r border-blue-50/30 align-top">
+                    <div class="flex flex-col gap-2">
+                        <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-1.5 text-[12px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-lowest">
+                        <textarea rows="2" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${isContentPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-1.5 text-[11px] text-on-surface outline-none focus:border-primary resize-y disabled:bg-surface-container-lowest"></textarea>
                     </div>
-                    <div class="flex justify-end pt-2">
-                        ${isContentPending ? 
-                        `<button disabled class="px-4 py-1.5 bg-surface-container text-on-surface-variant text-xs font-bold rounded-lg border border-blue-50">내용 수정 대기중</button>` : 
-                        `<button onclick="requestContentUpdate(${g.id})" class="px-4 py-1.5 bg-surface-container text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-all shadow-sm">내용 수정 요청</button>`}
+                </td>
+                <td class="py-4 px-3 w-[100px] border-r border-blue-50/30 align-middle text-center">
+                    ${isContentPending ? 
+                    `<span class="text-[10px] font-bold text-on-surface-variant border border-blue-50 px-2 py-1 rounded bg-surface-container whitespace-nowrap inline-block">내용대기중</span>` : 
+                    `<button onclick="requestContentUpdate(${g.id})" class="px-2.5 py-1.5 bg-surface-container-low border border-primary/20 text-primary font-bold text-[11px] rounded hover:bg-primary/10 transition-all whitespace-nowrap shadow-sm">내용수정요청</button>`}
+                </td>
+                <td class="py-4 px-4 w-4/12 border-r border-blue-50/30 align-middle">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <input type="range" min="0" max="100" value="${valProgress}" oninput="updateTempProgress(${g.id}, this.value)" ${isProgressPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                            <span id="prog-val-${g.id}" class="text-primary text-[14px] font-black w-10 text-right">${valProgress}%</span>
+                        </div>
+                        <input type="text" value="${g.comment}" oninput="updateGoalField(${g.id}, 'comment', this.value)" ${isProgressPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded px-2 py-1.5 text-[11px] outline-none focus:border-primary disabled:bg-surface-container-lowest">
                     </div>
-                </div>
-                
-                <!-- Progress Updater -->
-                <div class="bg-surface-container-lowest p-5 rounded-xl border ${isProgressPending?'border-warning/30':'border-blue-50'}">
-                    <div class="flex items-center gap-6">
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center mb-2 font-bold text-sm">
-                                <span>진척률 조정</span>
-                                <span id="prog-val-${g.id}" class="text-primary text-lg font-black bg-white border border-blue-50 px-2 py-0.5 rounded">${valProgress}%</span>
-                            </div>
-                            <input type="range" min="0" max="100" value="${valProgress}" oninput="updateTempProgress(${g.id}, this.value)" ${isProgressPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
-                        </div>
-                        <div class="flex-1">
-                            <label class="block mb-2 font-bold text-sm text-on-surface">코멘트</label>
-                            <input type="text" value="${g.comment}" oninput="updateGoalField(${g.id}, 'comment', this.value)" ${isProgressPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                        </div>
-                        <div class="pt-6">
-                            ${isProgressPending ? 
-                            `<button disabled class="px-5 py-2 bg-surface-container text-on-surface-variant font-bold rounded-xl text-sm border border-blue-50 whitespace-nowrap hidden lg:block">진척률 대기중</button>` : 
-                            `<button onclick="requestProgressApproval(${g.id})" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow hover:bg-primary-dim transition-all whitespace-nowrap text-sm flex items-center gap-2">승인 요청</button>`}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `}).join('');
+                </td>
+                <td class="py-4 px-3 w-[100px] align-middle text-center">
+                    ${isProgressPending ? 
+                    `<span class="text-[10px] font-bold text-on-surface-variant border border-blue-50 px-2 py-1 rounded bg-surface-container whitespace-nowrap inline-block">진척대기중</span>` : 
+                    `<button onclick="requestProgressApproval(${g.id})" class="px-3 py-1.5 bg-primary text-white font-bold text-[11px] rounded hover:bg-primary-dim transition-all whitespace-nowrap shadow-sm">진척승인요청</button>`}
+                </td>
+            </tr>
+            `;
+        }).join('');
     }
 
     let html = `
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2 max-w-4xl mx-auto">
-            <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 관리</button>
-            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 관리</button>
-            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 관리</button>
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-7 px-2 max-w-5xl mx-auto">
+            <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별</button>
+            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간</button>
         </div>
 
-        <div class="max-w-4xl mx-auto mb-6">
-            <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
+        <div class="max-w-5xl mx-auto mb-4">
+            <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded text-[13px] px-3 py-1.5 outline-none cursor-pointer">
                 ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
             </select>
         </div>
 
-        <div class="max-w-4xl mx-auto">
-            ${contentHtml}
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-5xl mx-auto overflow-hidden">
+            <table class="w-full text-left table-auto">
+                <thead>
+                    <tr class="text-[11px] text-on-surface-variant font-extrabold bg-surface-container-low border-b border-blue-50">
+                        <th class="py-3 px-4 text-center border-r border-blue-50/30">목표 및 속성</th>
+                        <th class="py-3 px-3 text-center border-r border-blue-50/30">목표 수정</th>
+                        <th class="py-3 px-4 text-center border-r border-blue-50/30">진척률(%) 및 현황 코멘트</th>
+                        <th class="py-3 px-3 text-center">진척률 결재</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-50/50">
+                    ${rowsHtml}
+                </tbody>
+            </table>
         </div>
     `;
     container.innerHTML = html;
 }
 
 function renderRequests(container) {
-    // Show either active requests or processed requests with isProcessed=true
     const list = STATE.allGoals.filter(g => g.requestType !== null || g.isProcessed);
-    
-    // Sort so unresolved are at top
     list.sort((a,b) => (a.isProcessed === b.isProcessed) ? 0 : a.isProcessed ? 1 : -1);
     
     let rowsHtml = '';
     if(list.length === 0) {
-        rowsHtml = `<tr><td colspan="7" class="p-10 text-center text-on-surface-variant font-medium">기록이 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="8" class="p-10 text-center text-on-surface-variant font-medium text-sm">기록이 없습니다.</td></tr>`;
     } else {
         rowsHtml = list.map(g => {
             const assignee = USER_NAMES[g.userId] || g.userId;
             
-            let reqTypeLabel = '결재 처리 완료';
+            let reqTypeLabel = '완료건';
             let typeColor = 'bg-surface-container text-on-surface-variant';
             if(!g.isProcessed) {
-                if(g.requestType === 'new') { reqTypeLabel = '신규 목표 설정'; typeColor = 'bg-primary/10 text-primary'; }
+                if(g.requestType === 'new') { reqTypeLabel = '신규 수립'; typeColor = 'bg-primary/10 text-primary'; }
                 else if(g.requestType === 'progress-update') { reqTypeLabel = '진척률 실적'; typeColor = 'bg-[#f59e0b]/10 text-[#d97706]'; }
-                else if(g.requestType === 'content-update') { reqTypeLabel = '목표 내용 수정'; typeColor = 'bg-[#8b5cf6]/10 text-[#6d28d9]'; }
+                else if(g.requestType === 'content-update') { reqTypeLabel = '내용 수정'; typeColor = 'bg-[#8b5cf6]/10 text-[#6d28d9]'; }
             }
 
-            // Arrow logic for progress
-            let progressHtml = `<div class="font-display font-black text-lg text-primary">${g.progress}%</div>`;
+            let progressHtml = `<div class="font-display font-black text-sm text-primary text-center">${g.progress}%</div>`;
             if (g.requestType === 'progress-update' && g.tempProgress !== undefined && !g.isProcessed) {
                 progressHtml = `
-                    <div class="flex items-center gap-1.5 text-sm font-bold">
+                    <div class="flex items-center justify-center gap-1.5 text-[12px] font-bold">
                         <span class="text-on-surface-variant line-through">${g.progress}%</span>
                         <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        <span class="text-primary text-xl bg-blue-50 px-1.5 py-0.5 rounded">${g.tempProgress}%</span>
+                        <span class="text-primary text-[13px] bg-blue-50 px-1.5 rounded">${g.tempProgress}%</span>
                     </div>
                 `;
             }
 
-            // Safe detail rendering
             const safePlan = g.actionPlan.replace(/'/g, "\\'").replace(/\n/g, "<br/>");
-
+            
             return `
-            <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors ${g.isProcessed ? 'opacity-60 bg-surface-container-lowest/30':''}">
-                <td class="py-5 px-6 font-bold text-on-surface whitespace-nowrap">${assignee}</td>
-                <td class="py-5 px-6 whitespace-nowrap">
-                    <span class="font-bold text-xs text-on-surface-variant block mb-1">${getPeriodLabel(g.periodType, g.periodValue)}</span>
-                    <span class="px-2 py-0.5 ${typeColor} text-[11px] font-bold rounded shadow-sm">${reqTypeLabel}</span>
+            <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors ${g.isProcessed ? 'opacity-50 grayscale-[50%]':''}">
+                <td class="py-4 px-3 font-bold text-on-surface whitespace-nowrap text-[12px] text-center">${assignee}</td>
+                <td class="py-4 px-3 whitespace-nowrap text-[12px] font-semibold text-center text-on-surface-variant overflow-hidden">
+                    ${getPeriodLabel(g.periodType, g.periodValue)}
                 </td>
-                <td class="py-5 px-6">
-                    <div class="text-sm font-semibold max-w-[200px] truncate leading-relaxed" title="${g.text}">${g.text}</div>
+                <td class="py-4 px-3 text-center whitespace-nowrap">
+                    <span class="px-2 py-0.5 ${typeColor} text-[10px] font-bold rounded shadow-sm inline-block">${reqTypeLabel}</span>
                 </td>
-                <td class="py-5 px-4 text-center">
-                    <button onclick="openModal('세부 액션 플랜 상세보기', '${safePlan}')" class="px-3 py-1.5 bg-surface-container hover:bg-blue-100 text-primary font-bold text-[11px] rounded transition-colors whitespace-nowrap">자세히 보기</button>
+                <td class="py-4 px-4 text-left">
+                    <div class="text-[12px] font-semibold max-w-[200px] truncate" title="${g.text}">${g.text}</div>
                 </td>
-                <td class="py-5 px-6">
+                <td class="py-4 px-3 text-center">
+                    <button onclick="openModal('세부 액션 플랜 상세보기', '${safePlan}')" class="px-2.5 py-1 bg-surface-container hover:bg-blue-100 text-primary font-bold text-[10px] rounded transition-colors whitespace-nowrap shadow-sm border border-blue-50">자세히 보기</button>
+                </td>
+                <td class="py-4 px-3 text-center">
                     ${progressHtml}
                 </td>
-                <td class="py-5 px-6">
-                    <div class="text-[12px] text-on-surface-variant max-w-[120px] truncate bg-white p-1 rounded font-medium border border-blue-50">${g.comment || '-'}</div>
+                <td class="py-4 px-4 text-center">
+                    <div class="text-[11px] text-on-surface max-w-[150px] truncate mx-auto font-medium" title="${g.comment}">${g.comment || '-'}</div>
                 </td>
-                <td class="py-5 px-6 text-right whitespace-nowrap">
+                <td class="py-4 px-4 text-center whitespace-nowrap">
                     ${g.isProcessed 
-                        ? `<span class="px-4 py-2 bg-surface-container-low text-on-surface-variant font-bold text-xs rounded-lg inline-block border border-blue-50">처리 완료</span>` 
-                        : `<button onclick="approveRequest(${g.id})" class="px-5 py-2 bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-xs rounded-xl shadow hover:shadow-md transition-all hover:scale-105">승인하기</button>`
+                        ? `<span class="px-3 py-1.5 text-success font-bold text-[11px] inline-block tracking-wide">완료</span>` 
+                        : `<button onclick="approveRequest(${g.id})" class="px-4 py-1.5 bg-primary text-white font-bold text-[11px] rounded shadow-sm hover:bg-primary-dim transition-colors tracking-wide">승인 처리</button>`
                     }
                 </td>
             </tr>
@@ -594,18 +585,18 @@ function renderRequests(container) {
     }
 
     container.innerHTML = `
-        <h3 class="font-display font-bold text-2xl mb-6 pl-2">요청 관리</h3>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">
                 <thead>
-                    <tr class="text-[11px] text-on-surface-variant font-extrabold tracking-wider bg-surface-container border-b border-blue-50 uppercase">
-                        <th class="py-4 px-6 w-24">기안자</th>
-                        <th class="py-4 px-6 w-32">구분</th>
-                        <th class="py-4 px-6">핵심 목표 내용</th>
-                        <th class="py-4 px-4 text-center w-28">액션 플랜</th>
-                        <th class="py-4 px-6 w-36">진척률 현황</th>
-                        <th class="py-4 px-6 w-40">코멘트</th>
-                        <th class="py-4 px-6 w-28 text-right">처리 단계</th>
+                    <tr class="text-[11px] text-on-surface-variant font-extrabold bg-surface-container border-b border-blue-50 uppercase tracking-wide">
+                        <th class="py-4 px-3 text-center w-24">기안자</th>
+                        <th class="py-4 px-3 text-center w-28">기간</th>
+                        <th class="py-4 px-3 text-center w-24">성격</th>
+                        <th class="py-4 px-4 text-center w-64">핵심 목표 내용</th>
+                        <th class="py-4 px-3 text-center w-24">액션 플랜</th>
+                        <th class="py-4 px-3 text-center w-32">진척률 현황</th>
+                        <th class="py-4 px-4 text-center w-48">코멘트</th>
+                        <th class="py-4 px-4 text-center w-28">처리</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -618,23 +609,21 @@ function renderModal(container) {
     if(!STATE.modalData) return;
     const modalHtml = `
         <div id="app-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm shadow-xl" onclick="closeModal()"></div>
-            <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 transform transition-all animate-[fadeIn_0.2s_ease-out]">
-                <div class="flex justify-between items-center mb-4 pb-4 border-b border-blue-50">
-                    <h3 class="font-display font-bold text-lg text-primary">${STATE.modalData.title}</h3>
-                    <button onclick="closeModal()" class="text-on-surface-variant hover:text-error transition-colors p-1 bg-surface-container rounded-full"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm shadow-sm" onclick="closeModal()"></div>
+            <div class="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 transform transition-all border border-blue-100">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-blue-50 flex-wrap">
+                    <h3 class="font-display font-bold text-[15px] text-primary">${STATE.modalData.title}</h3>
+                    <button onclick="closeModal()" class="text-on-surface-variant hover:text-error transition-colors p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
-                <div class="text-on-surface text-sm leading-relaxed whitespace-normal min-h-[100px] mb-6">
+                <div class="text-on-surface text-[13px] leading-relaxed whitespace-normal min-h-[60px] mb-5 font-medium">
                     ${STATE.modalData.content || '<span class="text-on-surface-variant italic">내용이 비어있습니다.</span>'}
                 </div>
                 <div class="flex justify-end">
-                    <button onclick="closeModal()" class="px-6 py-2 bg-surface-container hover:bg-blue-100 text-on-surface font-bold text-sm rounded-lg transition-colors">닫기</button>
+                    <button onclick="closeModal()" class="px-5 py-1.5 bg-surface-container hover:bg-blue-100 text-on-surface font-bold text-[12px] rounded-lg transition-colors">닫기</button>
                 </div>
             </div>
         </div>
     `;
-    const existing = document.getElementById('app-modal');
-    if(existing) existing.remove();
     container.insertAdjacentHTML('beforeend', modalHtml);
 }
 

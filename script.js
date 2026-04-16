@@ -692,22 +692,21 @@ function renderRequests(container) {
             <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
-        <div class="mb-5 w-full bg-white p-2 border border-blue-50 rounded-xl flex items-center justify-between shadow-sm">
-            <select onchange="setPeriod('requests', this.value)" class="bg-surface-container-low text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-4 py-2 outline-none cursor-pointer">
+        <div class="mb-4 w-full">
+            <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
             </select>
-            <div class="text-[13px] font-bold text-on-surface-variant mr-3">총 <span class="text-primary font-black mx-1">${list.length}</span>건의 결재 라인</div>
         </div>
-        <div class="bg-white rounded-2xl border border-blue-100 shadow-sm w-full overflow-hidden mb-10">
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">
-                <thead class="bg-surface-container-low">
-                    <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-100 uppercase tracking-widest">
-                        <th class="py-5 px-5 text-center">기안자</th>
-                        <th class="py-5 px-4 text-center border-x border-blue-50/50">기간</th>
-                        <th class="py-5 px-4 text-center border-r border-blue-50/50">성격</th>
-                        <th class="py-5 px-5 text-center border-r border-blue-50/50">데이터 상세</th>
-                        <th class="py-5 px-4 text-center border-r border-blue-50/50">코멘트</th>
-                        <th class="py-5 px-5 text-center">관리</th>
+                <thead class="bg-surface-container">
+                    <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
+                        <th class="py-4 px-5 text-center">기안자</th>
+                        <th class="py-4 px-4 text-center border-x border-blue-50/30">기간</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">성격</th>
+                        <th class="py-4 px-5 text-center border-r border-blue-50/30">데이터 상세</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">코멘트</th>
+                        <th class="py-4 px-5 text-center">관리</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>

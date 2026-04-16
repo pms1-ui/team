@@ -8,17 +8,16 @@ const STATE = {
     dashboardPeriodValue: '', // '2026-04', '2026-Q2', '2026'
     
     goalsSetTab: 'monthly',
+    goalsSetPeriodValue: '',
+    
     goalsManageTab: 'monthly',
+    goalsManagePeriodValue: '',
     
-    // Current draft goals for submission
-    activeGoalsDraft: [ { id: 1, text: '', actionPlan: '' }, { id: Date.now()+1, text: '', actionPlan: '' }, { id: Date.now()+2, text: '', actionPlan: '' } ],
-    draftSubmitted: false, // UI state to show '승인 대기'
-    
-    // Submitted Goals Data
-    submittedGoals: [
-        { id: 101, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '기존 시스템 UI/UX 전면 개편 및 컴포넌트화', actionPlan: '1. 피그마 디자인 완료\n2. 공통 컴포넌트 분리', progress: 40, status: '승인 완료', requestType: null },
-        { id: 102, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '주요 지표 시각화 및 대시보드 구조 설계', actionPlan: 'Chart.js 붙이기\n더미 데이터 연동', progress: 85, status: '승인 완료', requestType: 'update' },
-        { id: 103, userId: 'member', periodType: 'quarterly', periodValue: '2026-Q2', text: 'DT 전략 기반 신규 프레임워크 1.0 론칭', actionPlan: '기획서 검토', progress: 20, status: '합의 대기', requestType: 'new' }
+    // All Goals Data
+    allGoals: [
+        { id: 101, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '기존 시스템 UI/UX 개편', actionPlan: '공통 컴포넌트 분리', progress: 40, status: '승인 완료', requestType: null, comment: '' },
+        { id: 102, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '주요 지표 시각화 설계', actionPlan: 'Chart.js 연동', progress: 85, status: '진척률 승인 대기', requestType: 'progress-update', comment: '디자인 적용 완료' },
+        { id: 103, userId: 'member', periodType: 'monthly', periodValue: '2026-04', text: '모니터링 알림 연동', actionPlan: '슬랙 웹훅 연결', progress: 0, status: '승인 대기', requestType: 'new', comment: '' }
     ]
 };
 
@@ -28,12 +27,19 @@ const USER_NAMES = {
     'member2': '이개발 (팀원)'
 };
 
-// --- Initializing dynamic dates ---
-function initDates() {
+// --- Initialization ---
+function getDefaultPeriodValue(type) {
     const d = new Date();
     const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
-    const currMonth = d.getMonth() + 1;
-    STATE.dashboardPeriodValue = `${currYear}-${String(currMonth).padStart(2, '0')}`;
+    if(type === 'monthly') return `${currYear}-${String(d.getMonth()+1).padStart(2, '0')}`;
+    if(type === 'quarterly') return `${currYear}-Q${Math.floor(d.getMonth()/3)+1}`;
+    return `${currYear}`;
+}
+
+function initDates() {
+    STATE.dashboardPeriodValue = getDefaultPeriodValue('monthly');
+    STATE.goalsSetPeriodValue = getDefaultPeriodValue('monthly');
+    STATE.goalsManagePeriodValue = getDefaultPeriodValue('monthly');
 }
 initDates();
 
@@ -44,14 +50,6 @@ function getPeriodLabel(type, value) {
     if (type === 'quarterly') return `${value.split('-')[0]}년 ${value.split('-')[1]}분기`;
     if (type === 'yearly') return `${value}년`;
     return value;
-}
-
-function getDefaultPeriodValue(type) {
-    const d = new Date();
-    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
-    if(type === 'monthly') return `${currYear}-${String(d.getMonth()+1).padStart(2, '0')}`;
-    if(type === 'quarterly') return `${currYear}-Q${Math.floor(d.getMonth()/3)+1}`;
-    return `${currYear}`;
 }
 
 // --- Menu Configuration ---
@@ -68,113 +66,84 @@ window.setTab = function(view, tab) {
         STATE.dashboardTab = tab;
         STATE.dashboardPeriodValue = getDefaultPeriodValue(tab);
     }
-    if (view === 'goals_set') { STATE.goalsSetTab = tab; STATE.draftSubmitted = false; }
-    if (view === 'goals_manage') STATE.goalsManageTab = tab;
+    if (view === 'goals_set') {
+        STATE.goalsSetTab = tab;
+        STATE.goalsSetPeriodValue = getDefaultPeriodValue(tab);
+    }
+    if (view === 'goals_manage') {
+        STATE.goalsManageTab = tab;
+        STATE.goalsManagePeriodValue = getDefaultPeriodValue(tab);
+    }
     renderCurrentView();
 };
 
-window.setDashboardPeriod = function(val) {
-    STATE.dashboardPeriodValue = val;
+window.setPeriod = function(view, val) {
+    if(view === 'dashboard') STATE.dashboardPeriodValue = val;
+    if(view === 'goals_set') STATE.goalsSetPeriodValue = val;
+    if(view === 'goals_manage') STATE.goalsManagePeriodValue = val;
     renderCurrentView();
 };
 
 // Goals Set Logic
 window.addGoalRow = function() {
-    if (STATE.draftSubmitted) return;
-    if (STATE.activeGoalsDraft.length < 10) {
-        STATE.activeGoalsDraft.push({ id: Date.now(), text: '', actionPlan: '' });
-        renderCurrentView();
-    } else {
-        alert('목표는 최대 10개까지만 설정 가능합니다.');
-    }
-};
-
-window.removeGoalRow = function(id) {
-    if (STATE.draftSubmitted) return;
-    STATE.activeGoalsDraft = STATE.activeGoalsDraft.filter(g => g.id !== id);
-    if(STATE.activeGoalsDraft.length === 0) window.addGoalRow();
-    else renderCurrentView();
-};
-
-window.updateGoalText = function(id, value) {
-    const goal = STATE.activeGoalsDraft.find(g => g.id === id);
-    if(goal) goal.text = value;
-};
-window.updateGoalPlan = function(id, value) {
-    const goal = STATE.activeGoalsDraft.find(g => g.id === id);
-    if(goal) goal.actionPlan = value;
-};
-
-window.submitGoals = function() {
-    const periodValue = document.getElementById('period-selector').value;
-    
-    let isAllFilled = STATE.activeGoalsDraft.every(g => g.text.trim() !== '');
-    if(!isAllFilled) {
-        alert('핵심 목표 내용을 모두 입력해주세요.');
-        return;
-    }
-    if(STATE.activeGoalsDraft.length < 3) {
-        alert('최소 3개의 목표를 입력해야 합니다.');
-        return;
-    }
-    
-    STATE.activeGoalsDraft.forEach(g => {
-        STATE.submittedGoals.push({
-            id: Date.now() + Math.random(),
-            userId: STATE.user.id,
-            periodType: STATE.goalsSetTab,
-            periodValue: periodValue,
-            text: g.text,
-            actionPlan: g.actionPlan,
-            progress: 0,
-            status: '합의 대기',
-            requestType: 'new' // 'new', 'update', 'content-update'
-        });
+    STATE.allGoals.push({
+        id: Date.now() + Math.random(),
+        userId: STATE.user.id,
+        periodType: STATE.goalsSetTab,
+        periodValue: STATE.goalsSetPeriodValue,
+        text: '',
+        actionPlan: '',
+        progress: 0,
+        status: '작성중',
+        requestType: null,
+        comment: ''
     });
-    
-    STATE.draftSubmitted = true;
     renderCurrentView();
 };
 
-// Goals Manage Details Edit
-window.updateManageGoalText = function(id, value) {
-    const goal = STATE.submittedGoals.find(g => g.id == id);
-    if(goal) goal.text = value; // Direct update for now, will request separately
-};
-window.updateManageGoalPlan = function(id, value) {
-    const goal = STATE.submittedGoals.find(g => g.id == id);
-    if(goal) goal.actionPlan = value;
-};
-window.updateProgress = function(goalId, newProgress) {
-    const goal = STATE.submittedGoals.find(g => g.id == goalId);
-    if(goal) goal.progress = parseInt(newProgress);
-    const label = document.getElementById(`prog-val-${goalId}`);
-    if(label) label.innerText = newProgress + '%';
+window.removeGoalRow = function(id) {
+    STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
+    renderCurrentView();
 };
 
-window.requestContentUpdate = function(goalId) {
-    const goal = STATE.submittedGoals.find(g => g.id == goalId);
+window.updateGoalField = function(id, field, value) {
+    const goal = STATE.allGoals.find(g => g.id === id);
+    if(goal) goal[field] = value;
+};
+
+window.requestGoalApproval = function(id) {
+    const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        if(!goal.text.trim()) { alert('목표 내용을 입력하세요.'); return; }
-        goal.status = '내용 수정 대기';
-        goal.requestType = 'content-update';
-        alert('목표 내용 수정 요청이 팀장에게 전송되었습니다.');
+        if(!goal.text.trim()) { alert('핵심 달성 목표를 입력해주세요.'); return; }
+        goal.status = '승인 대기';
+        goal.requestType = 'new';
         renderCurrentView();
     }
 };
 
-window.requestProgressUpdate = function(goalId) {
-    const goal = STATE.submittedGoals.find(g => g.id == goalId);
+window.cancelGoalApproval = function(id) {
+    const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        goal.status = '진척률 확인 대기';
+        goal.status = '작성중';
+        goal.requestType = null;
+        renderCurrentView();
+    }
+};
+
+// Goals Manage Logic
+window.requestProgressApproval = function(id) {
+    const goal = STATE.allGoals.find(g => g.id === id);
+    if(goal) {
+        goal.status = '진척률 승인 대기';
         goal.requestType = 'progress-update';
-        alert('진척률 업데이트 확인 요청이 전송되었습니다.');
+        alert('진척률 승인 요청이 전송되었습니다.');
         renderCurrentView();
     }
 };
 
-window.approveRequest = function(goalId) {
-    const goal = STATE.submittedGoals.find(g => g.id == goalId);
+// Admin Requests Logic
+window.approveRequest = function(id) {
+    const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
         goal.status = '승인 완료';
         goal.requestType = null;
@@ -216,32 +185,37 @@ function renderCurrentView() {
 
 // --- Specific Views ---
 
+function generatePeriodOptions(tab, selectedValue) {
+    let html = '';
+    const d = new Date();
+    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    
+    if (tab === 'monthly') {
+        const startMonth = STATE.currentView === 'dashboard' ? 1 : (d.getMonth() + 1);
+        for(let m = startMonth; m <= 12; m++) {
+            let val = `${currYear}-${String(m).padStart(2, '0')}`;
+            let sel = selectedValue === val ? 'selected' : '';
+            html += `<option value="${val}" ${sel}>${currYear}년 ${m}월</option>`;
+        }
+    } else if (tab === 'quarterly') {
+        const startQ = STATE.currentView === 'dashboard' ? 1 : (Math.floor(d.getMonth()/3)+1);
+        for(let q = startQ; q <= 4; q++) {
+            let val = `${currYear}-Q${q}`;
+            let sel = selectedValue === val ? 'selected' : '';
+            html += `<option value="${val}" ${sel}>${currYear}년 ${q}분기</option>`;
+        }
+    } else if (tab === 'yearly') {
+        html += `<option value="${currYear}" ${selectedValue === String(currYear) ? 'selected':''}>${currYear}년</option>`;
+        html += `<option value="${currYear+1}" ${selectedValue === String(currYear+1) ? 'selected':''}>${currYear+1}년</option>`;
+    }
+    return html;
+}
+
 function renderDashboard(container) {
     const activeTabCls = "bg-primary text-white font-medium shadow-sm";
     const inactiveTabCls = "text-on-surface-variant hover:bg-surface-container";
 
-    // Dropdown for period
-    let periodOptionsHtml = '';
-    const d = new Date();
-    const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
-    if (STATE.dashboardTab === 'monthly') {
-        for(let m=1; m<=12; m++) {
-            let val = `${currYear}-${String(m).padStart(2, '0')}`;
-            let sel = STATE.dashboardPeriodValue === val ? 'selected' : '';
-            periodOptionsHtml += `<option value="${val}" ${sel}>${currYear}년 ${m}월</option>`;
-        }
-    } else if (STATE.dashboardTab === 'quarterly') {
-        for(let q=1; q<=4; q++) {
-            let val = `${currYear}-Q${q}`;
-            let sel = STATE.dashboardPeriodValue === val ? 'selected' : '';
-            periodOptionsHtml += `<option value="${val}" ${sel}>${currYear}년 ${q}분기</option>`;
-        }
-    } else if (STATE.dashboardTab === 'yearly') {
-        periodOptionsHtml += `<option value="${currYear}" ${STATE.dashboardPeriodValue === String(currYear) ? 'selected':''}>${currYear}년</option>`;
-        periodOptionsHtml += `<option value="${currYear+1}" ${STATE.dashboardPeriodValue === String(currYear+1) ? 'selected':''}>${currYear+1}년</option>`;
-    }
-
-    const relevantGoals = STATE.submittedGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue);
+    const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status !== '작성중');
     
     let membersWithGoals = {};
     if(STATE.user.role === 'admin') {
@@ -256,9 +230,9 @@ function renderDashboard(container) {
     let dashboardHtml = `
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-4">
-                <h3 class="font-display text-lg font-semibold">전체 구성원 목표 달성 현황</h3>
-                <select id="dash-period-selector" onchange="setDashboardPeriod(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none">
-                    ${periodOptionsHtml}
+                <h3 class="font-display text-lg font-semibold">구성원 목표 현황</h3>
+                <select onchange="setPeriod('dashboard', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
+                    ${generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue)}
                 </select>
             </div>
             <div class="flex items-center bg-white border border-blue-50 rounded-lg p-1 shadow-sm">
@@ -272,8 +246,7 @@ function renderDashboard(container) {
     if(Object.keys(membersWithGoals).length === 0) {
         dashboardHtml += `
         <div class="flex flex-col items-center justify-center bg-white h-64 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
-            <svg class="w-12 h-12 mb-3 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-            <p>해당 기간에 조회할 체결 목표가 없습니다.</p>
+            <p>조회된 목표가 없습니다.</p>
         </div>`;
     } else {
         dashboardHtml += `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">`;
@@ -325,108 +298,93 @@ function renderDashboard(container) {
 function renderGoalsSet(container) {
     const activeTabCls = "border-b-2 border-primary text-primary font-bold";
     const inactiveTabCls = "text-on-surface-variant hover:text-primary transition-colors";
+
+    // Ensure 3 default rows if none exist for current user & tab & period
+    let myDrafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
     
-    let periodOptionsHtml = '';
-    const date = new Date();
-    const currYear = date.getFullYear() > 2025 ? date.getFullYear() : 2026;
-    const currMonth = date.getMonth() + 1;
-    const currQ = Math.floor((currMonth - 1) / 3) + 1;
-    
-    if (STATE.goalsSetTab === 'monthly') {
-        for(let m=currMonth; m<=12; m++) {
-            let val = `${currYear}-${String(m).padStart(2, '0')}`;
-            periodOptionsHtml += `<option value="${val}">${currYear}년 ${m}월</option>`;
+    if (myDrafts.length === 0) {
+        for(let i=0; i<3; i++) {
+            STATE.allGoals.push({
+                id: Date.now() + i,
+                userId: STATE.user.id,
+                periodType: STATE.goalsSetTab,
+                periodValue: STATE.goalsSetPeriodValue,
+                text: '',
+                actionPlan: '',
+                progress: 0,
+                status: '작성중',
+                requestType: null,
+                comment: ''
+            });
         }
-    } else if (STATE.goalsSetTab === 'quarterly') {
-        for(let q=currQ; q<=4; q++) {
-            let val = `${currYear}-Q${q}`;
-            periodOptionsHtml += `<option value="${val}">${currYear}년 ${q}분기</option>`;
-        }
-    } else if (STATE.goalsSetTab === 'yearly') {
-        periodOptionsHtml += `<option value="${currYear}">${currYear}년</option>`;
-        periodOptionsHtml += `<option value="${currYear+1}">${currYear+1}년</option>`;
+        myDrafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
     }
+    
+    let rowsHtml = myDrafts.map((g, index) => {
+        const isEditable = g.status === '작성중';
+        const isPending = g.status === '승인 대기';
+        const isApproved = g.status === '승인 완료';
 
-    let guideHtml = '';
-    if(STATE.goalsSetTab === 'monthly') guideHtml = '현재 월부터 설정 가능합니다. 가급적 해당 월이 시작되기 전에 목표를 제출해 주세요.';
-    if(STATE.goalsSetTab === 'quarterly') guideHtml = '현재 분기부터 설정 가능합니다. 명확하고 구체적인 분기 OKR을 작성해 주세요.';
-    if(STATE.goalsSetTab === 'yearly') guideHtml = '연간 목표는 조직의 큰 방향성과 얼라인 되어야 합니다.';
+        let buttonsHtml = '';
+        if (isEditable) {
+            buttonsHtml = `<button onclick="requestGoalApproval(${g.id})" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-primary-dim transition-colors">승인 요청</button>`;
+        } else if (isPending) {
+            buttonsHtml = `
+                <button onclick="cancelGoalApproval(${g.id})" class="text-error border border-error/50 hover:bg-error/10 px-4 py-2 rounded-lg text-sm font-bold transition-colors">요청 취소</button>
+                <button disabled class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg text-sm font-bold cursor-not-allowed">승인 대기중</button>
+            `;
+        } else if (isApproved) {
+            buttonsHtml = `<button disabled class="bg-success/10 text-success border border-success/30 px-4 py-2 rounded-lg text-sm font-bold">승인 완료</button>`;
+        }
 
-    let rowsHtml = STATE.activeGoalsDraft.map((g, index) => {
         return `
-            <div class="bg-surface-container-lowest border border-blue-50 hover:border-primary/30 rounded-2xl p-6 relative shadow-sm hover:shadow-md transition-all group">
+            <div class="bg-surface-container-lowest border border-blue-50 rounded-2xl p-6 relative shadow-sm group mb-6">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-sm shadow-inner">${index + 1}</div>
-                        <h5 class="text-sm font-bold text-on-surface">OKR 목표 달성 정의서</h5>
+                        <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-sm">${index + 1}</div>
+                        <h5 class="text-sm font-bold text-on-surface">목표 기재란</h5>
                     </div>
-                    ${!STATE.draftSubmitted ? `
-                    <button onclick="removeGoalRow(${g.id})" class="text-error/70 hover:text-error hover:bg-error/10 px-2 py-1.5 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1 opacity-0 group-hover:opacity-100" title="삭제">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        항목 삭제
-                    </button>
-                    ` : ''}
+                    <div class="flex items-center gap-2">
+                        ${buttonsHtml}
+                        ${isEditable ? `
+                        <button onclick="removeGoalRow(${g.id})" class="text-error/70 hover:text-error hover:bg-error/10 px-2 py-2 rounded-lg transition-colors ml-2" title="항목 삭제">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>` : ''}
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
                     <div>
-                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">🔥 핵심 달성 목표 (Objective)</label>
-                        <input type="text" value="${g.text}" oninput="updateGoalText(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm font-bold text-sm text-on-surface placeholder:text-on-surface-variant/40" placeholder="예: MAU 20% 증가 달성">
+                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">핵심 달성 목표</label>
+                        <input type="text" value="${g.text}" oninput="updateGoalField(${g.id}, 'text', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 transition-all shadow-sm font-bold text-sm text-on-surface placeholder:text-on-surface-variant/40" placeholder="목표 1줄 요약">
                     </div>
                     <div>
-                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">🎯 세부 액션 플랜 (Key Results)</label>
-                        <textarea rows="3" oninput="updateGoalPlan(${g.id}, this.value)" ${STATE.draftSubmitted?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium text-on-surface resize-none shadow-sm placeholder:text-on-surface-variant/40 leading-relaxed" placeholder="- 신규 가입자 유치 캠페인 기획 및 오픈&#10;- 휴면 유저 푸시 알림 CTR 3% 달성&#10;- 공유하기 기능 도입"></textarea>
+                        <label class="block text-[13px] font-extrabold text-on-surface mb-2 tracking-wide">세부 액션 플랜</label>
+                        <textarea rows="3" oninput="updateGoalField(${g.id}, 'actionPlan', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 transition-all text-sm font-medium text-on-surface resize-none shadow-sm placeholder:text-on-surface-variant/40 leading-relaxed" placeholder="세부 내용 기재"></textarea>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
 
-    let btnHtml = STATE.draftSubmitted 
-        ? `<button disabled class="bg-surface-container text-on-surface-variant px-10 py-3.5 rounded-xl font-bold tracking-wide shadow-inner cursor-not-allowed border border-blue-100">승인 대기 중</button>`
-        : `<button onclick="submitGoals()" class="bg-gradient-to-br from-primary to-primary-dim text-white px-10 py-3.5 rounded-xl shadow-[0_4px_14px_rgba(0,83,219,0.3)] hover:shadow-[0_6px_20px_rgba(0,83,219,0.4)] font-bold tracking-wide transition-all translate-y-0 hover:-translate-y-0.5">조직장 합의 요청하기</button>`;
-
     let html = `
-        <!-- Tabs -->
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2 max-w-5xl mx-auto">
-            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 설정</button>
-            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 설정</button>
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 설정</button>
+            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표</button>
         </div>
 
-        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3 max-w-5xl mx-auto">
-            <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <p class="text-sm font-medium text-on-surface">${guideHtml}</p>
+        <div class="max-w-5xl mx-auto mb-6 flex items-center justify-between">
+            <select onchange="setPeriod('goals_set', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
+                ${generatePeriodOptions(STATE.goalsSetTab, STATE.goalsSetPeriodValue)}
+            </select>
+            <button onclick="addGoalRow()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-sm rounded-lg hover:bg-blue-50 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                항목 추가
+            </button>
         </div>
 
-        <div class="bg-white/80 rounded-[32px] p-8 border border-blue-50 shadow-sm max-w-5xl mx-auto backdrop-blur-sm">
-            <div class="flex items-center justify-between mb-8 pb-5 border-b border-blue-50/50">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    </div>
-                    <div>
-                        <h3 class="font-display text-2xl font-bold text-on-surface mb-1">성과 창출 셋업</h3>
-                        <select id="period-selector" ${STATE.draftSubmitted?'disabled':''} class="bg-surface-container-lowest border border-blue-100 rounded-lg text-xs px-3 py-1.5 focus:border-primary outline-none font-bold text-on-surface-variant shadow-sm cursor-pointer hover:border-primary/50 transition-colors">
-                            ${periodOptionsHtml}
-                        </select>
-                    </div>
-                </div>
-                ${!STATE.draftSubmitted ? `
-                <button onclick="addGoalRow()" class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-primary font-bold text-sm rounded-xl hover:bg-primary/20 hover:scale-105 transition-all outline-none border border-blue-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    OKR 슬롯 추가
-                </button>
-                ` : ''}
-            </div>
-            
-            <div class="space-y-6 mb-10">
-                ${rowsHtml}
-            </div>
-            
-            <div class="flex flex-col items-end pt-6 border-t border-blue-50/50">
-                ${btnHtml}
-                <p class="text-[11px] text-on-surface-variant mt-3 text-right">제출 완료된 목표 내용은 관리자의 승인 전까지 조회만 가능합니다.</p>
-            </div>
+        <div class="max-w-5xl mx-auto">
+            ${rowsHtml}
         </div>
     `;
     container.innerHTML = html;
@@ -436,68 +394,61 @@ function renderGoalsManage(container) {
     const activeTabCls = "border-b-2 border-primary text-primary font-bold";
     const inactiveTabCls = "text-on-surface-variant hover:text-primary transition-colors";
 
-    const myGoals = STATE.submittedGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab);
+    // Show only approved goals to manage their progress
+    const myGoals = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue && (g.status === '승인 완료' || g.status === '진척률 승인 대기'));
     
     let contentHtml = `
-        <div class="flex flex-col items-center justify-center bg-white h-64 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
-            <svg class="w-12 h-12 mb-3 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-            <p>해당 기간에 등록된 목표가 없습니다.</p>
+        <div class="flex flex-col items-center justify-center bg-white py-20 rounded-xl border border-dashed border-blue-100 text-on-surface-variant">
+            <p>승인 완료된 목표가 없습니다.</p>
         </div>`;
         
     if(myGoals.length > 0) {
-        contentHtml = myGoals.map(g => `
-            <div class="bg-white rounded-2xl p-6 border border-blue-50 shadow-sm mb-6 kpi-card">
-                <div class="flex items-start justify-between mb-4 pb-4 border-b border-blue-50/50">
-                    <span class="px-3 py-1 bg-surface-container text-primary rounded-full font-black text-xs">${getPeriodLabel(g.periodType, g.periodValue)}</span>
-                    <span class="px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-on-surface">${g.status}</span>
+        contentHtml = myGoals.map(g => {
+            const isPending = g.status === '진척률 승인 대기';
+            return `
+            <div class="bg-white rounded-2xl p-6 border border-blue-50 shadow-sm mb-6">
+                <!-- Goal Description -->
+                <div class="mb-5 pb-5 border-b border-blue-50/50">
+                    <h4 class="font-extrabold text-lg text-on-surface mb-2">${g.text}</h4>
+                    <p class="whitespace-pre-line text-sm text-on-surface-variant bg-surface-container-lowest p-3 border border-blue-50 rounded-lg leading-relaxed">${g.actionPlan}</p>
                 </div>
                 
-                <!-- Edit Content Section -->
-                <div class="mb-6 space-y-4">
-                    <div>
-                        <label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 ml-1">목표 핵심 텍스트</label>
-                        <input type="text" value="${g.text}" onchange="updateManageGoalText(${g.id}, this.value)" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2 text-sm font-semibold text-on-surface outline-none focus:border-primary focus:ring-1">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 ml-1">액션 플랜 수정</label>
-                        <textarea rows="2" onchange="updateManageGoalPlan(${g.id}, this.value)" class="w-full bg-surface-container-lowest border border-blue-100 rounded-lg px-4 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-1 resize-y">${g.actionPlan}</textarea>
-                    </div>
-                    <div class="flex justify-end mt-2">
-                        <button onclick="requestContentUpdate(${g.id})" class="px-4 py-1.5 bg-surface-container text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors shadow-sm">내용 수정 요청</button>
-                    </div>
-                </div>
-                
-                <!-- Details Update Section -->
-                <div class="bg-surface-container-lowest p-5 rounded-xl border border-blue-100 flex items-center gap-8">
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between font-bold text-sm mb-3">
-                            <span class="text-on-surface">진척률 업데이트</span>
-                            <span id="prog-val-${g.id}" class="text-primary text-xl font-black bg-blue-50 px-2 py-0.5 rounded">${g.progress}%</span>
+                <!-- Progress Updater -->
+                <div class="bg-surface-container-lowest p-5 rounded-xl border ${isPending?'border-warning/30':'border-blue-100'}">
+                    <div class="flex items-center gap-6">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-2 font-bold text-sm">
+                                <span>진척률</span>
+                                <span id="prog-val-${g.id}" class="text-primary text-lg">${g.progress}%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="${g.progress}" onchange="updateGoalField(${g.id}, 'progress', parseInt(this.value))" oninput="document.getElementById('prog-val-${g.id}').innerText=this.value+'%'" ${isPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-50 rounded-lg appearance-none cursor-pointer">
                         </div>
-                        <input type="range" min="0" max="100" value="${g.progress}" onchange="updateProgress(${g.id}, this.value)" oninput="document.getElementById('prog-val-${g.id}').innerText=this.value+'%'" class="w-full accent-primary h-2 bg-blue-50 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <div class="border-l border-blue-100 pl-8">
-                        <button onclick="requestProgressUpdate(${g.id})" class="px-6 py-2.5 bg-primary text-white font-bold rounded-xl shadow hover:shadow-md hover:bg-primary-dim transition-all whitespace-nowrap text-sm flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            진척률 확인 요청
-                        </button>
+                        <div class="flex-1">
+                            <label class="block mb-2 font-bold text-sm text-on-surface">코멘트</label>
+                            <input type="text" value="${g.comment}" oninput="updateGoalField(${g.id}, 'comment', this.value)" ${isPending?'disabled':''} placeholder="진척률 변경 사유 및 내용" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                        </div>
+                        <div class="pt-6">
+                            ${isPending ? 
+                            `<button disabled class="px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold rounded-xl text-sm border border-blue-50 whitespace-nowrap">승인 대기중</button>` : 
+                            `<button onclick="requestProgressApproval(${g.id})" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow hover:bg-primary-dim transition-all whitespace-nowrap text-sm">승인 요청</button>`}
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     let html = `
-        <!-- Tabs -->
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2">
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-8 px-2 max-w-4xl mx-auto">
             <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? activeTabCls : inactiveTabCls}">월별 목표 관리</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? activeTabCls : inactiveTabCls}">분기별 목표 관리</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? activeTabCls : inactiveTabCls}">연간 목표 관리</button>
         </div>
-        
-        <div class="bg-blue-50 border-l-4 border-primary p-4 rounded-r-xl mb-8 flex items-start gap-3">
-            <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            <p class="text-sm font-medium text-on-surface">입력된 필드를 수정하고 <b>[내용 수정 요청]</b> 버튼을 누르면 목표 내용이 변경 승인 요청되며, 바(Bar)를 움직여 <b>[진척률 확인 요청]</b>을 클릭하면 실시간 퍼센테이지가 업데이트 됩니다.</p>
+
+        <div class="max-w-4xl mx-auto mb-6">
+            <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
+                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
+            </select>
         </div>
 
         <div class="max-w-4xl mx-auto">
@@ -508,38 +459,32 @@ function renderGoalsManage(container) {
 }
 
 function renderRequests(container) {
-    const list = STATE.submittedGoals.filter(g => g.requestType !== null);
+    const list = STATE.allGoals.filter(g => g.requestType !== null);
     
     let rowsHtml = '';
     if(list.length === 0) {
-        rowsHtml = `<tr><td colspan="5" class="p-10 text-center text-on-surface-variant font-medium">현재 결재를 대기 중인 요청이 없습니다. 🎉</td></tr>`;
+        rowsHtml = `<tr><td colspan="5" class="p-10 text-center text-on-surface-variant font-medium">현재 대기 중인 요청이 없습니다.</td></tr>`;
     } else {
         rowsHtml = list.map(g => {
             const assignee = USER_NAMES[g.userId] || g.userId;
-            let reqBadge = '';
-            if(g.requestType === 'new') reqBadge = '<span class="px-2.5 py-1 bg-primary/10 text-primary text-[11px] font-bold rounded uppercase tracking-wider">신규</span>';
-            else if(g.requestType === 'update' || g.requestType === 'progress-update') reqBadge = '<span class="px-2.5 py-1 bg-[#f59e0b]/10 text-[#d97706] text-[11px] font-bold rounded uppercase tracking-wider">진척률</span>';
-            else if(g.requestType === 'content-update') reqBadge = '<span class="px-2.5 py-1 bg-[#8b5cf6]/10 text-[#6d28d9] text-[11px] font-bold rounded uppercase tracking-wider">내용 수정</span>';
+            let reqTypeLabel = g.requestType === 'new' ? '신규 목표 승인' : '진척률 승인';
 
             return `
             <tr class="border-b border-blue-50/50 hover:bg-surface-container-lowest transition-colors">
                 <td class="py-5 px-6 font-bold text-on-surface">${assignee}</td>
                 <td class="py-5 px-6">
-                    <div class="flex items-center gap-2 mb-2">
-                        ${reqBadge} 
-                        <span class="font-extrabold text-xs text-on-surface-variant">${getPeriodLabel(g.periodType, g.periodValue)}</span>
-                    </div>
-                    <div class="text-sm font-bold w-64 truncate leading-relaxed">${g.text}</div>
-                    ${g.actionPlan ? `<div class="text-[11px] font-medium text-on-surface-variant truncate w-64 mt-1 border-l-2 border-blue-100 pl-2">${g.actionPlan.replace(/\n/g, ' ')}</div>` : ''}
+                    <span class="font-bold text-xs text-on-surface-variant block mb-1">${getPeriodLabel(g.periodType, g.periodValue)} - ${reqTypeLabel}</span>
+                    <div class="text-sm font-bold w-64 truncate">${g.text}</div>
                 </td>
                 <td class="py-5 px-6">
-                    <div class="font-display font-black text-2xl ${g.progress === 100 ? 'text-success' : 'text-primary'}">${g.progress}%</div>
+                    <div class="font-display font-black text-xl text-primary">${g.progress}%</div>
+                    ${g.comment ? `<div class="text-[11px] mt-1 text-on-surface-variant max-w-xs truncate">${g.comment}</div>` : ''}
                 </td>
                 <td class="py-5 px-6">
                     <span class="text-xs font-bold text-on-surface-variant border border-blue-100 bg-white px-3 py-1.5 rounded-md shadow-sm">${g.status}</span>
                 </td>
                 <td class="py-5 px-6 text-right">
-                    <button onclick="approveRequest(${g.id})" class="px-6 py-2.5 bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">승인 처리</button>
+                    <button onclick="approveRequest(${g.id})" class="px-5 py-2 bg-primary text-white font-bold text-sm rounded-lg hover:bg-primary-dim transition-all">승인</button>
                 </td>
             </tr>
             `;
@@ -547,16 +492,16 @@ function renderRequests(container) {
     }
 
     container.innerHTML = `
-        <h3 class="font-display font-bold text-2xl mb-6">결재함 (요청 관리)</h3>
-        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-5xl overflow-hidden glass-panel">
+        <h3 class="font-display font-bold text-2xl mb-6 pl-2">요청 관리</h3>
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left">
                 <thead>
                     <tr class="text-xs text-on-surface-variant font-bold bg-surface-container-low border-b border-blue-50">
-                        <th class="py-4 px-6 w-1/5">기안자</th>
-                        <th class="py-4 px-6 w-2/5">요청 정보 (유형/내용)</th>
-                        <th class="py-4 px-6">지표</th>
-                        <th class="py-4 px-6">현재 상태</th>
-                        <th class="py-4 px-6">진행</th>
+                        <th class="py-4 px-6 w-1/6">기안자</th>
+                        <th class="py-4 px-6 w-2/6">내용</th>
+                        <th class="py-4 px-6 w-1/6">지표 및 코멘트</th>
+                        <th class="py-4 px-6 w-1/6">상태</th>
+                        <th class="py-4 px-6 w-1/6">처리</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>

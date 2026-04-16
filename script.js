@@ -943,5 +943,21 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     document.getElementById('login-view').classList.remove('hidden');
     document.getElementById('app-view').classList.add('hidden');
 });
-const today = new Date();
-document.getElementById('current-date').innerText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
+// 날짜 및 시간 업데이트 함수
+function updateDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    document.getElementById('current-date').innerText = `${year}년 ${month}월 ${date}일`;
+    document.getElementById('current-time').innerText = `${hours}:${minutes}:${seconds}`;
+}
+
+// 초기 날짜/시간 설정 및 1초마다 업데이트
+updateDateTime();
+setInterval(updateDateTime, 1000);

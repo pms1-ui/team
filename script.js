@@ -393,18 +393,15 @@ function renderDashboard(container) {
     }
 
     let h = `
-        <div class="flex items-center justify-between mb-8">
-            <h3 class="font-display text-lg font-semibold">구성원 OKR 달성 현황</h3>
-            <div class="flex items-center gap-2">
-                <select onchange="setPeriod('dashboard', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-sm px-4 py-2 outline-none cursor-pointer">
-                    ${generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue)}
-                </select>
-                <div class="flex items-center bg-white border border-blue-50 rounded-lg p-1 shadow-sm ml-4">
-                    <button onclick="setTab('dashboard', 'monthly')" class="px-5 py-1.5 rounded-md text-[13px] transition-all ${STATE.dashboardTab === 'monthly' ? 'bg-primary text-white font-bold shadow-sm' : 'text-on-surface-variant font-medium hover:bg-surface-container'}">월간</button>
-                    <button onclick="setTab('dashboard', 'quarterly')" class="px-5 py-1.5 rounded-md text-[13px] transition-all ${STATE.dashboardTab === 'quarterly' ? 'bg-primary text-white font-bold shadow-sm' : 'text-on-surface-variant font-medium hover:bg-surface-container'}">분기</button>
-                    <button onclick="setTab('dashboard', 'yearly')" class="px-5 py-1.5 rounded-md text-[13px] transition-all ${STATE.dashboardTab === 'yearly' ? 'bg-primary text-white font-bold shadow-sm' : 'text-on-surface-variant font-medium hover:bg-surface-container'}">연간</button>
-                </div>
-            </div>
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
+            <button onclick="setTab('dashboard', 'monthly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
+            <button onclick="setTab('dashboard', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('dashboard', 'yearly')" class="pb-3 text-lg transition-all ${STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+        </div>
+        <div class="mb-4 w-full">
+            <select onchange="setPeriod('dashboard', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                ${generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue)}
+            </select>
         </div>
     `;
 

@@ -99,7 +99,7 @@ function ensureTempStructures(goal) {
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'goals_manage', label: '목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
+    { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
 ];
 
@@ -422,11 +422,11 @@ function renderDashboard(container) {
                     </div>
                     <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden w-full">
                         <table class="w-full text-left table-auto">
-                            <thead>
-                                <tr class="bg-surface-container-low text-on-surface-variant border-b border-blue-50 text-[13px] font-extrabold">
-                                    <th class="py-3 px-6 w-1/3">OKR</th>
-                                    <th class="py-3 px-6 w-1/2">Key Results</th>
-                                    <th class="py-3 px-6 text-center w-24">진척률</th>
+                            <thead class="bg-surface-container">
+                                <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
+                                    <th class="py-4 px-6 border-r border-blue-50/30 w-1/3">OKR</th>
+                                    <th class="py-4 px-6 border-r border-blue-50/30 w-1/2">Key Results</th>
+                                    <th class="py-4 px-6 text-center w-24">진척률</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-blue-50/30">
@@ -499,13 +499,13 @@ function renderGoalsSet(container) {
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[35%] align-top">
-                    <textarea rows="3" oninput="updateOKRTitle(${g.id}, this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm resize-none" placeholder="OKR 목표를 입력하세요">${g.text}</textarea>
+                    <textarea rows="3" oninput="updateOKRTitle(${g.id}, this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm resize-none">${g.text}</textarea>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[40%] align-top">
                     <div class="flex flex-col gap-3">
                         ${g.keyResults.map((kr, kri) => `
                             <div class="flex group items-center gap-2">
-                                <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm transition-all" placeholder="Key Result ${kri+1} 내용을 입력하세요">
+                                <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm transition-all">
                                 ${isEditable && g.keyResults.length > 1 ? `<button onclick="removeKR(${g.id}, '${kr.id}')" class="text-error opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-error/10 rounded-md"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                             </div>
                         `).join('')}
@@ -629,7 +629,7 @@ function renderGoalsManage(container) {
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">OKR</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정 (승인 후 가능)</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>
                         <th class="py-4 px-4 text-center">상태</th>
                     </tr>
                 </thead>
@@ -667,12 +667,12 @@ function renderRequests(container) {
 
             return `
                 <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors bg-white">
-                    <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-28 whitespace-nowrap">${assignee}</td>
-                    <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-28">${period}</td>
-                    <td class="py-6 px-4 border-r border-blue-50/50 w-32 align-middle text-center">
+                    <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-36 whitespace-nowrap">${assignee}</td>
+                    <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-36">${period}</td>
+                    <td class="py-6 px-4 border-r border-blue-50/50 w-44 align-middle text-center">
                         ${tagsHtml}
                     </td>
-                    <td class="py-6 px-5 border-r border-blue-50/50 text-center">
+                    <td class="py-6 px-5 border-r border-blue-50/50 text-center w-28">
                         <button onclick="openModal('상세 결재 내용 전후 비교', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[14px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
                     </td>
                     <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">

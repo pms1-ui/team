@@ -49,3 +49,45 @@ button {
 .kpi-card {
     box-shadow: 0 4px 24px rgba(0, 51, 96, 0.04);
 }
+
+
+/* Mobile Responsive Styles */
+@media (max-width: 1023px) {
+    /* 테이블 가로 스크롤 */
+    .bg-white.rounded-2xl {
+        overflow-x: auto;
+    }
+    
+    /* 테이블 최소 너비 설정 */
+    table {
+        min-width: 800px;
+    }
+    
+    /* 모바일에서 탭 간격 조정 */
+    .flex.items-center.gap-8 {
+        gap: 1rem;
+    }
+    
+    /* 버튼 텍스트 크기 조정 */
+    button {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    /* 작은 모바일 화면 */
+    table {
+        min-width: 600px;
+    }
+    
+    /* 탭 텍스트 크기 */
+    .text-lg {
+        font-size: 1rem;
+    }
+    
+    /* 패딩 조정 */
+    .px-4 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}

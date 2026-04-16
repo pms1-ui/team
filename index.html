@@ -58,10 +58,16 @@
 
     <!-- 메인 레이아웃 -->
     <div id="app-view" class="hidden w-full h-full flex">
+        <!-- 모바일 오버레이 -->
+        <div id="mobile-overlay" class="hidden fixed inset-0 bg-black/40 z-30 lg:hidden" onclick="toggleMobileMenu()"></div>
+        
         <!-- 사이드바 -->
-        <aside class="w-64 bg-white border-r border-blue-50/50 flex flex-col h-full shrink-0 shadow-[4px_0_24px_rgba(0,51,96,0.02)] z-10 relative">
-            <div class="h-20 flex items-center px-6 border-b border-blue-50/50">
+        <aside id="sidebar" class="fixed lg:relative w-64 bg-white border-r border-blue-50/50 flex flex-col h-full shrink-0 shadow-[4px_0_24px_rgba(0,51,96,0.02)] z-40 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+            <div class="h-20 flex items-center justify-between px-6 border-b border-blue-50/50">
                 <h2 class="font-display font-bold text-lg text-primary tracking-tight">차일디 목표관리 시스템</h2>
+                <button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant hover:text-primary p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
             
             <div class="p-6">
@@ -85,20 +91,25 @@
         </aside>
 
         <!-- 중앙 메인 콘텐츠 -->
-        <main class="flex-1 bg-surface h-full overflow-y-auto relative">
+        <main class="flex-1 bg-surface h-full overflow-y-auto relative w-full">
             <!-- 헤더 -->
-            <header class="h-20 px-10 flex items-center justify-between sticky top-0 bg-surface/80 backdrop-blur-md z-20 border-b border-blue-50/30">
-                <h1 id="page-title" class="font-display text-2xl font-semibold tracking-tight">Dashboard</h1>
+            <header class="h-20 px-4 lg:px-10 flex items-center justify-between sticky top-0 bg-surface/80 backdrop-blur-md z-20 border-b border-blue-50/30">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant hover:text-primary p-2 -ml-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <h1 id="page-title" class="font-display text-xl lg:text-2xl font-semibold tracking-tight">Dashboard</h1>
+                </div>
                 <div class="flex items-center gap-4">
                     <div class="text-right">
-                        <div id="current-date" class="text-sm font-bold text-on-surface">2026. 04. 16</div>
-                        <div id="current-time" class="text-xs font-medium text-on-surface-variant">00:00:00</div>
+                        <div id="current-date" class="text-xs lg:text-sm font-bold text-on-surface">2026. 04. 16</div>
+                        <div id="current-time" class="text-[10px] lg:text-xs font-medium text-on-surface-variant">00:00:00</div>
                     </div>
                 </div>
             </header>
 
             <!-- 동적 라우팅 컨테이너 -->
-            <div id="content-area" class="px-10 pb-10">
+            <div id="content-area" class="px-4 lg:px-10 pb-10">
                 <!-- 뷰 컴포넌트들이 여길 교체함 -->
             </div>
         </main>

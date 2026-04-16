@@ -439,7 +439,7 @@ function updateNavigation() {
         const isActive = STATE.currentView === item.id;
         btn.className = `flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-bold transition-all w-full ${isActive ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`;
         btn.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${item.icon}</svg> ${item.label} ${badgeHtml}`;
-        btn.onclick = () => { STATE.currentView = item.id; updateNavigation(); renderCurrentView(); };
+        btn.onclick = () => { STATE.currentView = item.id; updateNavigation(); renderCurrentView(); closeMobileMenuOnNavigate(); };
         nav.appendChild(btn);
     });
 }
@@ -1164,4 +1164,32 @@ function renderMembers(container) {
             </table>
         </div>
     `;
+}
+
+
+// --- Mobile Menu ---
+window.toggleMobileMenu = function() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    
+    if(sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+};
+
+// 모바일에서 메뉴 클릭 시 사이드바 닫기
+function closeMobileMenuOnNavigate() {
+    if(window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
 }

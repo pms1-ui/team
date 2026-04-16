@@ -497,73 +497,62 @@ function renderDashboard(container) {
 
     const isMobile = window.innerWidth < 1024;
     
-    let h = `
-        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('dashboard', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
-            <button onclick="setTab('dashboard', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-            <button onclick="setTab('dashboard', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
-        </div>
-        <div class="mb-4 w-full">
-            <select onchange="setPeriod('dashboard', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
-                ${generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue)}
-            </select>
-        </div>
-    `;
+    let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
+    h += '<button onclick="setTab(\'dashboard\', \'monthly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">월별</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
+    h += '</div>';
+    h += '<div class="mb-4 w-full">';
+    h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
+    h += '</select></div>';
 
     if(Object.keys(users).length === 0) {
-        h += `<div class="bg-white/50 border border-dashed border-blue-200 h-40 lg:h-64 rounded-xl lg:rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[12px] lg:text-[13px] text-center p-4">표시할 목표 데이터가 없습니다.</div>`;
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 lg:h-64 rounded-xl lg:rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[12px] lg:text-[13px] text-center p-4">표시할 목표 데이터가 없습니다.</div>';
     } else if(isMobile) {
         h += renderDashboardMobile(container, users);
     } else {
         for(let uid in users) {
             const name = USER_NAMES[uid] || uid;
             const uGoals = users[uid];
-            h += `
-                <div class="mb-10">
-                    <div class="flex items-center gap-3 mb-4 ml-2">
-                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">${name.charAt(0)}</div>
-                        <span class="font-extrabold text-on-surface text-[14px]">${name}</span>
-                    </div>
-                    <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden w-full">
-                        <table class="w-full text-left table-auto">
-                            <thead class="bg-surface-container">
-                                <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
-                                    <th class="py-4 px-6 border-r border-blue-50/30 w-1/3">OKR</th>
-                                    <th class="py-4 px-6 border-r border-blue-50/30 w-1/2">Key Results</th>
-                                    <th class="py-4 px-6 text-center w-24">진척률</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-blue-50/30">
-            `;
+            h += '<div class="mb-10"><div class="flex items-center gap-3 mb-4 ml-2">';
+            h += '<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">' + name.charAt(0) + '</div>';
+            h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span></div>';
+            
             uGoals.forEach(g => {
-                h += `
-                    <tr>
-                        <td class="py-4 px-6 align-top">
-                            <span class="font-bold text-on-surface text-[13px] leading-relaxed block mt-1 break-keep">${g.text}</span>
-                        </td>
-                        <td class="py-4 px-6 border-x border-blue-50/20">
-                            <div class="flex flex-col gap-5">
-                                ${g.keyResults.map(kr => `
-                                    <div class="flex flex-col gap-2">
-                                        <div class="text-[13px] font-medium text-on-surface">${kr.text}</div>
-                                        <div class="w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden shadow-inner">
-                                            <div class="bg-primary h-full transition-all" style="width: ${kr.progress}%"></div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </td>
-                        <td class="py-4 px-6 text-center align-top">
-                            <div class="flex flex-col gap-5">
-                                ${g.keyResults.map(kr => `
-                                    <div class="text-primary font-black text-[13px] h-7 flex items-end justify-center">${kr.progress}%</div>
-                                `).join('')}
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length);
+                const progressColor = avgProgress === 100 ? 'bg-success' : avgProgress >= 50 ? 'bg-primary' : 'bg-gray-400';
+                
+                h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden mb-4">';
+                h += '<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-blue-50">';
+                h += '<div class="flex items-center justify-between">';
+                h += '<h3 class="font-bold text-on-surface text-[15px] leading-relaxed break-keep flex-1">' + g.text + '</h3>';
+                h += '<div class="flex items-center gap-3 ml-4">';
+                h += '<div class="text-right"><div class="text-[11px] text-on-surface-variant font-bold mb-0.5">평균 진척률</div>';
+                h += '<div class="text-primary font-black text-[16px]">' + avgProgress + '%</div></div>';
+                h += '<div class="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center">';
+                h += '<svg class="w-16 h-16 transform -rotate-90"><circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>';
+                h += '<circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="none" class="' + progressColor + '" stroke-dasharray="' + (avgProgress * 1.76) + ' 176" stroke-linecap="round"/></svg>';
+                h += '</div></div></div></div>';
+                
+                h += '<div class="px-6 py-5"><div class="space-y-4">';
+                g.keyResults.forEach(kr => {
+                    const krColor = kr.progress === 100 ? 'bg-success' : kr.progress >= 50 ? 'bg-primary' : 'bg-gray-400';
+                    const checkmark = kr.progress === 100 ? '<svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '';
+                    
+                    h += '<div class="flex items-start gap-3">';
+                    h += '<div class="mt-1.5 w-2 h-2 rounded-full ' + krColor + ' flex-shrink-0"></div>';
+                    h += '<div class="flex-1 min-w-0"><div class="text-[13px] font-medium text-on-surface mb-2 leading-relaxed">' + kr.text + '</div>';
+                    h += '<div class="flex items-center gap-3"><div class="flex-1 bg-surface-container-low h-2 rounded-full overflow-hidden shadow-inner">';
+                    h += '<div class="' + krColor + ' h-full transition-all rounded-full" style="width: ' + kr.progress + '%"></div></div>';
+                    h += '<div class="flex items-center gap-1.5 min-w-[50px] justify-end">';
+                    h += '<span class="text-primary font-black text-[13px]">' + kr.progress + '%</span>' + checkmark;
+                    h += '</div></div></div></div>';
+                });
+                h += '</div></div></div>';
             });
-            h += `</tbody></table></div></div>`;
+            
+            h += '</div>';
         }
     }
     container.innerHTML = h;

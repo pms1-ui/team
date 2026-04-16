@@ -574,9 +574,9 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
-                                <div class="flex group items-center gap-2">
-                                    <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low">
-                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR(${g.id}, '${kr.id}', true)" class="text-error opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-error/10 rounded-md shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                <div class="flex group items-center gap-2 h-[44px]">
+                                    <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="h-full w-full bg-white border border-blue-100 rounded-lg px-3 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all">
+                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR(${g.id}, '${kr.id}', true)" class="h-full px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                                 </div>
                             `).join('')}
                             ${!isPending ? `<button onclick="addKR(${g.id}, true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
@@ -586,12 +586,9 @@ function renderGoalsManage(container) {
                         <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => {
                                 return `
-                                    <div class="flex flex-col gap-2 p-3 bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
-                                        <div class="flex justify-between items-center px-1">
-                                            <span class="text-[12px] font-bold text-on-surface-variant">진척률</span>
-                                            <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px]">${kr.progress}%</span>
-                                        </div>
-                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                                    <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
+                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
+                                        <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${kr.progress}%</span>
                                     </div>
                                 `;
                             }).join('')}
@@ -678,18 +675,6 @@ function renderRequests(container) {
                     <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
                         ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${g.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
                     </td>
-                    <td class="py-6 px-5 border-r border-blue-50/50 text-center w-40">
-                        <div class="flex flex-col gap-3">
-                            ${(g.tempKeyResults || g.keyResults).map(kr => {
-                                const oldKr = g.keyResults.find(k => k.id === kr.id);
-                                const hasProgDiff = oldKr && oldKr.progress !== kr.progress;
-                                const p = (hasProgDiff && !g.isProcessed) ? 
-                                    `<div class="flex items-center gap-1.5 bg-white border border-blue-50 rounded-lg px-2 py-1 shadow-sm"><span class="line-through text-[12px] text-on-surface-variant/60 font-medium">${oldKr.progress}%</span><svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg><span class="text-primary text-[15px] font-black">${kr.progress}%</span></div>` : 
-                                    `<span class="text-on-surface font-extrabold text-[15px] bg-surface-container-low px-3 py-1 rounded-lg">${kr.progress}%</span>`;
-                                return `<div class="flex items-center justify-center">${p}</div>`;
-                            }).join('')}
-                        </div>
-                    </td>
                     <td class="py-6 px-5 text-center w-36 align-middle">
                         ${g.isProcessed ? 
                             `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
@@ -722,7 +707,6 @@ function renderRequests(container) {
                         <th class="py-5 px-4 text-center border-r border-blue-50/50">성격</th>
                         <th class="py-5 px-5 text-center border-r border-blue-50/50">데이터 상세</th>
                         <th class="py-5 px-4 text-center border-r border-blue-50/50">코멘트</th>
-                        <th class="py-5 px-5 text-center border-r border-blue-50/50">진척률 추이</th>
                         <th class="py-5 px-5 text-center">관리</th>
                     </tr>
                 </thead>

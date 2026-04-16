@@ -272,6 +272,27 @@ function updateNavigation() {
     });
 }
 
+function renderCurrentView() {
+    const content = document.getElementById('content-area');
+    if(!content) return;
+    content.innerHTML = '';
+    const title = document.getElementById('page-title');
+    const menuItem = MENU_ITEMS.find(m => m.id === STATE.currentView);
+    title.innerText = menuItem ? menuItem.label : '대시보드';
+    
+    if (STATE.currentView === 'dashboard') renderDashboard(content);
+    else if (STATE.currentView === 'goals_set') renderGoalsSet(content);
+    else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
+    else if (STATE.currentView === 'requests') renderRequests(content);
+    
+    if (STATE.modalData) renderModal(document.body);
+    else {
+        const modal = document.getElementById('app-modal');
+        if(modal) modal.remove();
+    }
+}
+
+
 // Rendering Views
 function renderDashboard(container) {
     const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status !== '작성중');

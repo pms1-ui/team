@@ -265,7 +265,7 @@ function generatePeriodOptions(tab, selectedValue) {
     return html;
 }
 
-function renderDashboard(container) { ... } // Reusing current logic briefly...
+
 function renderDashboard(container) {
     const activeTabCls = "bg-primary text-white font-medium shadow-sm";
     const inactiveTabCls = "text-on-surface-variant hover:bg-surface-container";

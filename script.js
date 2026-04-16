@@ -31,7 +31,7 @@ const STATE = {
                 { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
                 { id: 'kr101-2', text: '사용자 피드백 만족도 4.5 이상 확보', progress: 20 }
             ],
-            status: '승인 완료', 
+            status: '합의 완료', 
             requestType: null, 
             comment: '', 
             isProcessed: true 
@@ -43,7 +43,10 @@ const STATE = {
             periodValue: '2026-04', 
             text: '퍼포먼스 시스템 고도화', 
             keyResults: [
-                { id: 'kr102-1', text: 'API 응답 속도 200ms 이하 단축', progress: 60, tempProgress: 80 }
+                { id: 'kr102-1', text: 'API 응답 속도 200ms 이하 단축', progress: 60 }
+            ],
+            tempKeyResults: [
+                { id: 'kr102-1', text: 'API 응답 속도 200ms 이하 단축', progress: 80 }
             ],
             status: '승인 대기중', 
             requestType: '진척률', 
@@ -85,6 +88,13 @@ function getPeriodLabel(type, value) {
     return value;
 }
 
+// Ensure temp structures exist for Manage tab
+function ensureTempStructures(goal) {
+    if(goal.status === '합의 완료' && !goal.tempKeyResults) {
+        goal.tempKeyResults = JSON.parse(JSON.stringify(goal.keyResults));
+    }
+}
+
 // --- Menu Configuration ---
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
@@ -124,46 +134,62 @@ window.closeModal = function() {
 window.updateOKRTitle = function(id, val) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        if(goal.status === '승인 완료') goal.tempText = val;
+        if(goal.status === '합의 완료' || goal.status === '승인 대기중') goal.tempText = val;
         else goal.text = val;
     }
 };
 
-window.updateKRTitle = function(okrId, krId, val) {
+window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
     const goal = STATE.allGoals.find(g => g.id === okrId);
     if(goal) {
-        const kr = goal.keyResults.find(k => k.id === krId);
-        if(kr) {
-            if(goal.status === '승인 완료') kr.tempText = val;
-            else kr.text = val;
+        if(isTempObj) {
+            const kr = goal.tempKeyResults.find(k => k.id === krId);
+            if(kr) kr.text = val;
+        } else {
+            const kr = goal.keyResults.find(k => k.id === krId);
+            if(kr) kr.text = val;
         }
     }
 };
 
 window.updateKRProgress = function(okrId, krId, val) {
     const goal = STATE.allGoals.find(g => g.id === okrId);
-    if(goal) {
-        const kr = goal.keyResults.find(k => k.id === krId);
+    if(goal && goal.tempKeyResults) {
+        const kr = goal.tempKeyResults.find(k => k.id === krId);
         if(kr) {
-            kr.tempProgress = parseInt(val);
+            kr.progress = parseInt(val);
             const el = document.getElementById(`kr-prog-val-${krId}`);
             if(el) el.innerText = val + '%';
         }
     }
 };
 
-window.addKR = function(okrId) {
+window.addKR = function(okrId, isTempObj = false) {
     const goal = STATE.allGoals.find(g => g.id === okrId);
     if(goal) {
-        goal.keyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+        if(isTempObj) {
+            ensureTempStructures(goal);
+            goal.tempKeyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+        } else {
+            goal.keyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+        }
         renderCurrentView();
     }
 };
 
-window.removeKR = function(okrId, krId) {
+window.removeKR = function(okrId, krId, isTempObj = false) {
     const goal = STATE.allGoals.find(g => g.id === okrId);
-    if(goal && goal.keyResults.length > 1) {
-        goal.keyResults = goal.keyResults.filter(k => k.id !== krId);
+    if(goal) {
+        if(isTempObj) {
+            ensureTempStructures(goal);
+            if(goal.tempKeyResults.length > 1) {
+                goal.tempKeyResults = goal.tempKeyResults.filter(k => k.id !== krId);
+            }
+        } else {
+            if(goal.keyResults.length > 1) {
+                goal.keyResults = goal.keyResults.filter(k => k.id !== krId);
+            }
+        }
         renderCurrentView();
     }
 };
@@ -203,14 +229,10 @@ window.cancelOKRRequest = function(id) {
             goal.status = '작성중';
             goal.requestType = null;
         } else {
-            goal.status = '승인 완료';
+            goal.status = '합의 완료';
             goal.requestType = null;
-            // Clear all temp
             goal.tempText = undefined;
-            goal.keyResults.forEach(k => {
-                k.tempText = undefined;
-                k.tempProgress = undefined;
-            });
+            goal.tempKeyResults = undefined;
         }
         renderCurrentView();
         updateNavigation();
@@ -221,23 +243,47 @@ window.submitModifyRequest = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(!goal) return;
 
+    ensureTempStructures(goal);
+
     let edits = [];
     if(goal.tempText !== undefined && goal.tempText !== goal.text) edits.push('OKR 변경');
-    if(goal.keyResults.some(k => k.tempText !== undefined && k.tempText !== k.text)) edits.push('KR 내용 변경');
-    if(goal.keyResults.some(k => k.tempProgress !== undefined && k.tempProgress !== k.progress)) edits.push('진척률 보고');
+    
+    // Compute exact diffs for KR
+    const oldKRs = goal.keyResults;
+    const newKRs = goal.tempKeyResults;
+    
+    let hasKrTextChange = false;
+    let hasKrAddRem = false;
+    let hasKrProg = false;
+
+    if(oldKRs.length !== newKRs.length) hasKrAddRem = true;
+    
+    newKRs.forEach(nKr => {
+        const oKr = oldKRs.find(k => k.id === nKr.id);
+        if(!oKr) {
+            hasKrAddRem = true;
+        } else {
+            if(oKr.text !== nKr.text) hasKrTextChange = true;
+            if(oKr.progress !== nKr.progress) hasKrProg = true;
+        }
+    });
+
+    if(hasKrTextChange) edits.push('KR 내용 변경');
+    if(hasKrAddRem) edits.push('KR 항목 증감');
+    if(hasKrProg) edits.push('진척률 보고');
 
     if(edits.length === 0) { alert('변경사항이 없습니다.'); return; }
 
     const mBody = `
         <div class="mb-4 text-[13px] font-bold text-on-surface p-3 bg-surface-container rounded-lg">수정 성격 유형: <span class="text-primary ml-1">${edits.join(', ')}</span></div>
-        <textarea id="modify-comment" class="w-full bg-surface-container-lowest border border-blue-50 focus:border-primary rounded px-4 py-3 text-[13px] font-medium outline-none min-h-[100px] shadow-sm resize-none placeholder:text-on-surface-variant/40" placeholder="결재권자에게 보낼 수정 사유 및 코멘트를 입력하세요..."></textarea>
+        <textarea id="modify-comment" class="w-full bg-surface-container-lowest border border-blue-50 focus:border-primary rounded px-4 py-3 text-[14px] font-medium outline-none min-h-[120px] shadow-sm resize-none placeholder:text-on-surface-variant/40" placeholder="결재권자에게 보낼 수정 사유 및 코멘트를 입력하세요..."></textarea>
     `;
     openModal('수정/진척률 승인 요청하기', mBody, () => {
         const comment = document.getElementById('modify-comment').value;
         goal.status = '승인 대기중';
         goal.requestType = edits.join(',');
         goal.comment = comment;
-        goal.isProcessed = false; // Make sure it shows up as pending
+        goal.isProcessed = false;
         closeModal();
         renderCurrentView();
         updateNavigation();
@@ -248,15 +294,13 @@ window.approveAdminRequest = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
         if(goal.tempText !== undefined) goal.text = goal.tempText;
-        goal.keyResults.forEach(k => {
-            if(k.tempText !== undefined) k.text = k.tempText;
-            if(k.tempProgress !== undefined) k.progress = k.tempProgress;
-            k.tempText = undefined;
-            k.tempProgress = undefined;
-        });
+        if(goal.tempKeyResults) {
+            goal.keyResults = JSON.parse(JSON.stringify(goal.tempKeyResults));
+        }
         goal.tempText = undefined;
-        goal.status = '승인 완료';
-        goal.requestType = null;
+        goal.tempKeyResults = undefined;
+        goal.status = '합의 완료';
+        // Note: Keep requestType untouched visually in requests board
         goal.isProcessed = true;
         renderCurrentView();
         updateNavigation();
@@ -266,6 +310,8 @@ window.approveAdminRequest = function(id) {
 window.undoApproval = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
+        // Need to undo? Technically complex since data was overwritten.
+        // As a mock feature, we just mark it unprocessed. In real DB, we'd need history.
         goal.isProcessed = false;
         renderCurrentView();
         updateNavigation();
@@ -277,7 +323,6 @@ function updateNavigation() {
     const nav = document.getElementById('nav-menu');
     nav.innerHTML = '';
 
-    // Calculate pending requests count for Admin
     const pendingReqCount = STATE.allGoals.filter(g => g.requestType !== null && !g.isProcessed && g.status !== '작성중').length;
 
     MENU_ITEMS.forEach(item => {
@@ -379,8 +424,8 @@ function renderDashboard(container) {
                         <table class="w-full text-left table-auto">
                             <thead>
                                 <tr class="bg-surface-container-low text-on-surface-variant border-b border-blue-50 text-[13px] font-extrabold">
-                                    <th class="py-3 px-6 w-1/3">OKR 목표</th>
-                                    <th class="py-3 px-6 w-1/2">Key Results 리스트</th>
+                                    <th class="py-3 px-6 w-1/3">OKR</th>
+                                    <th class="py-3 px-6 w-1/2">Key Results</th>
                                     <th class="py-3 px-6 text-center w-24">진척률</th>
                                 </tr>
                             </thead>
@@ -447,7 +492,7 @@ function renderGoalsSet(container) {
                 </div>
             `;
         } else {
-            opHtml = `<span class="text-success font-black text-[14px]">승인 완료</span>`;
+            opHtml = `<span class="text-success font-black text-[14px]">합의 완료</span>`;
         }
 
         return `
@@ -496,7 +541,7 @@ function renderGoalsSet(container) {
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">OKR</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
-                        <th class="py-4 px-6 text-center">조작</th>
+                        <th class="py-4 px-6 text-center">상태</th>
                     </tr>
                 </thead>
                 <tbody>${itemsHtml}</tbody>
@@ -510,11 +555,15 @@ function renderGoalsManage(container) {
     
     let rowsHtml = '';
     if(items.length === 0) {
-        rowsHtml = `<tr><td colspan="5" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">승인되거나 요청 진행 중인 목표가 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="5" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">합의되거나 요청 진행 중인 목표가 없습니다.</td></tr>`;
     } else {
         rowsHtml = items.map((g, i) => {
             const isPending = g.status.includes('대기중');
-            const cTitle = (g.tempText !== undefined) ? g.tempText : g.text;
+            
+            ensureTempStructures(g);
+            
+            const krsToRender = g.tempKeyResults || g.keyResults;
+            const cTitle = g.tempText !== undefined ? g.tempText : g.text;
 
             return `
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
@@ -524,22 +573,25 @@ function renderGoalsManage(container) {
                     </td>
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
-                            ${g.keyResults.map(kr => `
-                                <input type="text" value="${kr.tempText !== undefined ? kr.tempText : kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low">
+                            ${krsToRender.map(kr => `
+                                <div class="flex group items-center gap-2">
+                                    <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low">
+                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR(${g.id}, '${kr.id}', true)" class="text-error opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-error/10 rounded-md shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                </div>
                             `).join('')}
+                            ${!isPending ? `<button onclick="addKR(${g.id}, true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
                         </div>
                     </td>
                     <td class="py-6 px-4 w-[25%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
-                            ${g.keyResults.map(kr => {
-                                const val = (kr.tempProgress !== undefined) ? kr.tempProgress : kr.progress;
+                            ${krsToRender.map(kr => {
                                 return `
                                     <div class="flex flex-col gap-2 p-3 bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
                                         <div class="flex justify-between items-center px-1">
                                             <span class="text-[12px] font-bold text-on-surface-variant">진척률</span>
-                                            <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px]">${val}%</span>
+                                            <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px]">${kr.progress}%</span>
                                         </div>
-                                        <input type="range" min="0" max="100" value="${val}" oninput="updateKRProgress(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
                                     </div>
                                 `;
                             }).join('')}
@@ -578,7 +630,7 @@ function renderGoalsManage(container) {
                         <th class="py-4 px-6 border-r border-blue-50/30">OKR</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
                         <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정 (승인 후 가능)</th>
-                        <th class="py-4 px-4 text-center">조작</th>
+                        <th class="py-4 px-4 text-center">상태</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -607,39 +659,41 @@ function renderRequests(container) {
                 else if(s.includes('진척률')) c = 'bg-[#fef3c7] text-[#b45309] border border-[#f59e0b]/20';
                 else if(s.includes('OKR')) c = 'bg-[#ecfdf5] text-[#047857] border border-[#10b981]/20';
                 else if(s.includes('KR')) c = 'bg-purple-50 text-purple-700 border border-purple-200';
-                return `<span class="px-2.5 py-1 ${c} text-[11px] font-extrabold rounded-md block w-full text-center whitespace-nowrap shadow-sm">${s}</span>`;
+                return `<span class="px-2.5 py-1 ${c} text-[12px] font-extrabold rounded-md block w-full text-center whitespace-nowrap shadow-sm">${s}</span>`;
             }).join('') + `</div>`;
 
             const hasComment = !!g.comment;
             const diffHtml = createDiffContent(g);
 
             return `
-                <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors ${g.isProcessed ? 'opacity-60 bg-surface-container-lowest grayscale-[10%]':''}">
+                <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors bg-white">
                     <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-28 whitespace-nowrap">${assignee}</td>
                     <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-28">${period}</td>
                     <td class="py-6 px-4 border-r border-blue-50/50 w-32 align-middle text-center">
-                        ${g.isProcessed ? `<span class="px-3 py-1.5 bg-surface-container-low border border-blue-50 text-on-surface-variant text-[11px] font-black rounded-md block text-center shadow-inner">결재 완료</span>` : tagsHtml}
+                        ${tagsHtml}
                     </td>
                     <td class="py-6 px-5 border-r border-blue-50/50 text-center">
-                        <button onclick="openModal('상세 결재 내용 전후 비교', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
+                        <button onclick="openModal('상세 결재 내용 전후 비교', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[14px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
                     </td>
-                    <td class="py-6 px-4 border-r border-blue-50/50 text-center w-32">
-                        ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-5 bg-surface-container rounded-xl text-sm leading-relaxed text-on-surface font-medium border border-blue-50\\'>${g.comment.replace(/\n/g, '<br/>')}</div>')" class="text-on-surface-variant text-[12px] font-bold underline underline-offset-4 hover:text-primary transition-colors hover:bg-surface-container-low px-2 py-1 rounded">코멘트 보기</button>` : `<span class="text-[12px] text-on-surface-variant/40 font-bold">없음</span>`}
+                    <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
+                        ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${g.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
                     </td>
                     <td class="py-6 px-5 border-r border-blue-50/50 text-center w-40">
                         <div class="flex flex-col gap-3">
-                            ${g.keyResults.map(kr => {
-                                const p = (kr.tempProgress !== undefined && !g.isProcessed) ? 
-                                    `<div class="flex items-center gap-1.5 bg-white border border-blue-50 rounded-lg px-2 py-1 shadow-sm"><span class="line-through text-[11px] text-on-surface-variant/60 font-medium">${kr.progress}%</span><svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg><span class="text-primary text-[14px] font-black">${kr.tempProgress}%</span></div>` : 
-                                    `<span class="text-on-surface font-extrabold text-[14px] bg-surface-container-low px-3 py-1 rounded-lg">${kr.progress}%</span>`;
+                            ${(g.tempKeyResults || g.keyResults).map(kr => {
+                                const oldKr = g.keyResults.find(k => k.id === kr.id);
+                                const hasProgDiff = oldKr && oldKr.progress !== kr.progress;
+                                const p = (hasProgDiff && !g.isProcessed) ? 
+                                    `<div class="flex items-center gap-1.5 bg-white border border-blue-50 rounded-lg px-2 py-1 shadow-sm"><span class="line-through text-[12px] text-on-surface-variant/60 font-medium">${oldKr.progress}%</span><svg class="w-3 h-3 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg><span class="text-primary text-[15px] font-black">${kr.progress}%</span></div>` : 
+                                    `<span class="text-on-surface font-extrabold text-[15px] bg-surface-container-low px-3 py-1 rounded-lg">${kr.progress}%</span>`;
                                 return `<div class="flex items-center justify-center">${p}</div>`;
                             }).join('')}
                         </div>
                     </td>
                     <td class="py-6 px-5 text-center w-36 align-middle">
                         ${g.isProcessed ? 
-                            `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-success text-white font-extrabold text-[13px] rounded-lg shadow-sm hover:opacity-80 transition-all border border-success">결재 취소</button>` : 
-                            `<button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[13px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
+                            `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
+                            `<button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
                         }
                     </td>
                 </tr>
@@ -657,19 +711,19 @@ function renderRequests(container) {
             <select onchange="setPeriod('requests', this.value)" class="bg-surface-container-low text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-4 py-2 outline-none cursor-pointer">
                 ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
             </select>
-            <div class="text-[12px] font-bold text-on-surface-variant mr-3">총 <span class="text-primary font-black mx-1">${list.length}</span>건의 결재 라인</div>
+            <div class="text-[13px] font-bold text-on-surface-variant mr-3">총 <span class="text-primary font-black mx-1">${list.length}</span>건의 결재 라인</div>
         </div>
-        <div class="bg-white rounded-2xl border border-blue-100 shadow-sm w-full overflow-hidden">
+        <div class="bg-white rounded-2xl border border-blue-100 shadow-sm w-full overflow-hidden mb-10">
             <table class="w-full text-left table-auto">
                 <thead class="bg-surface-container-low">
-                    <tr class="text-[13px] text-on-surface-variant font-extrabold border-b border-blue-100 uppercase tracking-widest">
+                    <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-100 uppercase tracking-widest">
                         <th class="py-5 px-5 text-center">기안자</th>
                         <th class="py-5 px-4 text-center border-x border-blue-50/50">기간</th>
-                        <th class="py-5 px-4 text-center border-r border-blue-50/50">내역 성격</th>
+                        <th class="py-5 px-4 text-center border-r border-blue-50/50">성격</th>
                         <th class="py-5 px-5 text-center border-r border-blue-50/50">데이터 상세</th>
                         <th class="py-5 px-4 text-center border-r border-blue-50/50">코멘트</th>
                         <th class="py-5 px-5 text-center border-r border-blue-50/50">진척률 추이</th>
-                        <th class="py-5 px-5 text-center">관리 조작</th>
+                        <th class="py-5 px-5 text-center">관리</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -683,63 +737,91 @@ function createDiffContent(g) {
         <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
             <!-- OKR Diff Container -->
             <div class="flex flex-col gap-2">
-                <div class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">Target OKR</div>
+                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">Target OKR</div>
                 ${g.tempText !== undefined && g.tempText !== g.text ? `
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-error/5 text-error text-[14px] rounded-xl border border-error/10 relative">
-                            <span class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
+                        <div class="p-5 bg-error/5 text-error text-[15px] rounded-xl border border-error/10 relative">
+                            <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
                             <span class="line-through font-medium leading-relaxed">${g.text}</span>
                         </div>
-                        <div class="p-4 bg-success/5 text-success text-[14px] font-extrabold rounded-xl border border-success/20 relative shadow-sm">
-                            <span class="absolute top-0 right-0 bg-success text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
+                        <div class="p-5 bg-success/5 text-success text-[15px] font-extrabold rounded-xl border border-success/20 relative shadow-sm">
+                            <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
                             <span class="leading-relaxed">${g.tempText}</span>
                         </div>
                     </div>
-                ` : `<div class="p-4 text-on-surface font-extrabold text-[14px] bg-white rounded-xl border border-blue-100 shadow-sm leading-relaxed">${g.text}</div>`}
+                ` : `<div class="p-5 text-on-surface font-extrabold text-[15px] bg-white rounded-xl border border-blue-100 shadow-sm leading-relaxed">${g.text}</div>`}
             </div>
             
-            <div class="h-px bg-blue-100/50 w-full my-4"></div>
+            <div class="h-px bg-blue-100/50 w-full my-6"></div>
 
             <!-- KR Diff Container -->
             <div class="flex flex-col gap-4">
-                <div class="text-[13px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display mb-1">Key Results Data</div>
+                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display mb-1">Key Results Data</div>
     `;
 
-    g.keyResults.forEach((kr, i) => {
-        const hasTextDiff = kr.tempText !== undefined && kr.tempText !== kr.text;
-        const hasProgDiff = kr.tempProgress !== undefined && kr.tempProgress !== kr.progress;
+    const krsToRender = g.tempKeyResults || g.keyResults;
+    
+    krsToRender.forEach((kr, i) => {
+        const oldKr = g.keyResults.find(k => k.id === kr.id);
+        const isNew = !oldKr;
+        
+        let hasTextDiff = false;
+        let hasProgDiff = false;
+        if(oldKr) {
+            hasTextDiff = kr.text !== oldKr.text;
+            hasProgDiff = kr.progress !== oldKr.progress;
+        }
 
-        diff += `<div class="p-5 bg-surface-container-lowest rounded-xl border border-blue-50 shadow-sm relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary/20"></div>
-                    <div class="text-[12px] font-extrabold text-primary mb-3 uppercase tracking-widest pl-1">KR #${i+1}</div>`;
+        let bgClass = "bg-surface-container-lowest";
+        if(isNew) bgClass = "bg-[#ecfdf5] border-[#10b981]/20";
+
+        diff += `<div class="p-6 ${bgClass} rounded-2xl border border-blue-50 shadow-sm relative overflow-hidden">
+                    ${isNew ? '<div class="absolute right-4 top-4 bg-success text-white text-[10px] font-bold px-2 py-1 rounded">신규 추가 항목</div>' : ''}
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 ${isNew ? 'bg-success' : 'bg-primary/30'}"></div>
+                    <div class="text-[13px] font-extrabold ${isNew ? 'text-success' : 'text-primary'} mb-4 uppercase tracking-widest pl-1">KR #${i+1}</div>`;
         
         // Text Comparison
         if(hasTextDiff) {
             diff += `
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="p-3 bg-error/5 text-error text-[13px] rounded-lg border border-error/10 font-medium line-through">${kr.text}</div>
-                    <div class="p-3 bg-success/5 text-success text-[13px] font-extrabold rounded-lg border border-success/20 shadow-sm">${kr.tempText}</div>
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div class="p-4 bg-error/5 text-error text-[14px] rounded-lg border border-error/10 font-medium line-through">${oldKr.text}</div>
+                    <div class="p-4 bg-success/5 text-success text-[14px] font-extrabold rounded-lg border border-success/20 shadow-sm">${kr.text}</div>
                 </div>
             `;
         } else {
-            diff += `<div class="text-[14px] text-on-surface font-bold mb-4 bg-white p-3 border border-blue-50 rounded-lg">${kr.text}</div>`;
+            diff += `<div class="text-[15px] text-on-surface font-bold mb-5 bg-white p-4 border border-blue-50 rounded-xl">${kr.text}</div>`;
         }
         
         // Progress Comparison
         if(hasProgDiff) {
             diff += `
-                <div class="flex items-center gap-4 text-[13px] bg-white p-3 rounded-lg border border-blue-50 w-max shadow-sm">
-                    <span class="text-on-surface-variant font-bold">진척률</span>
-                    <span class="text-on-surface-variant/40 line-through font-medium ml-2">${kr.progress}%</span>
-                    <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    <span class="text-primary font-black text-[15px]">${kr.tempProgress}%</span>
+                <div class="flex items-center gap-4 text-[14px] bg-white p-3.5 rounded-xl border border-blue-50 w-max shadow-sm">
+                    <span class="text-on-surface-variant font-bold">진척률 변동현황</span>
+                    <span class="text-on-surface-variant/40 line-through font-medium ml-2">${oldKr.progress}%</span>
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <span class="text-primary font-black text-[18px]">${kr.progress}%</span>
                 </div>
             `;
         } else {
-            diff += `<div class="text-[12px] text-on-surface-variant font-bold bg-white w-max px-3 py-1.5 rounded-md border border-blue-50">현재 유지 진척률: <span class="text-on-surface ml-1">${kr.progress}%</span></div>`;
+            diff += `<div class="text-[13px] text-on-surface-variant font-bold bg-white w-max px-4 py-2.5 rounded-xl border border-blue-50">현재 유지 진척률: <span class="text-on-surface ml-1 text-[14px] font-black">${kr.progress}%</span></div>`;
         }
         diff += `</div>`;
     });
+    
+    // Check for deleted items
+    if(g.tempKeyResults) {
+        g.keyResults.forEach(oldKr => {
+            if(!g.tempKeyResults.find(k => k.id === oldKr.id)) {
+                diff += `<div class="p-6 bg-error/5 rounded-2xl border border-error/20 shadow-sm relative overflow-hidden opacity-80">
+                            <div class="absolute right-4 top-4 bg-error text-white text-[10px] font-bold px-2 py-1 rounded">삭제 요청 항목</div>
+                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-error/50"></div>
+                            <div class="text-[13px] font-extrabold text-error mb-4 uppercase tracking-widest pl-1">KR (삭제됨)</div>
+                            <div class="text-[14px] text-error font-medium mb-3 bg-white/50 p-4 border border-error/20 rounded-xl line-through">${oldKr.text}</div>
+                            <div class="text-[13px] text-error font-bold bg-white/50 w-max px-4 py-2 rounded-xl border border-error/20">삭제 당시 진척률: <span class="ml-1 text-[14px] font-black">${oldKr.progress}%</span></div>
+                        </div>`;
+            }
+        });
+    }
 
     diff += `</div></div>`;
     return diff.replace(/"/g, '&quot;').replace(/\n/g, '');
@@ -749,22 +831,22 @@ function renderModal(container) {
     if(!STATE.modalData) return;
     const hasAction = typeof STATE.modalData.onConfirmAction === 'function';
     // isWide determines the width of the modal
-    const maxWidthClass = STATE.modalData.isWide ? 'max-w-4xl' : 'max-w-xl';
+    const maxWidthClass = STATE.modalData.isWide ? 'max-w-5xl' : 'max-w-xl';
     
     const mHtml = `
-        <div id="app-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onclick="closeModal()"></div>
-            <div class="relative bg-white rounded-3xl w-full ${maxWidthClass} shadow-2xl p-8 transform transition-all border border-blue-100 overflow-hidden">
-                <div class="flex justify-between items-center mb-6 pb-4 border-b border-blue-50">
-                    <h3 class="font-display font-black text-[20px] text-primary tracking-tight">${STATE.modalData.title}</h3>
-                    <button onclick="closeModal()" class="text-on-surface-variant hover:text-error transition-colors p-2 rounded-full hover:bg-error/10 bg-surface-container"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        <div id="app-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-[3px]" onclick="closeModal()"></div>
+            <div class="relative bg-white rounded-[2rem] w-full ${maxWidthClass} shadow-2xl p-10 transform transition-all border border-blue-100 overflow-hidden">
+                <div class="flex justify-between items-center mb-8 pb-5 border-b border-blue-50">
+                    <h3 class="font-display font-black text-[22px] text-primary tracking-tight">${STATE.modalData.title}</h3>
+                    <button onclick="closeModal()" class="text-on-surface-variant hover:text-error transition-colors p-2.5 rounded-full hover:bg-error/10 bg-surface-container"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
-                <div class="text-on-surface text-[14px] mb-8 leading-relaxed">
+                <div class="text-on-surface text-[15px] mb-8 leading-relaxed">
                     ${STATE.modalData.content}
                 </div>
                 <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-blue-50/50">
-                    <button onclick="closeModal()" class="px-6 py-2.5 bg-surface-container hover:bg-blue-100 text-on-surface font-black text-[13px] rounded-xl transition-all h-11">닫기</button>
-                    ${hasAction ? `<button id="modal-confirm-btn" class="px-7 py-2.5 bg-primary hover:bg-primary-dim text-white font-black text-[13px] rounded-xl shadow-lg transition-all h-11">확인 결정</button>` : ''}
+                    <button onclick="closeModal()" class="px-8 py-3.5 bg-surface-container hover:bg-blue-100 text-on-surface font-black text-[14px] rounded-xl transition-all">닫기</button>
+                    ${hasAction ? `<button id="modal-confirm-btn" class="px-10 py-3.5 bg-primary hover:bg-primary-dim text-white font-black text-[14px] rounded-xl shadow-xl transition-all">확인 결정</button>` : ''}
                 </div>
             </div>
         </div>

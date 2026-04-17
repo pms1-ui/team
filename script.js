@@ -461,73 +461,55 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
     }
 };
 
-window.addOKR = async function(timestamp_salt = 0) {
-    try {
-        const newGoal = {
-            user_id: STATE.user.id,
-            period_type: STATE.goalsSetTab,
-            period_value: STATE.goalsSetPeriodValue,
-            OKR: '',  // Use OKR field
-            status: '작성중',
-            is_processed: false,
-            comment: '',
-            temp_text: null,
-            request_type: null
-        };
-        
-        const createdGoal = await GoalsAPI.create(newGoal);
-        
-        // Create initial key result with OKR and KR fields
-        const newKR = {
-            goal_id: String(createdGoal.id),
-            kr_id: 'kr-' + Date.now() + timestamp_salt,
-            OKR: '',  // OKR field in key_results table
-            KR: '',   // KR field in key_results table
-            progress: '0'
-        };
-        
-        await KeyResultsAPI.create(newKR);
-        
-        STATE.allGoals.push({
-            id: createdGoal.id,
-            userId: createdGoal.user_id,
-            periodType: createdGoal.period_type,
-            periodValue: createdGoal.period_value,
-            text: createdGoal.OKR || '',
-            keyResults: [{ id: newKR.kr_id, text: '', progress: 0 }],
-            status: createdGoal.status,
-            requestType: null,
-            comment: createdGoal.comment,
-            isProcessed: createdGoal.is_processed
-        });
-        
-        renderCurrentView();
-    } catch (error) {
-        console.error('Error adding OKR:', error);
-        alert('OKR 추가 중 오류가 발생했습니다.');
-    }
+window.addOKR = function(timestamp_salt = 0) {
+    // Create OKR only in local STATE, not in Baserow yet
+    const newId = 'temp-' + Date.now() + timestamp_salt;
+    
+    STATE.allGoals.push({
+        id: newId,
+        userId: STATE.user.id,
+        periodType: STATE.goalsSetTab,
+        periodValue: STATE.goalsSetPeriodValue,
+        text: '',
+        keyResults: [{ id: 'kr-' + Date.now() + timestamp_salt, text: '', progress: 0 }],
+        status: '작성중',
+        requestType: null,
+        comment: '',
+        isProcessed: false,
+        isLocalOnly: true  // Flag to indicate this is not yet in Baserow
+    });
+    
+    renderCurrentView();
 };
 
-window.removeOKR = async function(id) {
-    try {
-        // Delete all key results first
-        const goal = STATE.allGoals.find(g => g.id === id);
-        if (goal && goal.keyResults) {
+window.removeOKR = function(id) {
+    // If it's a local-only goal (not yet in Baserow), just remove from STATE
+    const goal = STATE.allGoals.find(g => g.id === id);
+    if (goal && goal.isLocalOnly) {
+        STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
+        renderCurrentView();
+        return;
+    }
+    
+    // If it's in Baserow, delete from Baserow
+    (async () => {
+        try {
+            // Delete all key results first
             const krs = await KeyResultsAPI.listByGoalId(id);
             for (const baserowKR of krs) {
                 await KeyResultsAPI.delete(baserowKR.id);
             }
+            
+            // Delete the goal
+            await GoalsAPI.delete(id);
+            
+            STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
+            renderCurrentView();
+        } catch (error) {
+            console.error('Error removing OKR:', error);
+            alert('OKR 삭제 중 오류가 발생했습니다.');
         }
-        
-        // Delete the goal
-        await GoalsAPI.delete(id);
-        
-        STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
-        renderCurrentView();
-    } catch (error) {
-        console.error('Error removing OKR:', error);
-        alert('OKR 삭제 중 오류가 발생했습니다.');
-    }
+    })();
 };
 
 // Requests
@@ -538,40 +520,75 @@ window.submitOKRRequest = async function(id) {
     if(goal.keyResults.some(k => !k.text.trim())) { alert('모든 Key Results 내용을 입력하세요.'); return; }
     
     try {
-        // Update goal in Baserow
-        await GoalsAPI.update(id, {
-            OKR: goal.text,  // Save OKR to goals table
-            status: '승인 대기중',
-            is_processed: false,
-            request_type: '신규 수립'
-        });
+        let goalId = id;
         
-        // Update or create key results in Baserow
-        const existingKRs = await KeyResultsAPI.listByGoalId(id);
-        
-        for (const kr of goal.keyResults) {
-            const existingKR = existingKRs.find(k => k.kr_id === kr.id);
-            if (existingKR) {
-                await KeyResultsAPI.update(existingKR.id, {
-                    OKR: goal.text,  // Save OKR to key_results table
-                    KR: kr.text,     // Save KR to key_results table
-                    progress: String(kr.progress)
-                });
-            } else {
+        // If this is a local-only goal, create it in Baserow first
+        if (goal.isLocalOnly) {
+            const newGoal = {
+                user_id: goal.userId,
+                period_type: goal.periodType,
+                period_value: goal.periodValue,
+                OKR: goal.text,
+                status: '승인 대기중',
+                is_processed: false,
+                comment: '',
+                temp_text: null,
+                request_type: '신규 수립'
+            };
+            
+            const createdGoal = await GoalsAPI.create(newGoal);
+            goalId = createdGoal.id;
+            
+            // Update the goal in STATE with the real Baserow ID
+            goal.id = goalId;
+            goal.isLocalOnly = false;
+            
+            // Create key results in Baserow
+            for (const kr of goal.keyResults) {
                 await KeyResultsAPI.create({
-                    goal_id: String(id),
+                    goal_id: String(goalId),
                     kr_id: kr.id,
-                    OKR: goal.text,  // Save OKR to key_results table
-                    KR: kr.text,     // Save KR to key_results table
+                    OKR: goal.text,
+                    KR: kr.text,
                     progress: String(kr.progress)
                 });
             }
-        }
-        
-        // Delete removed KRs
-        for (const existingKR of existingKRs) {
-            if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
-                await KeyResultsAPI.delete(existingKR.id);
+        } else {
+            // Update existing goal in Baserow
+            await GoalsAPI.update(goalId, {
+                OKR: goal.text,
+                status: '승인 대기중',
+                is_processed: false,
+                request_type: '신규 수립'
+            });
+            
+            // Update or create key results in Baserow
+            const existingKRs = await KeyResultsAPI.listByGoalId(goalId);
+            
+            for (const kr of goal.keyResults) {
+                const existingKR = existingKRs.find(k => k.kr_id === kr.id);
+                if (existingKR) {
+                    await KeyResultsAPI.update(existingKR.id, {
+                        OKR: goal.text,
+                        KR: kr.text,
+                        progress: String(kr.progress)
+                    });
+                } else {
+                    await KeyResultsAPI.create({
+                        goal_id: String(goalId),
+                        kr_id: kr.id,
+                        OKR: goal.text,
+                        KR: kr.text,
+                        progress: String(kr.progress)
+                    });
+                }
+            }
+            
+            // Delete removed KRs
+            for (const existingKR of existingKRs) {
+                if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
+                    await KeyResultsAPI.delete(existingKR.id);
+                }
             }
         }
         
@@ -591,17 +608,28 @@ window.cancelOKRRequest = async function(id) {
     if(goal) {
         try {
             if(goal.requestType === '신규 수립') {
-                await GoalsAPI.update(id, {
-                    status: '작성중',
-                    request_type: null  // Baserow에서도 request_type 제거
-                });
+                // If it was a new request, delete from Baserow and revert to local-only
+                if (!goal.isLocalOnly) {
+                    // Delete from Baserow
+                    const krs = await KeyResultsAPI.listByGoalId(id);
+                    for (const kr of krs) {
+                        await KeyResultsAPI.delete(kr.id);
+                    }
+                    await GoalsAPI.delete(id);
+                    
+                    // Revert to local-only state
+                    goal.id = 'temp-' + Date.now();
+                    goal.isLocalOnly = true;
+                }
+                
                 goal.status = '작성중';
                 goal.requestType = null;
             } else {
                 await GoalsAPI.update(id, {
                     status: '합의 완료',
                     temp_text: null,
-                    request_type: null  // Baserow에서도 request_type 제거
+                    temp_kr: null,
+                    request_type: null
                 });
                 goal.status = '합의 완료';
                 goal.requestType = null;

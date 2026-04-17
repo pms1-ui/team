@@ -34,30 +34,29 @@
 <body class="bg-surface text-on-surface font-sans antialiased overflow-hidden h-screen w-screen flex">
 
     <!-- 로그인 화면 -->
-    <div id="login-view" class="fixed inset-0 bg-surface z-50 flex items-center justify-center">
-        <div class="glass-panel p-10 rounded-2xl w-[400px] shadow-2xl flex flex-col items-center border border-blue-100/50">
+    <div id="login-view" class="fixed inset-0 bg-surface z-50 flex items-center justify-center px-4">
+        <div class="w-full max-w-md flex flex-col items-center">
             <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
                 <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
-            <h1 class="font-display text-2xl font-bold mb-2">차일디 목표관리 시스템</h1>
+            <h1 class="font-display text-2xl font-bold mb-2 text-center">차일디 목표관리 시스템</h1>
             <p class="text-on-surface-variant text-sm mb-8 text-center">성과 기반 업무 관리 및 리소스 모니터링 시스템</p>
             
             <div class="w-full mb-4">
-                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">본부 선택</label>
-                <select id="login-division" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-on-surface">
-                    <option value="">본부를 선택하세요</option>
-                    <option value="운영본부">운영본부</option>
+                <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">본부 선택</label>
+                <select id="login-division" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-on-surface text-[14px]">
+                    <option value="운영본부" selected>운영본부</option>
                 </select>
             </div>
             <div class="w-full mb-4">
-                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">사용자 ID</label>
-                <input type="text" id="login-id" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="master, member, member2, member3, member4" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
+                <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">사용자 ID</label>
+                <input type="text" id="login-id" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="master, member, member2, member3, member4" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
             </div>
             <div class="w-full mb-8">
-                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">비밀번호</label>
-                <input type="password" id="login-pw" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="1111" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
+                <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">비밀번호</label>
+                <input type="password" id="login-pw" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="1111" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
             </div>
-            <button id="btn-login" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-medium py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity">
+            <button id="btn-login" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-medium py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[14px]">
                 시스템 접속
             </button>
         </div>

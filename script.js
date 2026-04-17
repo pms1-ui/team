@@ -1099,7 +1099,6 @@ document.getElementById('btn-login').addEventListener('click', () => {
     const division = document.getElementById('login-division').value;
     
     if(pw !== '1111') { alert('비밀번호가 틀렸습니다.'); return; }
-    if(!division) { alert('본부를 선택해주세요.'); return; }
     
     if(id === 'master') STATE.user = { id: 'master', name: USER_NAMES.master, role: 'admin', division: division };
     else if(id === 'member') STATE.user = { id: 'member', name: USER_NAMES.member, role: 'user', division: division };

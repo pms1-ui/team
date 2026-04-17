@@ -157,16 +157,16 @@
 
 ## 다음 단계 (TODO)
 
-### 1. Goals 관리 함수 업데이트
-- `addOKR()` - Baserow에 새 goal 생성
-- `removeOKR()` - Baserow에서 goal 삭제
-- `submitOKRRequest()` - goal 상태 업데이트
-- `approveAdminRequest()` - goal 승인 처리
-- Key Results CRUD 작업 Baserow 연동
+### 1. ✅ Goals 관리 함수 업데이트 (완료)
+- ✅ `addOKR()` - Baserow에 새 goal 생성
+- ✅ `removeOKR()` - Baserow에서 goal 삭제
+- ✅ `submitOKRRequest()` - goal 상태 업데이트
+- ✅ `approveAdminRequest()` - goal 승인 처리
+- ✅ Key Results CRUD 작업 Baserow 연동
 
-### 2. R&R 관리 함수 업데이트
-- R&R 생성/수정/삭제 Baserow 연동
-- R&R 승인 프로세스 Baserow 연동
+### 2. ✅ R&R 관리 함수 업데이트 (완료)
+- ✅ R&R 생성/수정/삭제 Baserow 연동
+- ✅ R&R 승인 프로세스 Baserow 연동
 
 ### 3. 실시간 동기화
 - 여러 사용자가 동시에 접속할 경우 데이터 동기화
@@ -180,6 +180,29 @@
 - 필요한 데이터만 로드 (lazy loading)
 - 페이지네이션 구현
 - 캐시 전략 개선
+
+## ✅ Baserow 연동 완료 항목
+
+### 구성원 관리
+- ✅ 구성원 추가/수정/삭제 Baserow 연동
+- ✅ 아이디/비밀번호 필드 추가
+- ✅ 리더/멤버 권한 관리
+- ✅ 로그인 인증 Baserow 연동
+
+### 팀 관리
+- ✅ 팀 추가/수정/삭제 Baserow 연동
+- ✅ 팀명 변경 시 구성원 자동 업데이트
+
+### OKR 관리
+- ✅ OKR 생성/삭제 Baserow 연동
+- ✅ Key Results CRUD Baserow 연동
+- ✅ OKR 제출/승인 프로세스 Baserow 연동
+- ✅ 진척률 업데이트 Baserow 연동
+
+### R&R 관리
+- ✅ R&R 생성/수정 Baserow 연동
+- ✅ R&R 합의 요청/승인 Baserow 연동
+- ✅ R&R 수정 요청 프로세스 Baserow 연동
 
 ## 테스트 방법
 

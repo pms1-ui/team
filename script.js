@@ -360,46 +360,159 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
     }
 };
 
-window.addOKR = function(timestamp_salt = 0) {
-    STATE.allGoals.push({
-        id: Date.now() + timestamp_salt, userId: STATE.user.id, periodType: STATE.goalsSetTab, periodValue: STATE.goalsSetPeriodValue,
-        text: '', keyResults: [{ id: 'kr-' + (Date.now() + timestamp_salt), text: '', progress: 0 }],
-        status: '작성중', requestType: null, comment: '', isProcessed: false
-    });
-    renderCurrentView();
+window.addOKR = async function(timestamp_salt = 0) {
+    try {
+        const newGoal = {
+            user_id: STATE.user.id,
+            period_type: STATE.goalsSetTab,
+            period_value: STATE.goalsSetPeriodValue,
+            text: '',
+            status: '작성중',
+            is_processed: false,
+            comment: '',
+            temp_text: null
+        };
+        
+        const createdGoal = await GoalsAPI.create(newGoal);
+        
+        // Create initial key result
+        const newKR = {
+            goal_id: String(createdGoal.id),
+            kr_id: 'kr-' + Date.now() + timestamp_salt,
+            text: '',
+            progress: '0'
+        };
+        
+        await KeyResultsAPI.create(newKR);
+        
+        STATE.allGoals.push({
+            id: createdGoal.id,
+            userId: createdGoal.user_id,
+            periodType: createdGoal.period_type,
+            periodValue: createdGoal.period_value,
+            text: createdGoal.text,
+            keyResults: [{ id: newKR.kr_id, text: '', progress: 0 }],
+            status: createdGoal.status,
+            requestType: null,
+            comment: createdGoal.comment,
+            isProcessed: createdGoal.is_processed
+        });
+        
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error adding OKR:', error);
+        alert('OKR 추가 중 오류가 발생했습니다.');
+    }
 };
 
-window.removeOKR = function(id) {
-    STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
-    renderCurrentView();
+window.removeOKR = async function(id) {
+    try {
+        // Delete all key results first
+        const goal = STATE.allGoals.find(g => g.id === id);
+        if (goal && goal.keyResults) {
+            for (const kr of goal.keyResults) {
+                // Find the actual KR id in Baserow
+                const krs = await KeyResultsAPI.listByGoalId(id);
+                for (const baserowKR of krs) {
+                    if (baserowKR.kr_id === kr.id) {
+                        await KeyResultsAPI.delete(baserowKR.id);
+                    }
+                }
+            }
+        }
+        
+        // Delete the goal
+        await GoalsAPI.delete(id);
+        
+        STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error removing OKR:', error);
+        alert('OKR 삭제 중 오류가 발생했습니다.');
+    }
 };
 
 // Requests
-window.submitOKRRequest = function(id) {
+window.submitOKRRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(!goal) return;
     if(!goal.text.trim()) { alert('OKR 목표를 입력하세요.'); return; }
     if(goal.keyResults.some(k => !k.text.trim())) { alert('모든 Key Results 내용을 입력하세요.'); return; }
     
-    goal.status = '승인 대기중';
-    goal.requestType = '신규 수립';
-    goal.isProcessed = false;
-    renderCurrentView();
-    updateNavigation();
+    try {
+        // Update goal in Baserow
+        await GoalsAPI.update(id, {
+            text: goal.text,
+            status: '승인 대기중',
+            is_processed: false
+        });
+        
+        // Update or create key results in Baserow
+        const existingKRs = await KeyResultsAPI.listByGoalId(id);
+        
+        for (const kr of goal.keyResults) {
+            const existingKR = existingKRs.find(k => k.kr_id === kr.id);
+            if (existingKR) {
+                await KeyResultsAPI.update(existingKR.id, {
+                    text: kr.text,
+                    progress: String(kr.progress)
+                });
+            } else {
+                await KeyResultsAPI.create({
+                    goal_id: String(id),
+                    kr_id: kr.id,
+                    text: kr.text,
+                    progress: String(kr.progress)
+                });
+            }
+        }
+        
+        // Delete removed KRs
+        for (const existingKR of existingKRs) {
+            if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
+                await KeyResultsAPI.delete(existingKR.id);
+            }
+        }
+        
+        goal.status = '승인 대기중';
+        goal.requestType = '신규 수립';
+        goal.isProcessed = false;
+        renderCurrentView();
+        updateNavigation();
+    } catch (error) {
+        console.error('Error submitting OKR request:', error);
+        alert('OKR 제출 중 오류가 발생했습니다.');
+    }
 };
 
-window.cancelOKRRequest = function(id) {
+window.cancelOKRRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        if(goal.requestType === '신규 수립') {
-            goal.status = '작성중';
-            goal.requestType = null;
-        } else {
-            goal.status = '합의 완료';
-            goal.requestType = null;
-            goal.tempText = undefined;
-            goal.tempKeyResults = undefined;
+        try {
+            if(goal.requestType === '신규 수립') {
+                await GoalsAPI.update(id, {
+                    status: '작성중'
+                });
+                goal.status = '작성중';
+                goal.requestType = null;
+            } else {
+                await GoalsAPI.update(id, {
+                    status: '합의 완료',
+                    temp_text: null
+                });
+                goal.status = '합의 완료';
+                goal.requestType = null;
+                goal.tempText = undefined;
+                goal.tempKeyResults = undefined;
+            }
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error canceling OKR request:', error);
+            alert('요청 취소 중 오류가 발생했습니다.');
         }
+    }
+};
         renderCurrentView();
         updateNavigation();
     }
@@ -456,20 +569,62 @@ window.submitModifyRequest = function(id) {
     }, false);
 };
 
-window.approveAdminRequest = function(id) {
+window.approveAdminRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
-        if(goal.tempText !== undefined) goal.text = goal.tempText;
-        if(goal.tempKeyResults) {
-            goal.keyResults = JSON.parse(JSON.stringify(goal.tempKeyResults));
+        try {
+            // Apply temp changes to actual data
+            if(goal.tempText !== undefined) goal.text = goal.tempText;
+            if(goal.tempKeyResults) {
+                goal.keyResults = JSON.parse(JSON.stringify(goal.tempKeyResults));
+            }
+            
+            // Update goal in Baserow
+            await GoalsAPI.update(id, {
+                text: goal.text,
+                status: '합의 완료',
+                is_processed: true,
+                temp_text: null,
+                comment: goal.comment || ''
+            });
+            
+            // Update key results in Baserow
+            const existingKRs = await KeyResultsAPI.listByGoalId(id);
+            
+            for (const kr of goal.keyResults) {
+                const existingKR = existingKRs.find(k => k.kr_id === kr.id);
+                if (existingKR) {
+                    await KeyResultsAPI.update(existingKR.id, {
+                        text: kr.text,
+                        progress: String(kr.progress)
+                    });
+                } else {
+                    await KeyResultsAPI.create({
+                        goal_id: String(id),
+                        kr_id: kr.id,
+                        text: kr.text,
+                        progress: String(kr.progress)
+                    });
+                }
+            }
+            
+            // Delete removed KRs
+            for (const existingKR of existingKRs) {
+                if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
+                    await KeyResultsAPI.delete(existingKR.id);
+                }
+            }
+            
+            goal.tempText = undefined;
+            goal.tempKeyResults = undefined;
+            goal.status = '합의 완료';
+            goal.isProcessed = true;
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error approving request:', error);
+            alert('승인 처리 중 오류가 발생했습니다.');
         }
-        goal.tempText = undefined;
-        goal.tempKeyResults = undefined;
-        goal.status = '합의 완료';
-        // Note: Keep requestType untouched visually in requests board
-        goal.isProcessed = true;
-        renderCurrentView();
-        updateNavigation();
     }
 };
 
@@ -484,31 +639,61 @@ window.undoApproval = function(id) {
     }
 };
 
-window.approveRnRRequest = function(id) {
+window.approveRnRRequest = async function(id) {
     const rnr = STATE.rnrData.find(r => r.id === id);
     if(rnr) {
-        if (rnr.requestType === '수정') {
-            // Apply modification
-            rnr.content = rnr.tempContent;
-            rnr.tempContent = '';
+        try {
+            if (rnr.request_type === '수정') {
+                // Apply modification
+                await RnRAPI.update(id, {
+                    content: rnr.temp_content,
+                    temp_content: '',
+                    status: '합의 완료',
+                    request_type: null,
+                    comment: ''
+                });
+                
+                rnr.content = rnr.temp_content;
+                rnr.temp_content = '';
+            } else {
+                await RnRAPI.update(id, {
+                    status: '합의 완료',
+                    request_type: null,
+                    comment: ''
+                });
+            }
+            
+            rnr.status = '합의 완료';
+            rnr.request_type = null;
+            rnr.comment = '';
+            alert('R&R 요청이 승인되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error approving R&R request:', error);
+            alert('R&R 승인 중 오류가 발생했습니다.');
         }
-        rnr.status = '합의 완료';
-        rnr.requestType = null;
-        rnr.comment = '';
-        alert('R&R 요청이 승인되었습니다.');
-        renderCurrentView();
-        updateNavigation();
     }
 };
 
-window.undoRnRApproval = function(id) {
+window.undoRnRApproval = async function(id) {
     const rnr = STATE.rnrData.find(r => r.id === id);
     if(rnr) {
-        rnr.status = '승인 대기중';
-        rnr.requestType = '합의';
-        alert('R&R 승인이 취소되었습니다.');
-        renderCurrentView();
-        updateNavigation();
+        try {
+            await RnRAPI.update(id, {
+                status: '승인 대기중',
+                request_type: '합의'
+            });
+            
+            rnr.status = '승인 대기중';
+            rnr.request_type = '합의';
+            alert('R&R 승인이 취소되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error undoing R&R approval:', error);
+            alert('R&R 승인 취소 중 오류가 발생했습니다.');
+        }
     }
 };
 
@@ -2159,7 +2344,7 @@ function renderGuide(container) {
 function renderRnR(container) {
     // Get member info from STATE.members
     const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
-    const myRnR = STATE.rnrData.find(r => r.userId === STATE.user.id);
+    const myRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
     
     const rnrStatus = myRnR ? myRnR.status : '작성중';
     const rnrContent = myRnR ? myRnR.content : '';
@@ -2259,7 +2444,7 @@ function renderRnR(container) {
     container.innerHTML = h;
 }
 
-window.requestRnRAgreement = function() {
+window.requestRnRAgreement = async function() {
     const content = document.getElementById('rnr-content').value.trim();
     
     if (!content) {
@@ -2267,33 +2452,58 @@ window.requestRnRAgreement = function() {
         return;
     }
     
-    const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
-    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
-    
-    const rnrEntry = {
-        id: existingIndex >= 0 ? STATE.rnrData[existingIndex].id : Date.now(),
-        userId: STATE.user.id,
-        name: STATE.user.name,
-        team: memberInfo.team,
-        position: memberInfo.position,
-        content: content,
-        status: '승인 대기중',
-        requestType: '합의',
-        tempContent: '',
-        comment: ''
-    };
-    
-    if (existingIndex >= 0) {
-        STATE.rnrData[existingIndex] = rnrEntry;
-    } else {
-        STATE.rnrData.push(rnrEntry);
+    try {
+        const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
+        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+        
+        if (existingRnR) {
+            // Update existing R&R
+            await RnRAPI.update(existingRnR.id, {
+                content: content,
+                status: '승인 대기중',
+                request_type: '합의'
+            });
+            
+            existingRnR.content = content;
+            existingRnR.status = '승인 대기중';
+            existingRnR.request_type = '합의';
+        } else {
+            // Create new R&R
+            const newRnR = await RnRAPI.create({
+                user_id: STATE.user.id,
+                name: STATE.user.name,
+                team: memberInfo.team,
+                position: memberInfo.position,
+                content: content,
+                status: '승인 대기중',
+                request_type: '합의',
+                temp_content: '',
+                comment: ''
+            });
+            
+            STATE.rnrData.push({
+                id: newRnR.id,
+                user_id: newRnR.user_id,
+                name: newRnR.name,
+                team: newRnR.team,
+                position: newRnR.position,
+                content: newRnR.content,
+                status: newRnR.status,
+                request_type: newRnR.request_type,
+                temp_content: newRnR.temp_content,
+                comment: newRnR.comment
+            });
+        }
+        
+        alert('R&R 합의 요청이 제출되었습니다.');
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error submitting R&R:', error);
+        alert('R&R 제출 중 오류가 발생했습니다.');
     }
-    
-    alert('R&R 합의 요청이 제출되었습니다.');
-    renderCurrentView();
 };
 
-window.requestRnRModification = function() {
+window.requestRnRModification = async function() {
     const newContent = document.getElementById('rnr-content').value.trim();
     
     if (!newContent) {
@@ -2301,57 +2511,73 @@ window.requestRnRModification = function() {
         return;
     }
     
-    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
-    if (existingIndex >= 0) {
-        const currentRnR = STATE.rnrData[existingIndex];
-        
-        if (currentRnR.content === newContent) {
-            alert('변경된 내용이 없습니다.');
-            return;
+    try {
+        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+        if (existingRnR) {
+            if (existingRnR.content === newContent) {
+                alert('변경된 내용이 없습니다.');
+                return;
+            }
+            
+            await RnRAPI.update(existingRnR.id, {
+                temp_content: newContent,
+                status: '승인 대기중',
+                request_type: '수정'
+            });
+            
+            existingRnR.temp_content = newContent;
+            existingRnR.status = '승인 대기중';
+            existingRnR.request_type = '수정';
+            
+            alert('R&R 수정 요청이 제출되었습니다.');
+            renderCurrentView();
         }
-        
-        STATE.rnrData[existingIndex] = {
-            ...currentRnR,
-            tempContent: newContent,
-            status: '승인 대기중',
-            requestType: '수정',
-            comment: ''
-        };
-        
-        alert('R&R 수정 요청이 제출되었습니다.');
-        renderCurrentView();
+    } catch (error) {
+        console.error('Error requesting R&R modification:', error);
+        alert('R&R 수정 요청 중 오류가 발생했습니다.');
     }
 };
 
-window.cancelRnRRequest = function() {
+window.cancelRnRRequest = async function() {
     if (!confirm('요청을 취소하시겠습니까?')) return;
     
-    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
-    if (existingIndex >= 0) {
-        const currentRnR = STATE.rnrData[existingIndex];
-        
-        if (currentRnR.requestType === '수정') {
-            // 수정 요청 취소 시 합의 완료 상태로 복귀
-            STATE.rnrData[existingIndex] = {
-                ...currentRnR,
-                status: '합의 완료',
-                requestType: null,
-                tempContent: '',
-                comment: ''
-            };
-        } else {
-            // 합의 요청 취소 시 작성중 상태로 복귀
-            STATE.rnrData[existingIndex] = {
-                ...currentRnR,
-                status: '작성중',
-                requestType: null,
-                tempContent: '',
-                comment: ''
-            };
+    try {
+        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+        if (existingRnR) {
+            if (existingRnR.request_type === '수정') {
+                // 수정 요청 취소 시 합의 완료 상태로 복귀
+                await RnRAPI.update(existingRnR.id, {
+                    status: '합의 완료',
+                    request_type: null,
+                    temp_content: '',
+                    comment: ''
+                });
+                
+                existingRnR.status = '합의 완료';
+                existingRnR.request_type = null;
+                existingRnR.temp_content = '';
+                existingRnR.comment = '';
+            } else {
+                // 합의 요청 취소 시 작성중 상태로 복귀
+                await RnRAPI.update(existingRnR.id, {
+                    status: '작성중',
+                    request_type: null,
+                    temp_content: '',
+                    comment: ''
+                });
+                
+                existingRnR.status = '작성중';
+                existingRnR.request_type = null;
+                existingRnR.temp_content = '';
+                existingRnR.comment = '';
+            }
+            
+            alert('요청이 취소되었습니다.');
+            renderCurrentView();
         }
-        
-        alert('요청이 취소되었습니다.');
-        renderCurrentView();
+    } catch (error) {
+        console.error('Error canceling R&R request:', error);
+        alert('요청 취소 중 오류가 발생했습니다.');
     }
 };
 

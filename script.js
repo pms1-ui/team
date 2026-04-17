@@ -1376,8 +1376,8 @@ function renderGuide(container) {
                 <!-- 70-80% 달성률 강조 -->
                 <div class="bg-gradient-to-r from-success/5 to-success/10 rounded-xl p-6 border-l-4 border-success">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span class="text-success font-black text-lg">70-80%</span>
+                        <div class="w-16 h-12 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="text-success font-black text-[15px]">70-80%</span>
                         </div>
                         <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
                     </div>

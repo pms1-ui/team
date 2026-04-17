@@ -1375,31 +1375,33 @@ function renderGuide(container) {
 
                 <!-- 70-80% 달성률 강조 -->
                 <div class="bg-gradient-to-r from-success/5 to-success/10 rounded-xl p-6 border-l-4 border-success">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
-                            <span class="text-success font-black text-lg">70-80%</span>
+                    <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <span class="text-success font-black text-lg">70-80%</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
                         </div>
-                        <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
                     </div>
-                    <p class="text-on-surface text-[14px] leading-relaxed mb-4">
+                    <p class="text-on-surface text-[14px] leading-relaxed mb-6">
                         OKR은 <strong class="text-success">70~80% 달성률을 성공</strong>으로 간주합니다. 
                         이는 충분히 도전적인 목표를 설정했다는 의미이며, 실패를 두려워하지 않고 혁신을 추구하는 문화를 만듭니다.
                     </p>
-                    <div class="grid lg:grid-cols-3 gap-4">
-                        <div class="bg-white rounded-lg p-4 border border-success/20">
-                            <div class="text-success font-black text-2xl mb-2">100%</div>
-                            <p class="text-[12px] text-on-surface-variant font-bold mb-1">목표가 너무 쉬움</p>
-                            <p class="text-[11px] text-on-surface-variant">더 도전적인 목표 필요</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="bg-white rounded-lg p-5 border border-success/20 text-center">
+                            <div class="text-success font-black text-3xl mb-2">100%</div>
+                            <p class="text-[13px] text-on-surface font-bold mb-1">목표가 너무 쉬움</p>
+                            <p class="text-[12px] text-on-surface-variant">더 도전적인 목표 필요</p>
                         </div>
-                        <div class="bg-success/10 rounded-lg p-4 border-2 border-success">
-                            <div class="text-success font-black text-2xl mb-2">70-80%</div>
-                            <p class="text-[12px] text-on-surface font-bold mb-1">이상적인 달성률 ✓</p>
-                            <p class="text-[11px] text-on-surface-variant">적절한 도전 수준</p>
+                        <div class="bg-success/10 rounded-lg p-5 border-2 border-success text-center">
+                            <div class="text-success font-black text-3xl mb-2">70-80%</div>
+                            <p class="text-[13px] text-on-surface font-bold mb-1">이상적인 달성률 ✓</p>
+                            <p class="text-[12px] text-on-surface-variant">적절한 도전 수준</p>
                         </div>
-                        <div class="bg-white rounded-lg p-4 border border-error/20">
-                            <div class="text-error font-black text-2xl mb-2">&lt;50%</div>
-                            <p class="text-[12px] text-on-surface-variant font-bold mb-1">목표 재검토 필요</p>
-                            <p class="text-[11px] text-on-surface-variant">전략 조정 고려</p>
+                        <div class="bg-white rounded-lg p-5 border border-error/20 text-center">
+                            <div class="text-error font-black text-3xl mb-2">&lt;50%</div>
+                            <p class="text-[13px] text-on-surface font-bold mb-1">목표 재검토 필요</p>
+                            <p class="text-[12px] text-on-surface-variant">전략 조정 고려</p>
                         </div>
                     </div>
                 </div>

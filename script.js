@@ -1446,15 +1446,15 @@ function renderGuide(container) {
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">클라우드 인프라 비용을 월 500만원에서 350만원으로 절감</p>
+                                            <p class="text-[13px] text-on-surface">클라우드 인프라 비용을 기존 대비 30% 절감</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">현업 업무 효율성 향상을 위한 1 M/M 이상 프로젝트 3건 완료</p>
+                                            <p class="text-[13px] text-on-surface">비용 효율화 관련 1 M/M 이상 프로젝트 3건 완료</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">코드 리뷰 완료 시간을 48시간에서 24시간으로 단축</p>
+                                            <p class="text-[13px] text-on-surface">코드 리뷰 완료 시간을 기존 대비 50% 단축</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1474,15 +1474,15 @@ function renderGuide(container) {
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">검색 광고 CPC를 1,200원에서 800원으로 절감</p>
+                                            <p class="text-[13px] text-on-surface">광고 ROAS를 기존 대비 60% 향상</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">광고 ROAS를 250%에서 400%로 향상</p>
+                                            <p class="text-[13px] text-on-surface">신규 채널 확장 프로젝트 2건 이상 진행</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">신규 고객 전환율을 2.5%에서 4%로 증가</p>
+                                            <p class="text-[13px] text-on-surface">신규 고객 전환율을 기존 대비 40% 증가</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1502,15 +1502,15 @@ function renderGuide(container) {
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">디자인 시스템 컴포넌트 라이브러리 80개 구축 완료</p>
+                                            <p class="text-[13px] text-on-surface">디자인 시스템 구축 프로젝트 1건 완료</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">도메인별 UX/UI 표준화 가이드 5건 작성 및 배포</p>
+                                            <p class="text-[13px] text-on-surface">도메인별 UX/UI 표준화 프로젝트 3건 진행</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">디자인 작업 소요 시간을 평균 5일에서 3일로 단축</p>
+                                            <p class="text-[13px] text-on-surface">디자인 작업 소요 시간을 기존 대비 40% 단축</p>
                                         </div>
                                     </div>
                                 </div>

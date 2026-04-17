@@ -358,7 +358,6 @@ function handleInitialRoute() {
         window.history.replaceState(null, '', '/login');
     }
 }
-];
 
 // --- Global Dispatchers ---
 window.setTab = function(view, tab) {

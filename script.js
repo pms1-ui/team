@@ -525,10 +525,6 @@ window.cancelOKRRequest = async function(id) {
         }
     }
 };
-        renderCurrentView();
-        updateNavigation();
-    }
-};
 
 window.submitModifyRequest = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
@@ -2604,17 +2600,27 @@ async function initLoginPage() {
         console.log('Loaded divisions for login:', divisions);
         
         const divisionSelect = document.getElementById('login-division');
-        if (divisionSelect && divisions.length > 0) {
-            divisionSelect.innerHTML = divisions.map(div => 
-                `<option value="${div.name}">${div.name}</option>`
-            ).join('');
-            
-            // Select first division by default
-            divisionSelect.value = divisions[0].name;
+        if (divisionSelect) {
+            if (divisions && divisions.length > 0) {
+                divisionSelect.innerHTML = divisions.map(div => 
+                    `<option value="${div.name}">${div.name}</option>`
+                ).join('');
+                
+                // Select first division by default
+                divisionSelect.value = divisions[0].name;
+                console.log('Divisions loaded successfully:', divisions.map(d => d.name).join(', '));
+            } else {
+                console.warn('No divisions found, using fallback');
+                divisionSelect.innerHTML = '<option value="운영본부">운영본부</option><option value="경영지원본부">경영지원본부</option>';
+            }
         }
     } catch (error) {
         console.error('Error loading divisions for login page:', error);
-        // Keep the default hardcoded option if API fails
+        // Use fallback divisions if API fails
+        const divisionSelect = document.getElementById('login-division');
+        if (divisionSelect) {
+            divisionSelect.innerHTML = '<option value="운영본부">운영본부</option><option value="경영지원본부">경영지원본부</option>';
+        }
     }
 }
 

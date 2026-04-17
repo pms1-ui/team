@@ -2567,7 +2567,15 @@ window.cancelRnRRequest = async function() {
                 existingRnR.comment = '';
             } else {
                 // 합의 요청 취소 시 R&R 삭제
-                await RnRAPI.delete(existingRnR.id);
+                try {
+                    await RnRAPI.delete(existingRnR.id);
+                } catch (deleteError) {
+                    // 이미 삭제된 경우 무시
+                    if (!deleteError.message.includes('404') && !deleteError.message.includes('ERROR_ROW_DOES_NOT_EXIST')) {
+                        throw deleteError;
+                    }
+                    console.log('R&R already deleted, continuing...');
+                }
                 
                 // STATE에서도 제거
                 STATE.rnrData = STATE.rnrData.filter(r => r.id !== existingRnR.id);

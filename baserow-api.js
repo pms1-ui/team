@@ -37,6 +37,12 @@ async function baserowFetch(endpoint, options = {}) {
             throw new Error(`Baserow API error (${response.status}): ${response.statusText} - ${errorText}`);
         }
         
+        // DELETE requests return 204 No Content with empty body
+        if (response.status === 204 || options.method === 'DELETE') {
+            console.log('Baserow API response: No content (DELETE successful)');
+            return null;
+        }
+        
         const data = await response.json();
         console.log('Baserow API response data:', data);
         return data;

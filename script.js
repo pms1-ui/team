@@ -1375,16 +1375,16 @@ function renderGuide(container) {
 
                 <!-- 70-80% 달성률 강조 -->
                 <div class="bg-gradient-to-r from-success/5 to-success/10 rounded-xl p-6 border-l-4 border-success">
-                    <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span class="text-success font-black text-lg">70-80%</span>
-                            </div>
-                            <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="text-success font-black text-lg">70-80%</span>
                         </div>
+                        <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
                     </div>
+                    <p class="text-on-surface text-[14px] leading-relaxed mb-2">
+                        OKR은 <strong class="text-success">70~80% 달성률을 성공</strong>으로 간주합니다.
+                    </p>
                     <p class="text-on-surface text-[14px] leading-relaxed mb-6">
-                        OKR은 <strong class="text-success">70~80% 달성률을 성공</strong>으로 간주합니다. 
                         이는 충분히 도전적인 목표를 설정했다는 의미이며, 실패를 두려워하지 않고 혁신을 추구하는 문화를 만듭니다.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">

@@ -118,34 +118,38 @@ async function loadDataFromBaserow() {
             const goals = await GoalsAPI.list();
             console.log('Loaded goals:', goals.length, goals);
             
-            // Load key results for each goal
+            // Load goals data (KR is now stored in goals.KR field, not separate table)
             STATE.allGoals = [];
             for (const goal of goals) {
-                try {
-                    const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
-                    console.log(`Loaded ${keyResults.length} key results for goal ${goal.id}`);
-                    
-                    STATE.allGoals.push({
-                        id: goal.id,
-                        userId: goal.user_id,
-                        periodType: goal.period_type,
-                        periodValue: goal.period_value,
-                        text: goal.text,
-                        keyResults: keyResults.map(kr => ({
-                            id: kr.kr_id,
-                            text: kr.text,
-                            progress: parseInt(kr.progress) || 0
-                        })),
-                        status: goal.status,
-                        requestType: goal.request_type || null,  // Baserow에서 request_type 필드 로드
-                        comment: goal.comment || '',
-                        isProcessed: goal.is_processed || false,
-                        tempText: goal.temp_text || undefined,
-                        tempKeyResults: undefined
+                // Parse KR field (format: "1. KR text\n2. KR text\n3. KR text")
+                let keyResults = [];
+                if (goal.KR) {
+                    const krLines = goal.KR.split('\n').filter(line => line.trim());
+                    keyResults = krLines.map((line, index) => {
+                        // Remove "1. " prefix if exists
+                        const text = line.replace(/^\d+\.\s*/, '').trim();
+                        return {
+                            id: `kr-${goal.id}-${index + 1}`,
+                            text: text,
+                            progress: 0  // Progress is not stored in KR field
+                        };
                     });
-                } catch (error) {
-                    console.error(`Error loading key results for goal ${goal.id}:`, error);
                 }
+                
+                STATE.allGoals.push({
+                    id: goal.id,
+                    userId: goal.user_id,
+                    periodType: goal.period_type,
+                    periodValue: goal.period_value,
+                    text: goal.OKR || '',  // Use OKR field instead of text
+                    keyResults: keyResults,
+                    status: goal.status,
+                    requestType: goal.request_type || null,
+                    comment: goal.comment || '',
+                    isProcessed: goal.is_processed || false,
+                    tempText: goal.temp_text || undefined,
+                    tempKeyResults: undefined
+                });
             }
         } catch (error) {
             console.error('Error loading goals:', error);
@@ -456,32 +460,24 @@ window.addOKR = async function(timestamp_salt = 0) {
             user_id: STATE.user.id,
             period_type: STATE.goalsSetTab,
             period_value: STATE.goalsSetPeriodValue,
-            text: '',
+            OKR: '',  // Use OKR field
+            KR: '',   // Use KR field (will be formatted as "1. \n2. \n3. ")
             status: '작성중',
             is_processed: false,
             comment: '',
-            temp_text: null
+            temp_text: null,
+            request_type: null
         };
         
         const createdGoal = await GoalsAPI.create(newGoal);
-        
-        // Create initial key result
-        const newKR = {
-            goal_id: String(createdGoal.id),
-            kr_id: 'kr-' + Date.now() + timestamp_salt,
-            text: '',
-            progress: '0'
-        };
-        
-        await KeyResultsAPI.create(newKR);
         
         STATE.allGoals.push({
             id: createdGoal.id,
             userId: createdGoal.user_id,
             periodType: createdGoal.period_type,
             periodValue: createdGoal.period_value,
-            text: createdGoal.text,
-            keyResults: [{ id: newKR.kr_id, text: '', progress: 0 }],
+            text: createdGoal.OKR || '',
+            keyResults: [{ id: `kr-${createdGoal.id}-1`, text: '', progress: 0 }],
             status: createdGoal.status,
             requestType: null,
             comment: createdGoal.comment,
@@ -497,21 +493,7 @@ window.addOKR = async function(timestamp_salt = 0) {
 
 window.removeOKR = async function(id) {
     try {
-        // Delete all key results first
-        const goal = STATE.allGoals.find(g => g.id === id);
-        if (goal && goal.keyResults) {
-            for (const kr of goal.keyResults) {
-                // Find the actual KR id in Baserow
-                const krs = await KeyResultsAPI.listByGoalId(id);
-                for (const baserowKR of krs) {
-                    if (baserowKR.kr_id === kr.id) {
-                        await KeyResultsAPI.delete(baserowKR.id);
-                    }
-                }
-            }
-        }
-        
-        // Delete the goal
+        // Delete the goal (no need to delete KRs separately as they're in the same row)
         await GoalsAPI.delete(id);
         
         STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
@@ -530,40 +512,17 @@ window.submitOKRRequest = async function(id) {
     if(goal.keyResults.some(k => !k.text.trim())) { alert('모든 Key Results 내용을 입력하세요.'); return; }
     
     try {
+        // Format KR as "1. KR1\n2. KR2\n3. KR3"
+        const krText = goal.keyResults.map((kr, index) => `${index + 1}. ${kr.text}`).join('\n');
+        
         // Update goal in Baserow
         await GoalsAPI.update(id, {
-            text: goal.text,
+            OKR: goal.text,  // Use OKR field
+            KR: krText,      // Use KR field with formatted text
             status: '승인 대기중',
             is_processed: false,
-            request_type: '신규 수립'  // Baserow에 request_type 저장
+            request_type: '신규 수립'
         });
-        
-        // Update or create key results in Baserow
-        const existingKRs = await KeyResultsAPI.listByGoalId(id);
-        
-        for (const kr of goal.keyResults) {
-            const existingKR = existingKRs.find(k => k.kr_id === kr.id);
-            if (existingKR) {
-                await KeyResultsAPI.update(existingKR.id, {
-                    text: kr.text,
-                    progress: String(kr.progress)
-                });
-            } else {
-                await KeyResultsAPI.create({
-                    goal_id: String(id),
-                    kr_id: kr.id,
-                    text: kr.text,
-                    progress: String(kr.progress)
-                });
-            }
-        }
-        
-        // Delete removed KRs
-        for (const existingKR of existingKRs) {
-            if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
-                await KeyResultsAPI.delete(existingKR.id);
-            }
-        }
         
         goal.status = '승인 대기중';
         goal.requestType = '신규 수립';
@@ -650,14 +609,25 @@ window.submitModifyRequest = function(id) {
         const comment = document.getElementById('modify-comment').value;
         
         try {
+            // Format KR as "1. KR1\n2. KR2\n3. KR3" if tempKeyResults exists
+            let krText = null;
+            if (goal.tempKeyResults) {
+                krText = goal.tempKeyResults.map((kr, index) => `${index + 1}. ${kr.text}`).join('\n');
+            }
+            
             // Update goal in Baserow
-            await GoalsAPI.update(id, {
+            const updateData = {
                 status: '승인 대기중',
                 request_type: edits.join(','),
                 comment: comment,
-                is_processed: false,
-                temp_text: goal.tempText
-            });
+                is_processed: false
+            };
+            
+            if (goal.tempText !== undefined) {
+                updateData.temp_text = goal.tempText;
+            }
+            
+            await GoalsAPI.update(id, updateData);
             
             goal.status = '승인 대기중';
             goal.requestType = edits.join(',');
@@ -683,47 +653,24 @@ window.approveAdminRequest = async function(id) {
                 goal.keyResults = JSON.parse(JSON.stringify(goal.tempKeyResults));
             }
             
+            // Format KR as "1. KR1\n2. KR2\n3. KR3"
+            const krText = goal.keyResults.map((kr, index) => `${index + 1}. ${kr.text}`).join('\n');
+            
             // Update goal in Baserow
             await GoalsAPI.update(id, {
-                text: goal.text,
+                OKR: goal.text,  // Use OKR field
+                KR: krText,      // Use KR field with formatted text
                 status: '합의 완료',
                 is_processed: true,
                 temp_text: null,
-                request_type: null,  // 승인 후 request_type 제거
+                request_type: null,
                 comment: goal.comment || ''
             });
-            
-            // Update key results in Baserow
-            const existingKRs = await KeyResultsAPI.listByGoalId(id);
-            
-            for (const kr of goal.keyResults) {
-                const existingKR = existingKRs.find(k => k.kr_id === kr.id);
-                if (existingKR) {
-                    await KeyResultsAPI.update(existingKR.id, {
-                        text: kr.text,
-                        progress: String(kr.progress)
-                    });
-                } else {
-                    await KeyResultsAPI.create({
-                        goal_id: String(id),
-                        kr_id: kr.id,
-                        text: kr.text,
-                        progress: String(kr.progress)
-                    });
-                }
-            }
-            
-            // Delete removed KRs
-            for (const existingKR of existingKRs) {
-                if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
-                    await KeyResultsAPI.delete(existingKR.id);
-                }
-            }
             
             goal.tempText = undefined;
             goal.tempKeyResults = undefined;
             goal.status = '합의 완료';
-            goal.requestType = null;  // STATE에서도 request_type 제거
+            goal.requestType = null;
             goal.isProcessed = true;
             renderCurrentView();
             updateNavigation();

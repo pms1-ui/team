@@ -93,8 +93,20 @@ async function loadDataFromBaserow() {
         
         // Load R&R
         try {
-            STATE.rnrData = await RnRAPI.list();
-            console.log('Loaded R&R:', STATE.rnrData.length);
+            const rnrList = await RnRAPI.list();
+            STATE.rnrData = rnrList.map(rnr => ({
+                id: rnr.id,
+                user_id: rnr.user_id,
+                name: rnr.name,
+                team: rnr.team,
+                position: rnr.position,
+                content: rnr.content,
+                status: rnr.status,
+                request_type: rnr.request_type,
+                temp_content: rnr.temp_content,
+                comment: rnr.comment
+            }));
+            console.log('Loaded R&R:', STATE.rnrData.length, STATE.rnrData);
         } catch (error) {
             console.error('Error loading R&R:', error);
             console.warn('Using fallback R&R data (empty)');

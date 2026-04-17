@@ -1,16 +1,6 @@
 // Baserow API Configuration
-const BASEROW_CONFIG = {
-    apiUrl: 'https://baserow.childylab.com/api',
-    token: 'Token 5Z9IZSqCKhcBDXf5B20RD1KTkIwqxvGy',
-    tables: {
-        divisions: 1940,
-        teams: 1941,
-        members: 1942,
-        goals: 1943,
-        keyResults: 1944,
-        rnr: 1945
-    }
-};
+// Configuration is loaded from config.js (not committed to git)
+// If config.js doesn't exist, it will use fallback values
 
 // Helper function for API calls
 async function baserowFetch(endpoint, options = {}) {

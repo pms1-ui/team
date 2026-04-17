@@ -126,6 +126,16 @@ async function loadDataFromBaserow() {
                     const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
                     console.log(`Loaded ${keyResults.length} key results for goal ${goal.id}`);
                     
+                    // Parse temp_kr if it exists
+                    let tempKeyResults = undefined;
+                    if (goal.temp_kr) {
+                        try {
+                            tempKeyResults = JSON.parse(goal.temp_kr);
+                        } catch (e) {
+                            console.error('Error parsing temp_kr:', e);
+                        }
+                    }
+                    
                     STATE.allGoals.push({
                         id: goal.id,
                         userId: goal.user_id,
@@ -142,7 +152,7 @@ async function loadDataFromBaserow() {
                         comment: goal.comment || '',
                         isProcessed: goal.is_processed || false,
                         tempText: goal.temp_text || undefined,
-                        tempKeyResults: undefined
+                        tempKeyResults: tempKeyResults
                     });
                 } catch (error) {
                     console.error(`Error loading key results for goal ${goal.id}:`, error);
@@ -650,12 +660,6 @@ window.submitModifyRequest = function(id) {
         const comment = document.getElementById('modify-comment').value;
         
         try {
-            // Format KR as "1. KR1\n2. KR2\n3. KR3" if tempKeyResults exists
-            let krText = null;
-            if (goal.tempKeyResults) {
-                krText = goal.tempKeyResults.map((kr, index) => `${index + 1}. ${kr.text}`).join('\n');
-            }
-            
             // Update goal in Baserow
             const updateData = {
                 status: '승인 대기중',
@@ -666,6 +670,11 @@ window.submitModifyRequest = function(id) {
             
             if (goal.tempText !== undefined) {
                 updateData.temp_text = goal.tempText;
+            }
+            
+            // Serialize tempKeyResults to JSON and save to temp_kr field
+            if (goal.tempKeyResults) {
+                updateData.temp_kr = JSON.stringify(goal.tempKeyResults);
             }
             
             await GoalsAPI.update(id, updateData);
@@ -698,6 +707,8 @@ window.approveAdminRequest = async function(id) {
             await GoalsAPI.update(id, {
                 OKR: goal.text,  // Save OKR to goals table
                 status: '합의 완료',
+                temp_text: null,  // Clear temp_text
+                temp_kr: null,  // Clear temp_kr
                 is_processed: true,
                 temp_text: null,
                 request_type: null,

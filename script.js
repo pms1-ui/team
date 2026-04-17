@@ -1360,15 +1360,15 @@ function renderGuide(container) {
                     <div class="space-y-2">
                         <div class="flex items-start gap-2">
                             <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                            <p class="text-[13px] text-on-surface"><strong>도전적 목표:</strong> 현재 수준을 뛰어넘는 야심찬 목표 설정</p>
+                            <p class="text-[13px] text-on-surface"><strong>도전적 목표 :</strong> 현재 수준을 뛰어넘는 야심찬 목표 설정</p>
                         </div>
                         <div class="flex items-start gap-2">
                             <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                            <p class="text-[13px] text-on-surface"><strong>측정 가능:</strong> 정량적 지표로 진행 상황 추적</p>
+                            <p class="text-[13px] text-on-surface"><strong>측정 가능 :</strong> 정량적 지표로 진행 상황 추적</p>
                         </div>
                         <div class="flex items-start gap-2">
                             <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                            <p class="text-[13px] text-on-surface"><strong>투명성:</strong> 전체 조직이 목표를 공유하고 정렬</p>
+                            <p class="text-[13px] text-on-surface"><strong>투명성 :</strong> 전체 조직이 목표를 공유하고 정렬</p>
                         </div>
                     </div>
                 </div>
@@ -1442,47 +1442,120 @@ function renderGuide(container) {
                             <strong>정량적이고 측정 가능한 결과</strong>로, Objective 달성 여부를 판단하는 구체적인 지표입니다. 
                             각 OKR은 보통 2-5개의 Key Results를 가집니다.
                         </p>
-                        <div class="grid lg:grid-cols-2 gap-4">
-                            <div class="bg-white rounded-lg p-4 border-2 border-success">
-                                <p class="text-[12px] text-success font-bold mb-3">✅ Key Results (목표 지향적)</p>
-                                <div class="space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface">"고객 만족도를 65에서 80으로 향상"</p>
+                        
+                        <!-- 조직별 OKR 예시 토글 -->
+                        <div class="space-y-3">
+                            <!-- 개발 조직 -->
+                            <details class="bg-white rounded-lg border border-success/30 overflow-hidden">
+                                <summary class="cursor-pointer p-4 hover:bg-success/5 transition-colors font-bold text-[13px] text-on-surface flex items-center justify-between">
+                                    <span>💻 개발 조직 OKR 예시</span>
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <div class="p-4 pt-0 border-t border-success/10">
+                                    <div class="bg-success/5 rounded p-3 mb-3">
+                                        <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"시스템 안정성과 개발 생산성 향상"</p>
                                     </div>
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface">"신규 사용자 전환율 20% 증가"</p>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface">"제품 출시 주기를 8주에서 4주로 단축"</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="bg-white rounded-lg p-4 border border-blue-200">
-                                <p class="text-[12px] text-blue-600 font-bold mb-3">📊 KPI (지표 중심적)</p>
-                                <div class="space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface-variant">"월간 NPS 점수"</p>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface-variant">"신규 사용자 전환율"</p>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[13px] text-on-surface-variant">"제품 출시 주기"</p>
+                                    <div class="space-y-2 ml-2">
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">서비스 가동률을 99.5%에서 99.9%로 향상</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">배포 주기를 2주에서 1주로 단축</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">코드 리뷰 완료 시간을 48시간에서 24시간으로 단축</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 bg-success/5 rounded-lg p-3">
-                            <p class="text-[12px] text-on-surface-variant leading-relaxed">
-                                <strong class="text-on-surface">차이점:</strong> Key Results는 목표 달성을 위한 구체적인 변화와 개선을 명시하는 반면, 
-                                KPI는 현재 상태를 측정하는 지표입니다.
-                            </p>
+                            </details>
+
+                            <!-- 마케팅 조직 -->
+                            <details class="bg-white rounded-lg border border-success/30 overflow-hidden">
+                                <summary class="cursor-pointer p-4 hover:bg-success/5 transition-colors font-bold text-[13px] text-on-surface flex items-center justify-between">
+                                    <span>📢 마케팅 조직 OKR 예시</span>
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <div class="p-4 pt-0 border-t border-success/10">
+                                    <div class="bg-success/5 rounded p-3 mb-3">
+                                        <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"브랜드 인지도 확대 및 고객 유입 증대"</p>
+                                    </div>
+                                    <div class="space-y-2 ml-2">
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">월간 웹사이트 방문자를 10만에서 20만으로 증가</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">소셜 미디어 팔로워를 5천에서 1만 5천으로 증가</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">마케팅 캠페인 ROI를 150%에서 250%로 향상</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <!-- 디자인 조직 -->
+                            <details class="bg-white rounded-lg border border-success/30 overflow-hidden">
+                                <summary class="cursor-pointer p-4 hover:bg-success/5 transition-colors font-bold text-[13px] text-on-surface flex items-center justify-between">
+                                    <span>🎨 디자인 조직 OKR 예시</span>
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <div class="p-4 pt-0 border-t border-success/10">
+                                    <div class="bg-success/5 rounded p-3 mb-3">
+                                        <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"사용자 경험 개선 및 디자인 시스템 구축"</p>
+                                    </div>
+                                    <div class="space-y-2 ml-2">
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">사용자 만족도(CSAT)를 4.2에서 4.7로 향상</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">디자인 시스템 컴포넌트 100개 구축 완료</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">주요 화면 로딩 시간을 3초에서 1.5초로 단축</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <!-- 기획(PM) -->
+                            <details class="bg-white rounded-lg border border-success/30 overflow-hidden">
+                                <summary class="cursor-pointer p-4 hover:bg-success/5 transition-colors font-bold text-[13px] text-on-surface flex items-center justify-between">
+                                    <span>📋 기획(PM) OKR 예시</span>
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <div class="p-4 pt-0 border-t border-success/10">
+                                    <div class="bg-success/5 rounded p-3 mb-3">
+                                        <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"데이터 기반 의사결정 문화 정착"</p>
+                                    </div>
+                                    <div class="space-y-2 ml-2">
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">주요 기능 사용률을 30%에서 50%로 증가</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">사용자 피드백 수집 및 반영률 80% 달성</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                            <p class="text-[13px] text-on-surface">분기별 데이터 분석 리포트 12건 작성 및 공유</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
                 </div>
@@ -1707,7 +1780,7 @@ function renderGuide(container) {
                             </div>
                         </div>
                         <div class="mt-3 flex items-center gap-2 text-[12px]">
-                            <span class="text-primary font-bold">달성 기준:</span>
+                            <span class="text-primary font-bold">달성 기준 :</span>
                             <span class="text-on-surface-variant">70-80% 달성 시 성공</span>
                         </div>
                     </div>
@@ -1746,7 +1819,7 @@ function renderGuide(container) {
                             </div>
                         </div>
                         <div class="mt-3 flex items-center gap-2 text-[12px]">
-                            <span class="text-blue-600 font-bold">달성 기준:</span>
+                            <span class="text-blue-600 font-bold">달성 기준 :</span>
                             <span class="text-on-surface-variant">100% 달성 목표</span>
                         </div>
                     </div>

@@ -60,7 +60,7 @@ function renderGoalsSetMobile(drafts) {
                 
                 <div class="mb-3">
                     <div class="text-[11px] text-on-surface-variant font-bold mb-1">OKR</div>
-                    <textarea rows="2" oninput="updateOKRTitle(${g.id}, this.value)" ${!isEditable?'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none" placeholder="목표 입력">${g.text}</textarea>
+                    <textarea rows="2" oninput="updateOKRTitle('${g.id}', this.value)" ${!isEditable?'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none" placeholder="목표 입력">${g.text}</textarea>
                 </div>
                 
                 <div class="mb-3">
@@ -68,21 +68,21 @@ function renderGoalsSetMobile(drafts) {
                     <div class="space-y-2">
                         ${g.keyResults.map((kr, kri) => `
                             <div class="flex items-center gap-2">
-                                <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="KR ${kri+1}">
-                                ${isEditable && g.keyResults.length > 1 ? `<button onclick="removeKR(${g.id}, '${kr.id}')" class="text-error p-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="KR ${kri+1}">
+                                ${isEditable && g.keyResults.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}')" class="text-error p-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                             </div>
                         `).join('')}
-                        ${isEditable ? `<button onclick="addKR(${g.id})" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
+                        ${isEditable ? `<button onclick="addKR('${g.id}')" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
                     </div>
                 </div>
                 
                 ${isEditable ? `
                     <div class="flex gap-2">
-                        <button onclick="submitOKRRequest(${g.id})" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">승인 요청</button>
-                        <button onclick="removeOKR(${g.id})" class="px-4 bg-white border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>
+                        <button onclick="submitOKRRequest('${g.id}')" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">승인 요청</button>
+                        <button onclick="removeOKR('${g.id}')" class="px-4 bg-white border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>
                     </div>
                 ` : isPending ? `
-                    <button onclick="cancelOKRRequest(${g.id})" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
+                    <button onclick="cancelOKRRequest('${g.id}')" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
                 ` : ''}
             </div>
         `;
@@ -110,7 +110,7 @@ function renderGoalsManageMobile(items) {
                 
                 <div class="mb-3">
                     <div class="text-[11px] text-on-surface-variant font-bold mb-1">OKR</div>
-                    <textarea rows="2" oninput="updateOKRTitle(${g.id}, this.value)" ${isPending ? 'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none disabled:opacity-60">${cTitle}</textarea>
+                    <textarea rows="2" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none disabled:opacity-60">${cTitle}</textarea>
                 </div>
                 
                 <div class="mb-3">
@@ -118,21 +118,21 @@ function renderGoalsManageMobile(items) {
                     <div class="space-y-3">
                         ${krsToRender.map(kr => `
                             <div class="bg-surface-container rounded-lg p-3">
-                                <input type="text" value="${kr.text}" oninput="updateKRTitle(${g.id}, '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60">
+                                <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60">
                                 <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress(${g.id}, '${kr.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
+                                    <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
                                     <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[12px] min-w-[35px] text-right">${kr.progress}%</span>
                                 </div>
                             </div>
                         `).join('')}
-                        ${!isPending ? `<button onclick="addKR(${g.id}, true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
+                        ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
                     </div>
                 </div>
                 
                 ${isPending ? `
-                    <button onclick="cancelOKRRequest(${g.id})" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
+                    <button onclick="cancelOKRRequest('${g.id}')" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
                 ` : `
-                    <button onclick="submitModifyRequest(${g.id})" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">수정 요청</button>
+                    <button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">수정 요청</button>
                 `}
             </div>
         `;

@@ -21,16 +21,29 @@ async function baserowFetch(endpoint, options = {}) {
         ...options.headers
     };
     
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
+    console.log('Baserow API call:', url);
     
-    if (!response.ok) {
-        throw new Error(`Baserow API error: ${response.statusText}`);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+        
+        console.log('Baserow API response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Baserow API error response:', errorText);
+            throw new Error(`Baserow API error (${response.status}): ${response.statusText} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Baserow API response data:', data);
+        return data;
+    } catch (error) {
+        console.error('Baserow fetch error:', error);
+        throw error;
     }
-    
-    return response.json();
 }
 
 // Divisions API

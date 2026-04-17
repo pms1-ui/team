@@ -52,57 +52,96 @@ async function loadDataFromBaserow() {
         console.log('Loading data from Baserow...');
         
         // Load divisions
-        STATE.divisions = await DivisionsAPI.list();
-        console.log('Loaded divisions:', STATE.divisions.length);
+        try {
+            STATE.divisions = await DivisionsAPI.list();
+            console.log('Loaded divisions:', STATE.divisions.length, STATE.divisions);
+        } catch (error) {
+            console.error('Error loading divisions:', error);
+            STATE.divisions = [];
+        }
         
         // Load teams
-        STATE.teams = await TeamsAPI.list();
-        console.log('Loaded teams:', STATE.teams.length);
+        try {
+            STATE.teams = await TeamsAPI.list();
+            console.log('Loaded teams:', STATE.teams.length, STATE.teams);
+        } catch (error) {
+            console.error('Error loading teams:', error);
+            STATE.teams = [];
+        }
         
         // Load members
-        STATE.members = await MembersAPI.list();
-        console.log('Loaded members:', STATE.members.length);
+        try {
+            STATE.members = await MembersAPI.list();
+            console.log('Loaded members:', STATE.members.length, STATE.members);
+        } catch (error) {
+            console.error('Error loading members:', error);
+            STATE.members = [];
+        }
         
         // Load R&R
-        STATE.rnrData = await RnRAPI.list();
-        console.log('Loaded R&R:', STATE.rnrData.length);
+        try {
+            STATE.rnrData = await RnRAPI.list();
+            console.log('Loaded R&R:', STATE.rnrData.length);
+        } catch (error) {
+            console.error('Error loading R&R:', error);
+            STATE.rnrData = [];
+        }
         
         // Load goals
-        const goals = await GoalsAPI.list();
-        console.log('Loaded goals:', goals.length);
-        
-        // Load key results for each goal
-        STATE.allGoals = [];
-        for (const goal of goals) {
-            const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
+        try {
+            const goals = await GoalsAPI.list();
+            console.log('Loaded goals:', goals.length, goals);
             
-            STATE.allGoals.push({
-                id: goal.id,
-                userId: goal.user_id,
-                periodType: goal.period_type,
-                periodValue: goal.period_value,
-                text: goal.text,
-                keyResults: keyResults.map(kr => ({
-                    id: kr.kr_id,
-                    text: kr.text,
-                    progress: parseInt(kr.progress) || 0
-                })),
-                status: goal.status,
-                requestType: null, // Will be computed from status
-                comment: goal.comment || '',
-                isProcessed: goal.is_processed,
-                tempText: goal.temp_text || undefined,
-                tempKeyResults: undefined // Will be populated when needed
-            });
+            // Load key results for each goal
+            STATE.allGoals = [];
+            for (const goal of goals) {
+                try {
+                    const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
+                    console.log(`Loaded ${keyResults.length} key results for goal ${goal.id}`);
+                    
+                    STATE.allGoals.push({
+                        id: goal.id,
+                        userId: goal.user_id,
+                        periodType: goal.period_type,
+                        periodValue: goal.period_value,
+                        text: goal.text,
+                        keyResults: keyResults.map(kr => ({
+                            id: kr.kr_id,
+                            text: kr.text,
+                            progress: parseInt(kr.progress) || 0
+                        })),
+                        status: goal.status,
+                        requestType: null, // Will be computed from status
+                        comment: goal.comment || '',
+                        isProcessed: goal.is_processed,
+                        tempText: goal.temp_text || undefined,
+                        tempKeyResults: undefined // Will be populated when needed
+                    });
+                } catch (error) {
+                    console.error(`Error loading key results for goal ${goal.id}:`, error);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading goals:', error);
+            STATE.allGoals = [];
         }
         
         console.log('All data loaded successfully');
+        console.log('Final STATE:', {
+            divisions: STATE.divisions.length,
+            teams: STATE.teams.length,
+            members: STATE.members.length,
+            rnrData: STATE.rnrData.length,
+            allGoals: STATE.allGoals.length
+        });
         STATE.isLoading = false;
         
     } catch (error) {
-        console.error('Error loading data from Baserow:', error);
-        alert('데이터 로드 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        console.error('Critical error loading data from Baserow:', error);
+        console.error('Error details:', error.message, error.stack);
+        alert('데이터 로드 중 오류가 발생했습니다.\n\n오류: ' + error.message + '\n\n브라우저 콘솔을 확인해주세요.');
         STATE.isLoading = false;
+        throw error;
     }
 }
 

@@ -19,150 +19,23 @@ const STATE = {
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
-    // Divisions Data
-    divisions: [
-        { id: 1, name: '운영본부' }
-    ],
+    // Divisions Data (loaded from Baserow)
+    divisions: [],
     
-    // Teams Data
-    teams: [
-        { id: 1, name: 'DT전략팀' },
-        { id: 2, name: '개발팀' },
-        { id: 3, name: '디자인팀' },
-        { id: 4, name: '마케팅팀' }
-    ],
+    // Teams Data (loaded from Baserow)
+    teams: [],
     
-    // Members Data
-    members: [
-        { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
-        { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
-        { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
-        { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
-    ],
+    // Members Data (loaded from Baserow)
+    members: [],
     
-    // R&R Data
+    // R&R Data (loaded from Baserow)
     rnrData: [],
     
-    // All Goals Data
-    allGoals: [
-        { 
-            id: 101, 
-            userId: 'member', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '전사 UI/UX 품질 혁신', 
-            keyResults: [
-                { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
-                { id: 'kr101-2', text: '사용자 피드백 만족도 4.5 이상 확보', progress: 20 }
-            ],
-            status: '합의 완료', 
-            requestType: null, 
-            comment: '', 
-            isProcessed: true 
-        },
-        { 
-            id: 102, 
-            userId: 'member', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '퍼포먼스 시스템 고도화', 
-            keyResults: [
-                { id: 'kr102-1', text: 'API 응답 속도 200ms 이하 단축', progress: 60 }
-            ],
-            tempKeyResults: [
-                { id: 'kr102-1', text: 'API 응답 속도 200ms 이하 단축', progress: 80 }
-            ],
-            status: '승인 대기중', 
-            requestType: '진척률', 
-            comment: '최적화 작업 진행 중', 
-            isProcessed: false 
-        },
-        { 
-            id: 103, 
-            userId: 'member', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '데이터 분석 역량 강화', 
-            keyResults: [
-                { id: 'kr103-1', text: '실시간 대시보드 구축 완료', progress: 75 },
-                { id: 'kr103-2', text: '데이터 파이프라인 안정성 99% 달성', progress: 85 }
-            ],
-            status: '합의 완료', 
-            requestType: null, 
-            comment: '', 
-            isProcessed: true 
-        },
-        { 
-            id: 201, 
-            userId: 'member2', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '고객 만족도 향상 프로젝트', 
-            keyResults: [
-                { id: 'kr201-1', text: 'CS 응답 시간 30% 단축', progress: 55 },
-                { id: 'kr201-2', text: '고객 만족도 점수 4.2 이상 달성', progress: 65 },
-                { id: 'kr201-3', text: '재구매율 15% 증가', progress: 45 }
-            ],
-            status: '합의 완료', 
-            requestType: null, 
-            comment: '', 
-            isProcessed: true 
-        },
-        { 
-            id: 202, 
-            userId: 'member2', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '마케팅 캠페인 효율화', 
-            keyResults: [
-                { id: 'kr202-1', text: 'ROI 25% 개선', progress: 70 },
-                { id: 'kr202-2', text: '신규 고객 유입 1000명 달성', progress: 80 }
-            ],
-            status: '합의 완료', 
-            requestType: null, 
-            comment: '', 
-            isProcessed: true 
-        },
-        { 
-            id: 203, 
-            userId: 'member2', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '운영 프로세스 자동화', 
-            keyResults: [
-                { id: 'kr203-1', text: '반복 업무 자동화율 60% 달성', progress: 40 },
-                { id: 'kr203-2', text: '업무 처리 시간 50% 단축', progress: 35 }
-            ],
-            tempKeyResults: [
-                { id: 'kr203-1', text: '반복 업무 자동화율 70% 달성', progress: 50 },
-                { id: 'kr203-2', text: '업무 처리 시간 50% 단축', progress: 45 }
-            ],
-            status: '승인 대기중', 
-            requestType: 'KR 내용 변경,진척률 보고', 
-            comment: '자동화 도구 추가 도입으로 목표 상향 조정 필요', 
-            isProcessed: false 
-        },
-        { 
-            id: 204, 
-            userId: 'member2', 
-            periodType: 'monthly', 
-            periodValue: '2026-04', 
-            text: '팀 협업 문화 개선', 
-            keyResults: [
-                { id: 'kr204-1', text: '주간 회의 참여율 95% 이상', progress: 90 },
-                { id: 'kr204-2', text: '크로스 팀 프로젝트 3건 이상 진행', progress: 100 }
-            ],
-            tempKeyResults: [
-                { id: 'kr204-1', text: '주간 회의 참여율 95% 이상', progress: 95 },
-                { id: 'kr204-2', text: '크로스 팀 프로젝트 3건 이상 진행', progress: 100 },
-                { id: 'kr204-3', text: '팀 만족도 조사 4.0 이상', progress: 0 }
-            ],
-            status: '승인 대기중', 
-            requestType: 'KR 항목 증감,진척률 보고', 
-            comment: '팀 만족도 측정 지표 추가 요청', 
-            isProcessed: false 
-        }
-    ]
+    // All Goals Data (loaded from Baserow)
+    allGoals: [],
+    
+    // Loading state
+    isLoading: true
 };
 
 const USER_NAMES = {
@@ -172,6 +45,66 @@ const USER_NAMES = {
     'member3': '이혁신',
     'member4': '최효율'
 };
+
+// --- Baserow Data Loading ---
+async function loadDataFromBaserow() {
+    try {
+        console.log('Loading data from Baserow...');
+        
+        // Load divisions
+        STATE.divisions = await DivisionsAPI.list();
+        console.log('Loaded divisions:', STATE.divisions.length);
+        
+        // Load teams
+        STATE.teams = await TeamsAPI.list();
+        console.log('Loaded teams:', STATE.teams.length);
+        
+        // Load members
+        STATE.members = await MembersAPI.list();
+        console.log('Loaded members:', STATE.members.length);
+        
+        // Load R&R
+        STATE.rnrData = await RnRAPI.list();
+        console.log('Loaded R&R:', STATE.rnrData.length);
+        
+        // Load goals
+        const goals = await GoalsAPI.list();
+        console.log('Loaded goals:', goals.length);
+        
+        // Load key results for each goal
+        STATE.allGoals = [];
+        for (const goal of goals) {
+            const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
+            
+            STATE.allGoals.push({
+                id: goal.id,
+                userId: goal.user_id,
+                periodType: goal.period_type,
+                periodValue: goal.period_value,
+                text: goal.text,
+                keyResults: keyResults.map(kr => ({
+                    id: kr.kr_id,
+                    text: kr.text,
+                    progress: parseInt(kr.progress) || 0
+                })),
+                status: goal.status,
+                requestType: null, // Will be computed from status
+                comment: goal.comment || '',
+                isProcessed: goal.is_processed,
+                tempText: goal.temp_text || undefined,
+                tempKeyResults: undefined // Will be populated when needed
+            });
+        }
+        
+        console.log('All data loaded successfully');
+        STATE.isLoading = false;
+        
+    } catch (error) {
+        console.error('Error loading data from Baserow:', error);
+        alert('데이터 로드 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        STATE.isLoading = false;
+    }
+}
 
 // --- Initialization ---
 function getDefaultPeriodValue(type) {
@@ -1093,7 +1026,7 @@ function renderModal(container) {
 }
 
 // Auth
-document.getElementById('btn-login').addEventListener('click', () => {
+document.getElementById('btn-login').addEventListener('click', async () => {
     const id = document.getElementById('login-id').value;
     const pw = document.getElementById('login-pw').value;
     const division = document.getElementById('login-division').value;
@@ -1107,14 +1040,30 @@ document.getElementById('btn-login').addEventListener('click', () => {
     else if(id === 'member4') STATE.user = { id: 'member4', name: USER_NAMES.member4, role: 'user', division: division };
     else { alert('유효하지 않은 계정'); return; }
     
-    document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
-    document.getElementById('auth-user-name').innerText = STATE.user.name;
-    document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('app-view').classList.remove('hidden');
-    STATE.currentView = 'dashboard';
-    updateNavigation();
-    renderCurrentView();
+    // Show loading state
+    const loginBtn = document.getElementById('btn-login');
+    const originalText = loginBtn.innerText;
+    loginBtn.innerText = '데이터 로딩 중...';
+    loginBtn.disabled = true;
+    
+    try {
+        // Load data from Baserow
+        await loadDataFromBaserow();
+        
+        document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
+        document.getElementById('auth-user-name').innerText = STATE.user.name;
+        document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        STATE.currentView = 'dashboard';
+        updateNavigation();
+        renderCurrentView();
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+        loginBtn.innerText = originalText;
+        loginBtn.disabled = false;
+    }
 });
 document.getElementById('btn-logout').addEventListener('click', () => {
     STATE.user = null;
@@ -1141,24 +1090,49 @@ updateDateTime();
 setInterval(updateDateTime, 1000);
 
 // --- Members Management ---
-window.updateMemberField = function(id, field, value) {
+window.updateMemberField = async function(id, field, value) {
     const member = STATE.members.find(m => m.id === id);
     if(member) {
         member[field] = value;
+        
+        // Update in Baserow
+        try {
+            await MembersAPI.update(id, { [field]: value });
+        } catch (error) {
+            console.error('Error updating member:', error);
+            alert('구성원 정보 업데이트 중 오류가 발생했습니다.');
+        }
     }
 };
 
-window.addMember = function() {
-    const newId = Math.max(...STATE.members.map(m => m.id)) + 1;
-    STATE.members.push({
-        id: newId,
-        name: '',
-        division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
-        team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
-        position: '팀원',
-        email: ''
-    });
-    renderCurrentView();
+window.addMember = async function() {
+    try {
+        const newMember = {
+            name: '',
+            user_id: '',
+            division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
+            team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
+            position: '팀원',
+            email: '',
+            role: 'user'
+        };
+        
+        const created = await MembersAPI.create(newMember);
+        
+        STATE.members.push({
+            id: created.id,
+            name: created.name,
+            division: created.division,
+            team: created.team,
+            position: created.position,
+            email: created.email
+        });
+        
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error adding member:', error);
+        alert('구성원 추가 중 오류가 발생했습니다.');
+    }
 };
 
 // --- Team Management ---
@@ -1187,7 +1161,7 @@ window.openTeamManagement = function() {
     openModal('팀 관리', content, null, false);
 };
 
-window.addTeam = function() {
+window.addTeam = async function() {
     const input = document.getElementById('new-team-name');
     const teamName = input.value.trim();
     if(!teamName) {
@@ -1198,13 +1172,23 @@ window.addTeam = function() {
         alert('이미 존재하는 팀명입니다.');
         return;
     }
-    const newId = Math.max(...STATE.teams.map(t => t.id), 0) + 1;
-    STATE.teams.push({ id: newId, name: teamName });
-    closeModal();
-    openTeamManagement();
+    
+    try {
+        const created = await TeamsAPI.create({
+            name: teamName,
+            division: STATE.divisions.length > 0 ? STATE.divisions[0].name : ''
+        });
+        
+        STATE.teams.push({ id: created.id, name: created.name });
+        closeModal();
+        openTeamManagement();
+    } catch (error) {
+        console.error('Error adding team:', error);
+        alert('팀 추가 중 오류가 발생했습니다.');
+    }
 };
 
-window.updateTeamName = function(id) {
+window.updateTeamName = async function(id) {
     const input = document.getElementById(`team-name-${id}`);
     const newName = input.value.trim();
     if(!newName) {
@@ -1220,19 +1204,27 @@ window.updateTeamName = function(id) {
         return;
     }
     
-    // 구성원의 팀명도 업데이트
-    STATE.members.forEach(member => {
-        if(member.team === oldName) {
+    try {
+        // Update team in Baserow
+        await TeamsAPI.update(id, { name: newName });
+        
+        // Update members' team names
+        const membersToUpdate = STATE.members.filter(m => m.team === oldName);
+        for (const member of membersToUpdate) {
             member.team = newName;
+            await MembersAPI.update(member.id, { team: newName });
         }
-    });
-    
-    team.name = newName;
-    closeModal();
-    openTeamManagement();
+        
+        team.name = newName;
+        closeModal();
+        openTeamManagement();
+    } catch (error) {
+        console.error('Error updating team:', error);
+        alert('팀명 수정 중 오류가 발생했습니다.');
+    }
 };
 
-window.deleteTeam = function(id) {
+window.deleteTeam = async function(id) {
     const team = STATE.teams.find(t => t.id === id);
     if(!team) return;
     
@@ -1244,16 +1236,28 @@ window.deleteTeam = function(id) {
     }
     
     if(confirm(`'${team.name}' 팀을 삭제하시겠습니까?`)) {
-        STATE.teams = STATE.teams.filter(t => t.id !== id);
-        closeModal();
-        openTeamManagement();
+        try {
+            await TeamsAPI.delete(id);
+            STATE.teams = STATE.teams.filter(t => t.id !== id);
+            closeModal();
+            openTeamManagement();
+        } catch (error) {
+            console.error('Error deleting team:', error);
+            alert('팀 삭제 중 오류가 발생했습니다.');
+        }
     }
 };
 
-window.removeMember = function(id) {
+window.removeMember = async function(id) {
     if(STATE.members.length > 1) {
-        STATE.members = STATE.members.filter(m => m.id !== id);
-        renderCurrentView();
+        try {
+            await MembersAPI.delete(id);
+            STATE.members = STATE.members.filter(m => m.id !== id);
+            renderCurrentView();
+        } catch (error) {
+            console.error('Error removing member:', error);
+            alert('구성원 삭제 중 오류가 발생했습니다.');
+        }
     } else {
         alert('최소 1명의 구성원이 필요합니다.');
     }

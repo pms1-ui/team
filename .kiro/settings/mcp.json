@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "baserow": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://baserow.childylab.com/mcp/9Q67Pj5Lz061Rpx6pk30wX6RZxQ7ko3d/sse"
+      ],
+      "autoApprove": [
+        "list_tables",
+        "list_table_rows",
+        "create_row",
+        "update_row",
+        "delete_table_row",
+        "create_row_table_1940",
+        "create_row_table_1941",
+        "create_row_table_1942",
+        "create_row_table_1943",
+        "create_row_table_1944"
+      ]
+    }
+  }
+}

@@ -1324,19 +1324,6 @@ renderMembers = function(container) {
 function renderGuide(container) {
     const h = `
         <div class="max-w-5xl mx-auto py-6">
-            <!-- 헤더 섹션 -->
-            <div class="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 mb-8 border border-blue-50">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    </div>
-                    <div>
-                        <h2 class="font-display text-2xl font-bold text-on-surface mb-1">OKR 가이드</h2>
-                        <p class="text-on-surface-variant text-sm">목표 설정부터 관리까지, OKR 시스템 완벽 가이드</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- OKR이란? 섹션 -->
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 mb-6">
                 <div class="flex items-center gap-3 mb-6">

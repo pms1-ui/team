@@ -37,8 +37,30 @@ const STATE = {
     
     // R&R Data
     rnrData: [
-        { userId: 'member', name: '김전략', team: 'DT전략팀', position: '팀장', content: '전사 디지털 전환 전략 수립 및 실행\n주요 프로젝트 기획 및 관리\n팀원 육성 및 성과 관리' },
-        { userId: 'member2', name: '박성공', team: 'DT전략팀', position: '팀원', content: '고객 경험 개선 프로젝트 리드\n데이터 분석 및 인사이트 도출\n마케팅 캠페인 기획 및 실행' }
+        { 
+            id: 1,
+            userId: 'member', 
+            name: '김전략', 
+            team: 'DT전략팀', 
+            position: '팀장', 
+            content: '전사 디지털 전환 전략 수립 및 실행\n주요 프로젝트 기획 및 관리\n팀원 육성 및 성과 관리',
+            status: '합의 완료',
+            requestType: null,
+            tempContent: '',
+            comment: ''
+        },
+        { 
+            id: 2,
+            userId: 'member2', 
+            name: '박성공', 
+            team: 'DT전략팀', 
+            position: '팀원', 
+            content: '고객 경험 개선 프로젝트 리드\n데이터 분석 및 인사이트 도출\n마케팅 캠페인 기획 및 실행',
+            status: '합의 완료',
+            requestType: null,
+            tempContent: '',
+            comment: ''
+        }
     ],
     
     // All Goals Data
@@ -428,12 +450,42 @@ window.undoApproval = function(id) {
     }
 };
 
+window.approveRnRRequest = function(id) {
+    const rnr = STATE.rnrData.find(r => r.id === id);
+    if(rnr) {
+        if (rnr.requestType === '수정') {
+            // Apply modification
+            rnr.content = rnr.tempContent;
+            rnr.tempContent = '';
+        }
+        rnr.status = '합의 완료';
+        rnr.requestType = null;
+        rnr.comment = '';
+        alert('R&R 요청이 승인되었습니다.');
+        renderCurrentView();
+        updateNavigation();
+    }
+};
+
+window.undoRnRApproval = function(id) {
+    const rnr = STATE.rnrData.find(r => r.id === id);
+    if(rnr) {
+        rnr.status = '승인 대기중';
+        rnr.requestType = '합의';
+        alert('R&R 승인이 취소되었습니다.');
+        renderCurrentView();
+        updateNavigation();
+    }
+};
+
 // Navigation
 function updateNavigation() {
     const nav = document.getElementById('nav-menu');
     nav.innerHTML = '';
 
-    const pendingReqCount = STATE.allGoals.filter(g => g.requestType !== null && !g.isProcessed && g.status !== '작성중').length;
+    const pendingOkrCount = STATE.allGoals.filter(g => g.requestType !== null && !g.isProcessed && g.status !== '작성중').length;
+    const pendingRnrCount = STATE.rnrData.filter(r => r.requestType !== null && r.status === '승인 대기중').length;
+    const pendingReqCount = pendingOkrCount + pendingRnrCount;
 
     MENU_ITEMS.forEach(item => {
         if (!item.roles.includes(STATE.user.role)) return;
@@ -741,52 +793,130 @@ function renderGoalsManage(container) {
 }
 
 function renderRequests(container) {
-    const list = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    list.sort((a,b) => (a.isProcessed === b.isProcessed) ? 0 : a.isProcessed ? 1 : -1);
+    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
+    const rnrList = STATE.rnrData.filter(r => r.requestType !== null);
+    
+    // Combine OKR and R&R requests
+    const combinedList = [
+        ...okrList.map(g => ({ type: 'okr', data: g })),
+        ...rnrList.map(r => ({ type: 'rnr', data: r }))
+    ];
+    
+    // Sort by processed status
+    combinedList.sort((a, b) => {
+        const aProcessed = a.type === 'okr' ? a.data.isProcessed : (a.data.status === '합의 완료');
+        const bProcessed = b.type === 'okr' ? b.data.isProcessed : (b.data.status === '합의 완료');
+        return (aProcessed === bProcessed) ? 0 : aProcessed ? 1 : -1;
+    });
 
     let rowsHtml = '';
-    if(list.length === 0) {
+    if(combinedList.length === 0) {
         rowsHtml = `<tr><td colspan="7" class="py-24 text-center text-on-surface-variant font-bold text-[14px]">불러올 수 있는 요청 데이터가 없습니다.</td></tr>`;
     } else {
-        rowsHtml = list.map(g => {
-            const assignee = USER_NAMES[g.userId] || g.userId;
-            const period = getPeriodLabel(g.periodType, g.periodValue);
-            
-            let types = (g.requestType || '신규 수립').split(',');
-            let tagsHtml = `<div class="flex flex-col gap-1.5 items-center justify-center">` + types.map(t => {
-                let c = 'bg-surface-container-low text-on-surface-variant border border-blue-50/50';
-                const s = t.trim();
-                if(s === '신규 수립') c = 'bg-primary/10 text-primary border border-primary/20';
-                else if(s.includes('진척률')) c = 'bg-[#fef3c7] text-[#b45309] border border-[#f59e0b]/20';
-                else if(s.includes('OKR')) c = 'bg-[#ecfdf5] text-[#047857] border border-[#10b981]/20';
-                else if(s.includes('KR')) c = 'bg-purple-50 text-purple-700 border border-purple-200';
-                return `<span class="px-2.5 py-1 ${c} text-[12px] font-extrabold rounded-md block w-full text-center whitespace-nowrap shadow-sm">${s}</span>`;
-            }).join('') + `</div>`;
+        rowsHtml = combinedList.map(item => {
+            if (item.type === 'rnr') {
+                const r = item.data;
+                const isProcessed = r.status === '합의 완료';
+                
+                let requestTypeLabel = r.requestType === '합의' ? 'R&R 합의' : 'R&R 수정';
+                let tagClass = r.requestType === '합의' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-purple-50 text-purple-700 border border-purple-200';
+                
+                let diffHtml = '';
+                if (r.requestType === '수정') {
+                    diffHtml = `
+                        <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 수정 요청</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative">
+                                        <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.content}</pre>
+                                    </div>
+                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
+                                        <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.tempContent}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `.replace(/"/g, '&quot;').replace(/\n/g, '');
+                } else {
+                    diffHtml = `
+                        <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 합의 요청</div>
+                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm">
+                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.content}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    `.replace(/"/g, '&quot;').replace(/\n/g, '');
+                }
+                
+                return `
+                    <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors bg-white">
+                        <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-36 whitespace-nowrap">${r.name}</td>
+                        <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-36">-</td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 w-44 align-middle text-center">
+                            <div class="flex flex-col gap-1.5 items-center justify-center">
+                                <span class="px-2.5 py-1 ${tagClass} text-[12px] font-extrabold rounded-md block w-full text-center whitespace-nowrap shadow-sm">${requestTypeLabel}</span>
+                            </div>
+                        </td>
+                        <td class="py-6 px-5 border-r border-blue-50/50 text-center w-28">
+                            <button onclick="openModal('R&R 상세 내용', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[14px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
+                        </td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
+                            ${r.comment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${r.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
+                        </td>
+                        <td class="py-6 px-5 text-center w-36 align-middle">
+                            ${isProcessed ? 
+                                `<button onclick="undoRnRApproval(${r.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
+                                `<button onclick="approveRnRRequest(${r.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            } else {
+                const g = item.data;
+                const assignee = USER_NAMES[g.userId] || g.userId;
+                const period = getPeriodLabel(g.periodType, g.periodValue);
+                
+                let types = (g.requestType || '신규 수립').split(',');
+                let tagsHtml = `<div class="flex flex-col gap-1.5 items-center justify-center">` + types.map(t => {
+                    let c = 'bg-surface-container-low text-on-surface-variant border border-blue-50/50';
+                    const s = t.trim();
+                    if(s === '신규 수립') c = 'bg-primary/10 text-primary border border-primary/20';
+                    else if(s.includes('진척률')) c = 'bg-[#fef3c7] text-[#b45309] border border-[#f59e0b]/20';
+                    else if(s.includes('OKR')) c = 'bg-[#ecfdf5] text-[#047857] border border-[#10b981]/20';
+                    else if(s.includes('KR')) c = 'bg-purple-50 text-purple-700 border border-purple-200';
+                    return `<span class="px-2.5 py-1 ${c} text-[12px] font-extrabold rounded-md block w-full text-center whitespace-nowrap shadow-sm">${s}</span>`;
+                }).join('') + `</div>`;
 
-            const hasComment = !!g.comment;
-            const diffHtml = createDiffContent(g);
+                const hasComment = !!g.comment;
+                const diffHtml = createDiffContent(g);
 
-            return `
-                <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors bg-white">
-                    <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-36 whitespace-nowrap">${assignee}</td>
-                    <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-36">${period}</td>
-                    <td class="py-6 px-4 border-r border-blue-50/50 w-44 align-middle text-center">
-                        ${tagsHtml}
-                    </td>
-                    <td class="py-6 px-5 border-r border-blue-50/50 text-center w-28">
-                        <button onclick="openModal('상세 결재 내용 전후 비교', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[14px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
-                    </td>
-                    <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
-                        ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${g.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
-                    </td>
-                    <td class="py-6 px-5 text-center w-36 align-middle">
-                        ${g.isProcessed ? 
-                            `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
-                            `<button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
-                        }
-                    </td>
-                </tr>
-            `;
+                return `
+                    <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors bg-white">
+                        <td class="py-6 px-5 font-extrabold text-on-surface text-[14px] text-center w-36 whitespace-nowrap">${assignee}</td>
+                        <td class="py-6 px-4 text-center text-on-surface-variant text-[13px] font-semibold border-x border-blue-50/50 w-36">${period}</td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 w-44 align-middle text-center">
+                            ${tagsHtml}
+                        </td>
+                        <td class="py-6 px-5 border-r border-blue-50/50 text-center w-28">
+                            <button onclick="openModal('상세 결재 내용 전후 비교', \`${diffHtml}\`, null, true )" class="px-5 py-2.5 bg-white border border-blue-100 text-primary font-bold text-[14px] rounded-lg hover:bg-blue-50 hover:border-primary/30 shadow-sm transition-all mx-auto block w-max">상세 내용 확인</button>
+                        </td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
+                            ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${g.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
+                        </td>
+                        <td class="py-6 px-5 text-center w-36 align-middle">
+                            ${g.isProcessed ? 
+                                `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
+                                `<button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }
         }).join('');
     }
 
@@ -1269,8 +1399,22 @@ renderGoalsManage = function(container) {
 };
 
 renderRequests = function(container) {
-    const list = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    list.sort((a,b) => (a.isProcessed === b.isProcessed) ? 0 : a.isProcessed ? 1 : -1);
+    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
+    const rnrList = STATE.rnrData.filter(r => r.requestType !== null);
+    
+    // Combine OKR and R&R requests
+    const combinedList = [
+        ...okrList.map(g => ({ type: 'okr', data: g })),
+        ...rnrList.map(r => ({ type: 'rnr', data: r }))
+    ];
+    
+    // Sort by processed status
+    combinedList.sort((a, b) => {
+        const aProcessed = a.type === 'okr' ? a.data.isProcessed : (a.data.status === '합의 완료');
+        const bProcessed = b.type === 'okr' ? b.data.isProcessed : (b.data.status === '합의 완료');
+        return (aProcessed === bProcessed) ? 0 : aProcessed ? 1 : -1;
+    });
+    
     const isMobile = window.innerWidth < 1024;
     
     let h = `
@@ -1287,7 +1431,7 @@ renderRequests = function(container) {
     `;
     
     if(isMobile) {
-        h += renderRequestsMobile(list);
+        h += renderRequestsMobile(combinedList);
     } else {
         originalRenderRequests(container);
         return;
@@ -1817,7 +1961,14 @@ function renderGuide(container) {
 
 // --- R&R View ---
 function renderRnR(container) {
-    const myRnR = STATE.rnrData.find(r => r.userId === STATE.user.id) || { userId: STATE.user.id, name: STATE.user.name, team: '', position: '', content: '' };
+    // Get member info from STATE.members
+    const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
+    const myRnR = STATE.rnrData.find(r => r.userId === STATE.user.id);
+    
+    const rnrStatus = myRnR ? myRnR.status : '작성중';
+    const rnrContent = myRnR ? myRnR.content : '';
+    const isAgreementComplete = rnrStatus === '합의 완료';
+    const isPending = rnrStatus === '승인 대기중';
     
     let h = '<div class="max-w-4xl mx-auto">';
     
@@ -1834,25 +1985,32 @@ function renderRnR(container) {
     h += '<div class="grid lg:grid-cols-3 gap-4">';
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">이름</label>';
-    h += '<input type="text" value="' + myRnR.name + '" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface">';
+    h += '<input type="text" value="' + memberInfo.name + '" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface cursor-not-allowed">';
     h += '</div>';
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">팀</label>';
-    h += '<input type="text" id="rnr-team" value="' + myRnR.team + '" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += '<input type="text" value="' + memberInfo.team + '" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface cursor-not-allowed">';
     h += '</div>';
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">직책</label>';
-    h += '<input type="text" id="rnr-position" value="' + myRnR.position + '" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += '<input type="text" value="' + memberInfo.position + '" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface cursor-not-allowed">';
     h += '</div>';
     h += '</div>';
     
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R (Role & Responsibility)</label>';
-    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.&#10;예시:&#10;- 전사 디지털 전환 전략 수립 및 실행&#10;- 주요 프로젝트 기획 및 관리&#10;- 팀원 육성 및 성과 관리">' + myRnR.content + '</textarea>';
+    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.&#10;예시:&#10;- 전사 디지털 전환 전략 수립 및 실행&#10;- 주요 프로젝트 기획 및 관리&#10;- 팀원 육성 및 성과 관리">' + rnrContent + '</textarea>';
     h += '</div>';
     
-    h += '<div class="flex justify-end">';
-    h += '<button onclick="saveMyRnR()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">저장하기</button>';
+    h += '<div class="flex justify-end gap-3">';
+    if (isAgreementComplete) {
+        h += '<button disabled class="bg-surface-container text-on-surface-variant px-6 py-2.5 rounded-lg font-bold text-[13px] cursor-not-allowed">합의 완료</button>';
+        h += '<button onclick="requestRnRModification()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">수정 요청</button>';
+    } else if (isPending) {
+        h += '<button onclick="cancelRnRRequest()" class="bg-error text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-error/90 transition-all shadow-sm">요청 취소</button>';
+    } else {
+        h += '<button onclick="requestRnRAgreement()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">합의 요청</button>';
+    }
     h += '</div>';
     h += '</div>';
     h += '</div>';
@@ -1881,6 +2039,15 @@ function renderRnR(container) {
             h += '<p class="text-[12px] text-on-surface-variant">' + rnr.team + ' · ' + rnr.position + '</p>';
             h += '</div>';
             h += '</div>';
+            h += '<div class="flex items-center gap-2">';
+            if (rnr.status === '합의 완료') {
+                h += '<span class="px-3 py-1 bg-success/10 text-success text-[11px] font-bold rounded-full">합의 완료</span>';
+            } else if (rnr.status === '승인 대기중') {
+                h += '<span class="px-3 py-1 bg-warning/10 text-warning text-[11px] font-bold rounded-full">승인 대기중</span>';
+            } else {
+                h += '<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[11px] font-bold rounded-full">작성중</span>';
+            }
+            h += '</div>';
             h += '</div>';
             h += '<div class="bg-white rounded-lg p-4 border border-blue-50">';
             h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.content || '작성된 R&R이 없습니다.') + '</p>';
@@ -1895,23 +2062,28 @@ function renderRnR(container) {
     container.innerHTML = h;
 }
 
-window.saveMyRnR = function() {
-    const team = document.getElementById('rnr-team').value.trim();
-    const position = document.getElementById('rnr-position').value.trim();
+window.requestRnRAgreement = function() {
     const content = document.getElementById('rnr-content').value.trim();
     
-    if (!team || !position || !content) {
-        alert('모든 항목을 입력해주세요.');
+    if (!content) {
+        alert('R&R 내용을 입력해주세요.');
         return;
     }
     
+    const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
     const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
+    
     const rnrEntry = {
+        id: existingIndex >= 0 ? STATE.rnrData[existingIndex].id : Date.now(),
         userId: STATE.user.id,
         name: STATE.user.name,
-        team: team,
-        position: position,
-        content: content
+        team: memberInfo.team,
+        position: memberInfo.position,
+        content: content,
+        status: '승인 대기중',
+        requestType: '합의',
+        tempContent: '',
+        comment: ''
     };
     
     if (existingIndex >= 0) {
@@ -1920,6 +2092,68 @@ window.saveMyRnR = function() {
         STATE.rnrData.push(rnrEntry);
     }
     
-    alert('R&R이 저장되었습니다.');
+    alert('R&R 합의 요청이 제출되었습니다.');
     renderCurrentView();
+};
+
+window.requestRnRModification = function() {
+    const newContent = document.getElementById('rnr-content').value.trim();
+    
+    if (!newContent) {
+        alert('R&R 내용을 입력해주세요.');
+        return;
+    }
+    
+    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
+    if (existingIndex >= 0) {
+        const currentRnR = STATE.rnrData[existingIndex];
+        
+        if (currentRnR.content === newContent) {
+            alert('변경된 내용이 없습니다.');
+            return;
+        }
+        
+        STATE.rnrData[existingIndex] = {
+            ...currentRnR,
+            tempContent: newContent,
+            status: '승인 대기중',
+            requestType: '수정',
+            comment: ''
+        };
+        
+        alert('R&R 수정 요청이 제출되었습니다.');
+        renderCurrentView();
+    }
+};
+
+window.cancelRnRRequest = function() {
+    if (!confirm('요청을 취소하시겠습니까?')) return;
+    
+    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
+    if (existingIndex >= 0) {
+        const currentRnR = STATE.rnrData[existingIndex];
+        
+        if (currentRnR.requestType === '수정') {
+            // 수정 요청 취소 시 합의 완료 상태로 복귀
+            STATE.rnrData[existingIndex] = {
+                ...currentRnR,
+                status: '합의 완료',
+                requestType: null,
+                tempContent: '',
+                comment: ''
+            };
+        } else {
+            // 합의 요청 취소 시 작성중 상태로 복귀
+            STATE.rnrData[existingIndex] = {
+                ...currentRnR,
+                status: '작성중',
+                requestType: null,
+                tempContent: '',
+                comment: ''
+            };
+        }
+        
+        alert('요청이 취소되었습니다.');
+        renderCurrentView();
+    }
 };

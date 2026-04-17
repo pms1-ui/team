@@ -202,7 +202,8 @@ const MENU_ITEMS = [
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
-    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] }
+    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
+    { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] }
 ];
 
 // --- Global Dispatchers ---
@@ -457,6 +458,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
     else if (STATE.currentView === 'requests') renderRequests(content);
     else if (STATE.currentView === 'members') renderMembers(content);
+    else if (STATE.currentView === 'guide') renderGuide(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -1316,3 +1318,316 @@ renderMembers = function(container) {
     
     container.innerHTML = h;
 };
+
+
+// --- OKR Guide View ---
+function renderGuide(container) {
+    const h = `
+        <div class="max-w-5xl mx-auto py-6">
+            <!-- 헤더 섹션 -->
+            <div class="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 mb-8 border border-blue-50">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="font-display text-2xl font-bold text-on-surface mb-1">OKR 가이드</h2>
+                        <p class="text-on-surface-variant text-sm">목표 설정부터 관리까지, OKR 시스템 완벽 가이드</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI vs OKR 섹션 -->
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 mb-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">KPI vs OKR, 무엇이 다를까?</h3>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                <span class="text-blue-600 font-black text-sm">KPI</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">핵심 성과 지표</h4>
+                        </div>
+                        <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
+                            <strong class="text-on-surface">Key Performance Indicator</strong>는 조직이나 개인의 성과를 측정하는 계량적 지표입니다.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>현재 상태 측정:</strong> 현재 성과를 수치로 표현</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>유지 및 개선:</strong> 기존 프로세스의 효율성 추적</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>예시:</strong> 월간 매출액, 고객 만족도, 이탈률</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/5 rounded-xl p-6 border-2 border-primary/20">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                                <span class="text-primary font-black text-sm">OKR</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">목표 및 핵심 결과</h4>
+                        </div>
+                        <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
+                            <strong class="text-on-surface">Objectives and Key Results</strong>는 도전적인 목표와 그 달성 여부를 측정하는 핵심 결과로 구성됩니다.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>미래 목표 설정:</strong> 달성하고자 하는 야심찬 목표</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>변화와 혁신:</strong> 새로운 도전과 성장 추구</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                <p class="text-[13px] text-on-surface"><strong>예시:</strong> 신규 시장 진출, 제품 혁신, 조직 문화 개선</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OKR 구조 섹션 -->
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 mb-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">OKR 구조 이해하기</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 border-l-4 border-primary">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm">O</div>
+                            <h4 class="font-bold text-on-surface text-lg">Objective (목표)</h4>
+                        </div>
+                        <p class="text-on-surface text-[13px] leading-relaxed mb-4">
+                            <strong>정성적이고 영감을 주는 목표</strong>로, 팀이나 개인이 달성하고자 하는 방향성을 제시합니다. 
+                            명확하고 동기부여가 되며, 실행 가능한 목표여야 합니다.
+                        </p>
+                        <div class="bg-white rounded-lg p-4 border border-blue-100">
+                            <p class="text-[12px] text-on-surface-variant font-bold mb-2">✅ 좋은 예시</p>
+                            <p class="text-[13px] text-on-surface font-medium">"고객 경험을 혁신하여 업계 최고 수준 달성"</p>
+                            <p class="text-[13px] text-on-surface font-medium">"데이터 기반 의사결정 문화 정착"</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-success/5 to-success/10 rounded-xl p-6 border-l-4 border-success">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 bg-success rounded-lg flex items-center justify-center text-white font-black text-sm">KR</div>
+                            <h4 class="font-bold text-on-surface text-lg">Key Results (핵심 결과)</h4>
+                        </div>
+                        <p class="text-on-surface text-[13px] leading-relaxed mb-4">
+                            <strong>정량적이고 측정 가능한 결과</strong>로, Objective 달성 여부를 판단하는 구체적인 지표입니다. 
+                            각 OKR은 보통 2-5개의 Key Results를 가집니다.
+                        </p>
+                        <div class="bg-white rounded-lg p-4 border border-success/30">
+                            <p class="text-[12px] text-on-surface-variant font-bold mb-2">✅ 좋은 예시</p>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface">"고객 만족도(NPS) 점수를 65에서 80으로 향상"</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface">"평균 응답 시간을 24시간에서 4시간으로 단축"</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface">"고객 이탈률을 15%에서 8%로 감소"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기간별 운영 가이드 -->
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 mb-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">기간별 OKR 운영 가이드</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 월간 OKR -->
+                    <div class="border border-blue-100 rounded-xl p-6 hover:border-primary/30 transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                <span class="text-blue-600 font-black text-sm">월간</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">월간 OKR (Monthly)</h4>
+                        </div>
+                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">매월 마지막 주</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">다음 달 목표 설정</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
+                                <p class="text-[13px] text-on-surface font-medium">주 1회 (매주 금요일)</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">진척률 업데이트</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">매월 마지막 날</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">달성도 평가 및 회고</p>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50/50 rounded-lg p-4">
+                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                단기 실행 과제에 집중하세요. 구체적이고 즉시 실행 가능한 목표를 설정하고, 
+                                주간 체크인을 통해 빠르게 방향을 조정할 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 분기별 OKR -->
+                    <div class="border border-blue-100 rounded-xl p-6 hover:border-primary/30 transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <span class="text-primary font-black text-sm">분기</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">분기별 OKR (Quarterly)</h4>
+                        </div>
+                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">분기 시작 2주 전</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">다음 분기 전략 수립</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
+                                <p class="text-[13px] text-on-surface font-medium">월 1회 (매월 말)</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">월간 진척 점검</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">분기 마지막 주</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">분기 성과 리뷰</p>
+                            </div>
+                        </div>
+                        <div class="bg-primary/5 rounded-lg p-4">
+                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                전략적 프로젝트와 중기 목표에 적합합니다. 월간 OKR보다 도전적인 목표를 설정하고, 
+                                월별 체크인을 통해 진행 상황을 모니터링하세요.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 연간 OKR -->
+                    <div class="border border-blue-100 rounded-xl p-6 hover:border-primary/30 transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <span class="text-purple-600 font-black text-sm">연간</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">연간 OKR (Yearly)</h4>
+                        </div>
+                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">전년도 12월</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">연간 비전 및 전략 수립</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
+                                <p class="text-[13px] text-on-surface font-medium">분기 1회</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">분기별 진척 점검</p>
+                            </div>
+                            <div class="bg-surface-container rounded-lg p-4">
+                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
+                                <p class="text-[13px] text-on-surface font-medium">12월 마지막 주</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">연간 성과 종합 평가</p>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50/50 rounded-lg p-4">
+                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                조직의 비전과 장기 전략에 연결된 목표를 설정하세요. 야심차고 도전적인 목표를 세우되, 
+                                분기별 체크인을 통해 방향성을 유지하고 필요시 조정합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시스템 사용 가이드 -->
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">시스템 사용 워크플로우</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-4 bg-surface-container rounded-xl">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">1</div>
+                        <div>
+                            <h5 class="font-bold text-on-surface mb-1">목표 설정 및 합의</h5>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                '목표 설정 및 합의' 메뉴에서 OKR을 작성하고 Key Results를 추가합니다. 
+                                작성 완료 후 '승인 요청' 버튼을 클릭하여 관리자에게 승인을 요청하세요.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-4 bg-surface-container rounded-xl">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">2</div>
+                        <div>
+                            <h5 class="font-bold text-on-surface mb-1">관리자 승인</h5>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                관리자는 '요청 관리' 메뉴에서 제출된 OKR을 검토하고 승인/반려합니다. 
+                                승인된 OKR은 '합의 완료' 상태가 되어 진척률 관리가 가능해집니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-4 bg-surface-container rounded-xl">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">3</div>
+                        <div>
+                            <h5 class="font-bold text-on-surface mb-1">진척률 업데이트</h5>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                '내 목표 관리' 메뉴에서 각 Key Result의 진척률을 슬라이더로 조정합니다. 
+                                변경 사항은 '진척률 업데이트 요청' 버튼을 통해 관리자에게 승인 요청하세요.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-4 bg-surface-container rounded-xl">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">4</div>
+                        <div>
+                            <h5 class="font-bold text-on-surface mb-1">대시보드 모니터링</h5>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                '대시보드' 메뉴에서 전체 팀원의 OKR 진행 상황을 한눈에 확인할 수 있습니다. 
+                                월별/분기별/연간 탭을 전환하여 기간별 성과를 모니터링하세요.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = h;
+}

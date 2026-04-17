@@ -1442,22 +1442,47 @@ function renderGuide(container) {
                             <strong>정량적이고 측정 가능한 결과</strong>로, Objective 달성 여부를 판단하는 구체적인 지표입니다. 
                             각 OKR은 보통 2-5개의 Key Results를 가집니다.
                         </p>
-                        <div class="bg-white rounded-lg p-4 border border-success/30">
-                            <p class="text-[12px] text-on-surface-variant font-bold mb-2">✅ 좋은 예시</p>
-                            <div class="space-y-2">
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface">"고객 만족도(NPS) 점수를 65에서 80으로 향상"</p>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface">"평균 응답 시간을 24시간에서 4시간으로 단축"</p>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface">"고객 이탈률을 15%에서 8%로 감소"</p>
+                        <div class="grid lg:grid-cols-2 gap-4">
+                            <div class="bg-white rounded-lg p-4 border-2 border-success">
+                                <p class="text-[12px] text-success font-bold mb-3">✅ Key Results (목표 지향적)</p>
+                                <div class="space-y-2">
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface">"고객 만족도를 65에서 80으로 향상"</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface">"신규 사용자 전환율 20% 증가"</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface">"제품 출시 주기를 8주에서 4주로 단축"</p>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="bg-white rounded-lg p-4 border border-blue-200">
+                                <p class="text-[12px] text-blue-600 font-bold mb-3">📊 KPI (지표 중심적)</p>
+                                <div class="space-y-2">
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface-variant">"월간 NPS 점수"</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface-variant">"신규 사용자 전환율"</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[13px] text-on-surface-variant">"제품 출시 주기"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-success/5 rounded-lg p-3">
+                            <p class="text-[12px] text-on-surface-variant leading-relaxed">
+                                <strong class="text-on-surface">차이점:</strong> Key Results는 목표 달성을 위한 구체적인 변화와 개선을 명시하는 반면, 
+                                KPI는 현재 상태를 측정하는 지표입니다.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1636,56 +1661,110 @@ function renderGuide(container) {
             <!-- KPI 참고 섹션 -->
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <h3 class="font-display text-xl font-bold text-on-surface">참고: KPI와의 차이점</h3>
+                    <h3 class="font-display text-xl font-bold text-on-surface">다시 한번 체크하세요! KPI와의 차이점</h3>
                 </div>
 
-                <div class="bg-surface-container rounded-xl p-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                            <span class="text-blue-600 font-black text-sm">KPI</span>
-                        </div>
-                        <h4 class="font-bold text-on-surface text-lg">Key Performance Indicator (핵심 성과 지표)</h4>
-                    </div>
-                    <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
-                        KPI는 조직이나 개인의 성과를 측정하는 계량적 지표로, <strong class="text-on-surface">현재 상태를 측정하고 유지/개선</strong>하는 데 초점을 둡니다.
-                    </p>
-                    <div class="grid lg:grid-cols-2 gap-4">
-                        <div class="bg-white rounded-lg p-4 border border-blue-100">
-                            <p class="text-[12px] font-bold text-on-surface mb-2">KPI 특징</p>
-                            <div class="space-y-2">
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface">현재 성과를 수치로 표현</p>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface">기존 프로세스의 효율성 추적</p>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                    <p class="text-[13px] text-on-surface"><strong>100% 달성률</strong>을 목표로 함</p>
-                                </div>
+                <p class="text-on-surface-variant text-[14px] leading-relaxed mb-6">
+                    OKR과 KPI는 모두 성과를 측정하지만, <strong class="text-on-surface">접근 방식과 목적</strong>이 다릅니다. 
+                    아래 비교를 통해 차이점을 명확히 이해하세요.
+                </p>
+
+                <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-primary/5 rounded-xl p-6 border-2 border-primary/20">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                                <span class="text-primary font-black text-sm">OKR</span>
                             </div>
+                            <h4 class="font-bold text-on-surface text-lg">목표 지향적</h4>
                         </div>
-                        <div class="bg-white rounded-lg p-4 border border-blue-100">
-                            <p class="text-[12px] font-bold text-on-surface mb-2">예시</p>
-                            <div class="space-y-1">
-                                <p class="text-[13px] text-on-surface-variant">• 월간 매출액</p>
-                                <p class="text-[13px] text-on-surface-variant">• 고객 만족도 점수</p>
-                                <p class="text-[13px] text-on-surface-variant">• 이탈률</p>
-                                <p class="text-[13px] text-on-surface-variant">• 응답 시간</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 bg-blue-50/50 rounded-lg p-4">
-                        <p class="text-[12px] font-bold text-on-surface mb-1">💡 차이점 요약</p>
-                        <p class="text-[13px] text-on-surface-variant leading-relaxed">
-                            KPI는 100% 달성을 목표로 하는 반면, <strong class="text-primary">OKR은 70-80% 달성을 성공으로 간주</strong>합니다. 
-                            OKR은 더 도전적이고 야심찬 목표를 설정하여 혁신과 성장을 추구하는 데 초점을 둡니다.
+                        <p class="text-[13px] text-on-surface-variant mb-4">
+                            <strong class="text-on-surface">변화와 개선</strong>을 추구하며, 도전적인 목표 달성을 위한 구체적인 결과를 설정합니다.
                         </p>
+                        <div class="bg-white rounded-lg p-4 border border-primary/30">
+                            <p class="text-[12px] text-primary font-bold mb-3">✅ OKR 예시</p>
+                            <div class="space-y-2">
+                                <div class="bg-primary/5 rounded p-2">
+                                    <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
+                                    <p class="text-[13px] text-on-surface font-medium">"고객 경험 혁신"</p>
+                                </div>
+                                <div class="space-y-1.5 ml-2">
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface">NPS를 65에서 80으로 향상</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface">응답 시간을 24시간에서 4시간으로 단축</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface">이탈률을 15%에서 8%로 감소</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center gap-2 text-[12px]">
+                            <span class="text-primary font-bold">달성 기준:</span>
+                            <span class="text-on-surface-variant">70-80% 달성 시 성공</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50/50 rounded-xl p-6 border border-blue-200">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                <span class="text-blue-600 font-black text-sm">KPI</span>
+                            </div>
+                            <h4 class="font-bold text-on-surface text-lg">지표 중심적</h4>
+                        </div>
+                        <p class="text-[13px] text-on-surface-variant mb-4">
+                            <strong class="text-on-surface">현재 상태를 측정</strong>하고 모니터링하며, 일정 수준을 유지하는 데 초점을 둡니다.
+                        </p>
+                        <div class="bg-white rounded-lg p-4 border border-blue-300">
+                            <p class="text-[12px] text-blue-600 font-bold mb-3">📊 KPI 예시</p>
+                            <div class="space-y-2">
+                                <div class="bg-blue-50/50 rounded p-2">
+                                    <p class="text-[11px] text-on-surface-variant font-bold mb-1">측정 지표</p>
+                                    <p class="text-[13px] text-on-surface font-medium">"고객 서비스 성과"</p>
+                                </div>
+                                <div class="space-y-1.5 ml-2">
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface-variant">월간 NPS 점수</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface-variant">평균 응답 시간</p>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                        <p class="text-[12px] text-on-surface-variant">월간 이탈률</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center gap-2 text-[12px]">
+                            <span class="text-blue-600 font-bold">달성 기준:</span>
+                            <span class="text-on-surface-variant">100% 달성 목표</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-orange-50 to-orange-50/50 rounded-xl p-5 border-l-4 border-orange-500">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 bg-orange-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-white font-black text-xs">!</span>
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-bold text-on-surface mb-2">핵심 차이점</p>
+                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                                <strong class="text-on-surface">OKR</strong>은 "어디로 가고 싶은가?"에 답하며 변화를 추구합니다. 
+                                <strong class="text-on-surface">KPI</strong>는 "현재 어디에 있는가?"를 측정하며 현상을 유지합니다. 
+                                OKR은 70-80% 달성을 성공으로 보지만, KPI는 100% 달성을 목표로 합니다.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -697,8 +697,10 @@ window.approveAdminRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
         try {
-            // Apply temp changes to actual data
-            if(goal.tempText !== undefined) goal.text = goal.tempText;
+            // Apply temp changes to actual data BEFORE updating Baserow
+            if(goal.tempText !== undefined) {
+                goal.text = goal.tempText;
+            }
             if(goal.tempKeyResults) {
                 goal.keyResults = JSON.parse(JSON.stringify(goal.tempKeyResults));
             }
@@ -710,23 +712,25 @@ window.approveAdminRequest = async function(id) {
                 temp_text: null,  // Clear temp_text
                 temp_kr: null,  // Clear temp_kr
                 is_processed: true,
-                temp_text: null,
                 request_type: null,
                 comment: goal.comment || ''
             });
             
-            // Update key results in Baserow
+            // Update key results in Baserow - use the UPDATED goal.keyResults
             const existingKRs = await KeyResultsAPI.listByGoalId(id);
             
+            // Update or create each KR
             for (const kr of goal.keyResults) {
                 const existingKR = existingKRs.find(k => k.kr_id === kr.id);
                 if (existingKR) {
+                    // Update existing KR
                     await KeyResultsAPI.update(existingKR.id, {
                         OKR: goal.text,  // Save OKR to key_results table
                         KR: kr.text,     // Save KR to key_results table
                         progress: String(kr.progress)
                     });
                 } else {
+                    // Create new KR
                     await KeyResultsAPI.create({
                         goal_id: String(id),
                         kr_id: kr.id,
@@ -744,6 +748,7 @@ window.approveAdminRequest = async function(id) {
                 }
             }
             
+            // Clear temp data
             goal.tempText = undefined;
             goal.tempKeyResults = undefined;
             goal.status = '합의 완료';
@@ -1536,6 +1541,12 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     STATE.user = null;
     // Clear login session from localStorage
     localStorage.removeItem('okr_session');
+    
+    // Reset login button state
+    const loginBtn = document.getElementById('btn-login');
+    loginBtn.innerText = '로그인';
+    loginBtn.disabled = false;
+    
     document.getElementById('login-view').classList.remove('hidden');
     document.getElementById('app-view').classList.add('hidden');
     // Update URL to login page

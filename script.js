@@ -188,7 +188,9 @@ const STATE = {
 const USER_NAMES = {
     'master': '마스터 관리자',
     'member': '김전략',
-    'member2': '박성공'
+    'member2': '박성공',
+    'member3': '이혁신',
+    'member4': '최효율'
 };
 
 // --- Initialization ---
@@ -1079,6 +1081,9 @@ document.getElementById('btn-login').addEventListener('click', () => {
     if(pw !== '1111') { alert('비밀번호가 틀렸습니다.'); return; }
     if(id === 'master') STATE.user = { id: 'master', name: USER_NAMES.master, role: 'admin' };
     else if(id === 'member') STATE.user = { id: 'member', name: USER_NAMES.member, role: 'user' };
+    else if(id === 'member2') STATE.user = { id: 'member2', name: USER_NAMES.member2, role: 'user' };
+    else if(id === 'member3') STATE.user = { id: 'member3', name: USER_NAMES.member3, role: 'user' };
+    else if(id === 'member4') STATE.user = { id: 'member4', name: USER_NAMES.member4, role: 'user' };
     else { alert('유효하지 않은 계정'); return; }
     document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
     document.getElementById('auth-user-name').innerText = STATE.user.name;
@@ -1999,7 +2004,7 @@ function renderRnR(container) {
     
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R (Role & Responsibility)</label>';
-    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.&#10;예시:&#10;- 전사 디지털 전환 전략 수립 및 실행&#10;- 주요 프로젝트 기획 및 관리&#10;- 팀원 육성 및 성과 관리">' + rnrContent + '</textarea>';
+    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.">' + rnrContent + '</textarea>';
     h += '</div>';
     
     h += '<div class="flex justify-end gap-3">';
@@ -2007,6 +2012,7 @@ function renderRnR(container) {
         h += '<button disabled class="bg-surface-container text-on-surface-variant px-6 py-2.5 rounded-lg font-bold text-[13px] cursor-not-allowed">합의 완료</button>';
         h += '<button onclick="requestRnRModification()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">수정 요청</button>';
     } else if (isPending) {
+        h += '<button disabled class="bg-surface-container text-on-surface-variant px-6 py-2.5 rounded-lg font-bold text-[13px] cursor-not-allowed">검토 중</button>';
         h += '<button onclick="cancelRnRRequest()" class="bg-error text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-error/90 transition-all shadow-sm">요청 취소</button>';
     } else {
         h += '<button onclick="requestRnRAgreement()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">합의 요청</button>';

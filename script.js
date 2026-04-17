@@ -35,6 +35,12 @@ const STATE = {
         { id: 4, name: '최효율', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
     ],
     
+    // R&R Data
+    rnrData: [
+        { userId: 'member', name: '김전략', team: 'DT전략팀', position: '팀장', content: '전사 디지털 전환 전략 수립 및 실행\n주요 프로젝트 기획 및 관리\n팀원 육성 및 성과 관리' },
+        { userId: 'member2', name: '박성공', team: 'DT전략팀', position: '팀원', content: '고객 경험 개선 프로젝트 리드\n데이터 분석 및 인사이트 도출\n마케팅 캠페인 기획 및 실행' }
+    ],
+    
     // All Goals Data
     allGoals: [
         { 
@@ -201,6 +207,7 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
+    { id: 'rnr', label: 'R&R 입력', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
     { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
     { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] }
@@ -458,6 +465,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
     else if (STATE.currentView === 'requests') renderRequests(content);
     else if (STATE.currentView === 'members') renderMembers(content);
+    else if (STATE.currentView === 'rnr') renderRnR(content);
     else if (STATE.currentView === 'guide') renderGuide(content);
     
     if (STATE.modalData) renderModal(document.body);
@@ -1764,15 +1772,15 @@ function renderGuide(container) {
                                 <div class="space-y-1.5 ml-2">
                                     <div class="flex items-start gap-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[12px] text-on-surface-variant">월간 NPS 점수</p>
+                                        <p class="text-[12px] text-on-surface-variant">월간 NPS 점수 200점</p>
                                     </div>
                                     <div class="flex items-start gap-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[12px] text-on-surface-variant">평균 응답 시간</p>
+                                        <p class="text-[12px] text-on-surface-variant">평균 응답 시간 100초 이내</p>
                                     </div>
                                     <div class="flex items-start gap-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                        <p class="text-[12px] text-on-surface-variant">월간 이탈률</p>
+                                        <p class="text-[12px] text-on-surface-variant">월간 이탈률 5% 이내</p>
                                     </div>
                                 </div>
                             </div>
@@ -1805,3 +1813,113 @@ function renderGuide(container) {
     
     container.innerHTML = h;
 }
+
+
+// --- R&R View ---
+function renderRnR(container) {
+    const myRnR = STATE.rnrData.find(r => r.userId === STATE.user.id) || { userId: STATE.user.id, name: STATE.user.name, team: '', position: '', content: '' };
+    
+    let h = '<div class="max-w-4xl mx-auto">';
+    
+    // 내 R&R 작성 섹션
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8 mb-6">';
+    h += '<div class="flex items-center gap-3 mb-6">';
+    h += '<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">';
+    h += '<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+    h += '</div>';
+    h += '<h3 class="font-display text-xl font-bold text-on-surface">내 R&R 작성</h3>';
+    h += '</div>';
+    
+    h += '<div class="space-y-4">';
+    h += '<div class="grid lg:grid-cols-3 gap-4">';
+    h += '<div>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">이름</label>';
+    h += '<input type="text" value="' + myRnR.name + '" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface">';
+    h += '</div>';
+    h += '<div>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">팀</label>';
+    h += '<input type="text" id="rnr-team" value="' + myRnR.team + '" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += '</div>';
+    h += '<div>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">직책</label>';
+    h += '<input type="text" id="rnr-position" value="' + myRnR.position + '" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += '</div>';
+    h += '</div>';
+    
+    h += '<div>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R (Role & Responsibility)</label>';
+    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.&#10;예시:&#10;- 전사 디지털 전환 전략 수립 및 실행&#10;- 주요 프로젝트 기획 및 관리&#10;- 팀원 육성 및 성과 관리">' + myRnR.content + '</textarea>';
+    h += '</div>';
+    
+    h += '<div class="flex justify-end">';
+    h += '<button onclick="saveMyRnR()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">저장하기</button>';
+    h += '</div>';
+    h += '</div>';
+    h += '</div>';
+    
+    // 관리자만 볼 수 있는 구성원 R&R 확인 섹션
+    if (STATE.user.role === 'admin') {
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+        h += '<div class="flex items-center justify-between mb-6">';
+        h += '<div class="flex items-center gap-3">';
+        h += '<div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">';
+        h += '<svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
+        h += '</div>';
+        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 R&R 확인</h3>';
+        h += '</div>';
+        h += '<div class="text-[14px] font-bold text-on-surface-variant">총 <span class="text-primary font-black mx-1">' + STATE.rnrData.length + '</span>명</div>';
+        h += '</div>';
+        
+        h += '<div class="space-y-4">';
+        STATE.rnrData.forEach(rnr => {
+            h += '<div class="bg-surface-container rounded-xl p-5 border border-blue-100">';
+            h += '<div class="flex items-start justify-between mb-4">';
+            h += '<div class="flex items-center gap-3">';
+            h += '<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">' + rnr.name.charAt(0) + '</div>';
+            h += '<div>';
+            h += '<h4 class="font-bold text-on-surface text-[15px]">' + rnr.name + '</h4>';
+            h += '<p class="text-[12px] text-on-surface-variant">' + rnr.team + ' · ' + rnr.position + '</p>';
+            h += '</div>';
+            h += '</div>';
+            h += '</div>';
+            h += '<div class="bg-white rounded-lg p-4 border border-blue-50">';
+            h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.content || '작성된 R&R이 없습니다.') + '</p>';
+            h += '</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+        h += '</div>';
+    }
+    
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+window.saveMyRnR = function() {
+    const team = document.getElementById('rnr-team').value.trim();
+    const position = document.getElementById('rnr-position').value.trim();
+    const content = document.getElementById('rnr-content').value.trim();
+    
+    if (!team || !position || !content) {
+        alert('모든 항목을 입력해주세요.');
+        return;
+    }
+    
+    const existingIndex = STATE.rnrData.findIndex(r => r.userId === STATE.user.id);
+    const rnrEntry = {
+        userId: STATE.user.id,
+        name: STATE.user.name,
+        team: team,
+        position: position,
+        content: content
+    };
+    
+    if (existingIndex >= 0) {
+        STATE.rnrData[existingIndex] = rnrEntry;
+    } else {
+        STATE.rnrData.push(rnrEntry);
+    }
+    
+    alert('R&R이 저장되었습니다.');
+    renderCurrentView();
+};

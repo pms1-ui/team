@@ -711,7 +711,7 @@ function updateNavigation() {
     nav.innerHTML = '';
 
     const pendingOkrCount = STATE.allGoals.filter(g => g.requestType !== null && !g.isProcessed && g.status !== '작성중').length;
-    const pendingRnrCount = STATE.rnrData.filter(r => r.requestType !== null && r.status === '승인 대기중').length;
+    const pendingRnrCount = STATE.rnrData.filter(r => r.request_type !== null && r.status === '승인 대기중').length;
     const pendingReqCount = pendingOkrCount + pendingRnrCount;
 
     MENU_ITEMS.forEach(item => {
@@ -1059,7 +1059,7 @@ function renderGoalsManage(container) {
 
 function renderRequests(container) {
     const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    const rnrList = STATE.rnrData.filter(r => r.requestType !== null);
+    const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
     
     // Combine OKR and R&R requests
     const combinedList = [
@@ -1083,11 +1083,11 @@ function renderRequests(container) {
                 const r = item.data;
                 const isProcessed = r.status === '합의 완료';
                 
-                let requestTypeLabel = r.requestType === '합의' ? 'R&R 합의' : 'R&R 수정';
-                let tagClass = r.requestType === '합의' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-purple-50 text-purple-700 border border-purple-200';
+                let requestTypeLabel = r.request_type === '합의' ? 'R&R 합의' : 'R&R 수정';
+                let tagClass = r.request_type === '합의' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-purple-50 text-purple-700 border border-purple-200';
                 
                 let diffHtml = '';
-                if (r.requestType === '수정') {
+                if (r.request_type === '수정') {
                     diffHtml = `
                         <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
                             <div class="flex flex-col gap-2">
@@ -1099,7 +1099,7 @@ function renderRequests(container) {
                                     </div>
                                     <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
                                         <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.tempContent}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.temp_content}</pre>
                                     </div>
                                 </div>
                             </div>
@@ -1789,7 +1789,7 @@ renderGoalsManage = function(container) {
 
 renderRequests = function(container) {
     const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    const rnrList = STATE.rnrData.filter(r => r.requestType !== null);
+    const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
     
     // Combine OKR and R&R requests
     const combinedList = [
@@ -2582,6 +2582,7 @@ window.cancelRnRRequest = async function() {
             
             alert('요청이 취소되었습니다.');
             renderCurrentView();
+            updateNavigation();
         }
     } catch (error) {
         console.error('Error canceling R&R request:', error);

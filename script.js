@@ -1454,16 +1454,16 @@ function renderGuide(container) {
                                 <div class="p-4 pt-0 border-t border-success/10">
                                     <div class="bg-success/5 rounded p-3 mb-3">
                                         <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
-                                        <p class="text-[14px] text-on-surface font-bold">"시스템 안정성과 개발 생산성 향상"</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"개발 효율성 향상 및 인프라 비용 최적화"</p>
                                     </div>
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">서비스 가동률을 99.5%에서 99.9%로 향상</p>
+                                            <p class="text-[13px] text-on-surface">클라우드 인프라 비용을 월 500만원에서 350만원으로 절감</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">배포 주기를 2주에서 1주로 단축</p>
+                                            <p class="text-[13px] text-on-surface">현업 업무 효율성 향상을 위한 1 M/M 이상 프로젝트 3건 완료</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
@@ -1482,20 +1482,20 @@ function renderGuide(container) {
                                 <div class="p-4 pt-0 border-t border-success/10">
                                     <div class="bg-success/5 rounded p-3 mb-3">
                                         <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
-                                        <p class="text-[14px] text-on-surface font-bold">"브랜드 인지도 확대 및 고객 유입 증대"</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"효율적인 마케팅으로 매출 성장 가속화"</p>
                                     </div>
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">월간 웹사이트 방문자를 10만에서 20만으로 증가</p>
+                                            <p class="text-[13px] text-on-surface">검색 광고 CPC를 1,200원에서 800원으로 절감</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">소셜 미디어 팔로워를 5천에서 1만 5천으로 증가</p>
+                                            <p class="text-[13px] text-on-surface">광고 ROAS를 250%에서 400%로 향상</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">마케팅 캠페인 ROI를 150%에서 250%로 향상</p>
+                                            <p class="text-[13px] text-on-surface">신규 고객 전환율을 2.5%에서 4%로 증가</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1510,48 +1510,20 @@ function renderGuide(container) {
                                 <div class="p-4 pt-0 border-t border-success/10">
                                     <div class="bg-success/5 rounded p-3 mb-3">
                                         <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
-                                        <p class="text-[14px] text-on-surface font-bold">"사용자 경험 개선 및 디자인 시스템 구축"</p>
+                                        <p class="text-[14px] text-on-surface font-bold">"디자인 시스템 효율화 및 일관성 확보"</p>
                                     </div>
                                     <div class="space-y-2 ml-2">
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">사용자 만족도(CSAT)를 4.2에서 4.7로 향상</p>
+                                            <p class="text-[13px] text-on-surface">디자인 시스템 컴포넌트 라이브러리 80개 구축 완료</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">디자인 시스템 컴포넌트 100개 구축 완료</p>
+                                            <p class="text-[13px] text-on-surface">도메인별 UX/UI 표준화 가이드 5건 작성 및 배포</p>
                                         </div>
                                         <div class="flex items-start gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">주요 화면 로딩 시간을 3초에서 1.5초로 단축</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </details>
-
-                            <!-- 기획(PM) -->
-                            <details class="bg-white rounded-lg border border-success/30 overflow-hidden">
-                                <summary class="cursor-pointer p-4 hover:bg-success/5 transition-colors font-bold text-[13px] text-on-surface flex items-center justify-between">
-                                    <span>📋 기획(PM) OKR 예시</span>
-                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </summary>
-                                <div class="p-4 pt-0 border-t border-success/10">
-                                    <div class="bg-success/5 rounded p-3 mb-3">
-                                        <p class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</p>
-                                        <p class="text-[14px] text-on-surface font-bold">"데이터 기반 의사결정 문화 정착"</p>
-                                    </div>
-                                    <div class="space-y-2 ml-2">
-                                        <div class="flex items-start gap-2">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">주요 기능 사용률을 30%에서 50%로 증가</p>
-                                        </div>
-                                        <div class="flex items-start gap-2">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">사용자 피드백 수집 및 반영률 80% 달성</p>
-                                        </div>
-                                        <div class="flex items-start gap-2">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-success mt-2 flex-shrink-0"></div>
-                                            <p class="text-[13px] text-on-surface">분기별 데이터 분석 리포트 12건 작성 및 공유</p>
+                                            <p class="text-[13px] text-on-surface">디자인 작업 소요 시간을 평균 5일에서 3일로 단축</p>
                                         </div>
                                     </div>
                                 </div>

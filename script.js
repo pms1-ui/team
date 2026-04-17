@@ -1221,7 +1221,6 @@ window.removeMember = function(id) {
         alert('최소 1명의 구성원이 필요합니다.');
     }
 };
-
 function renderMembers(container) {
     const teamOptions = STATE.teams.map(team => 
         `<option value="${team.name}">${team.name}</option>`
@@ -1286,16 +1285,6 @@ function renderMembers(container) {
                         <th class="py-4 px-6 border-r border-blue-50/30">구성원</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">소속</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
-                        <th class="py-4 px-6 text-center">관리</th>
-                    </tr>
-                </thead>
-                <tbody>${rowsHtml}</tbody>
-            </table>
-        </div>
-    `;
-}
                         <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
                         <th class="py-4 px-6 text-center">관리</th>

@@ -399,17 +399,21 @@ window.closeModal = function() {
 // --- Logic Implementation ---
 
 window.updateOKRTitle = function(id, val) {
-    const goal = STATE.allGoals.find(g => g.id === id);
+    const goal = STATE.allGoals.find(g => g.id == id); // Use == for type coercion
     if(goal) {
-        if(goal.status === '합의 완료' || goal.status === '승인 대기중') goal.tempText = val;
-        else goal.text = val;
+        if(goal.status === '합의 완료' || goal.status === '승인 대기중') {
+            goal.tempText = val;
+        } else {
+            goal.text = val;
+        }
     }
 };
 
 window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
-    const goal = STATE.allGoals.find(g => g.id === okrId);
+    const goal = STATE.allGoals.find(g => g.id == okrId); // Use == for type coercion
     if(goal) {
         if(isTempObj) {
+            ensureTempStructures(goal); // Ensure temp structures exist
             const kr = goal.tempKeyResults.find(k => k.id === krId);
             if(kr) kr.text = val;
         } else {
@@ -420,13 +424,16 @@ window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
 };
 
 window.updateKRProgress = function(okrId, krId, val) {
-    const goal = STATE.allGoals.find(g => g.id === okrId);
-    if(goal && goal.tempKeyResults) {
-        const kr = goal.tempKeyResults.find(k => k.id === krId);
-        if(kr) {
-            kr.progress = parseInt(val);
-            const el = document.getElementById(`kr-prog-val-${krId}`);
-            if(el) el.innerText = val + '%';
+    const goal = STATE.allGoals.find(g => g.id == okrId); // Use == for type coercion
+    if(goal) {
+        ensureTempStructures(goal); // Ensure temp structures exist
+        if(goal.tempKeyResults) {
+            const kr = goal.tempKeyResults.find(k => k.id === krId);
+            if(kr) {
+                kr.progress = parseInt(val);
+                const el = document.getElementById(`kr-prog-val-${krId}`);
+                if(el) el.innerText = val + '%';
+            }
         }
     }
 };

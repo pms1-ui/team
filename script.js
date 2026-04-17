@@ -2566,18 +2566,30 @@ window.cancelRnRRequest = async function() {
                 existingRnR.temp_content = '';
                 existingRnR.comment = '';
             } else {
-                // 합의 요청 취소 시 작성중 상태로 복귀
-                await RnRAPI.update(existingRnR.id, {
-                    status: '작성중',
-                    request_type: null,
-                    temp_content: '',
-                    comment: ''
-                });
+                // 합의 요청 취소 시 R&R 삭제
+                await RnRAPI.delete(existingRnR.id);
                 
-                existingRnR.status = '작성중';
-                existingRnR.request_type = null;
-                existingRnR.temp_content = '';
-                existingRnR.comment = '';
+                // STATE에서도 제거
+                STATE.rnrData = STATE.rnrData.filter(r => r.id !== existingRnR.id);
+            }
+            
+            // Reload R&R data from Baserow to ensure state is fresh
+            try {
+                const rnrData = await RnRAPI.list();
+                STATE.rnrData = rnrData.map(r => ({
+                    id: r.id,
+                    user_id: r.user_id,
+                    name: r.name,
+                    team: r.team,
+                    position: r.position,
+                    content: r.content,
+                    status: r.status,
+                    request_type: r.request_type,
+                    temp_content: r.temp_content,
+                    comment: r.comment
+                }));
+            } catch (reloadError) {
+                console.error('Error reloading R&R data:', reloadError);
             }
             
             alert('요청이 취소되었습니다.');

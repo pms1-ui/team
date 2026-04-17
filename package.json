@@ -1,0 +1,12 @@
+{
+  "name": "team-okr-system",
+  "version": "1.0.0",
+  "description": "차일디 목표관리 시스템",
+  "scripts": {
+    "build": "node generate-config.js",
+    "dev": "node generate-config.js && echo 'Development server ready'"
+  },
+  "keywords": ["okr", "management", "baserow"],
+  "author": "Childy Lab",
+  "license": "MIT"
+}

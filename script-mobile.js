@@ -294,6 +294,11 @@ function renderMembersMobile(members, teams) {
                 </div>
                 
                 <div>
+                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">직무</div>
+                    <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface outline-none focus:border-primary" placeholder="직무 입력">
+                </div>
+                
+                <div>
                     <div class="text-[11px] text-on-surface-variant font-bold mb-1">직책</div>
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface outline-none focus:border-primary" ${STATE.user.role !== 'admin' && STATE.user.id !== member.user_id ? 'disabled' : ''}>
                         <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>

@@ -1623,6 +1623,7 @@ window.addMember = async function() {
             password: '',
             division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
             team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
+            job: '',
             position: '멤버',
             email: '',
             role: 'user'
@@ -1637,6 +1638,7 @@ window.addMember = async function() {
             password: created.password,
             division: created.division,
             team: created.team,
+            job: created.job || '',
             position: created.position,
             email: created.email
         });
@@ -1784,35 +1786,38 @@ function renderMembers(container) {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
                     <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
+                    <input type="email" value="${member.email || ''}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <select onchange="updateMemberField(${member.id}, 'division', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="">소속 선택</option>
                         ${STATE.divisions.map(div => `<option value="${div.name}" ${member.division === div.name ? 'selected' : ''}>${div.name}</option>`).join('')}
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="">팀 선택</option>
                         ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
                     </select>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
+                    <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[10%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' && STATE.user.id !== member.user_id ? 'disabled' : ''}>
                         <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>
                         <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <input type="text" value="${member.user_id || ''}" oninput="updateMemberField(${member.id}, 'user_id', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="아이디 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[25%]">
-                    <input type="email" value="${member.email}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
                 </td>
                 <td class="py-5 px-6 text-center w-24">
                     <button onclick="removeMember(${member.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
@@ -1843,12 +1848,13 @@ function renderMembers(container) {
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">구성원</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">소속</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">직무</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">아이디</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">비밀번호</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
                         <th class="py-4 px-6 text-center">관리</th>
                     </tr>
                 </thead>

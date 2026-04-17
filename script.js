@@ -2316,3 +2316,35 @@ window.cancelRnRRequest = function() {
         renderCurrentView();
     }
 };
+
+
+// --- Initialize Login Page ---
+async function initLoginPage() {
+    try {
+        console.log('Initializing login page...');
+        
+        // Load divisions for dropdown
+        const divisions = await DivisionsAPI.list();
+        console.log('Loaded divisions for login:', divisions);
+        
+        const divisionSelect = document.getElementById('login-division');
+        if (divisionSelect && divisions.length > 0) {
+            divisionSelect.innerHTML = divisions.map(div => 
+                `<option value="${div.name}">${div.name}</option>`
+            ).join('');
+            
+            // Select first division by default
+            divisionSelect.value = divisions[0].name;
+        }
+    } catch (error) {
+        console.error('Error loading divisions for login page:', error);
+        // Keep the default hardcoded option if API fails
+    }
+}
+
+// Initialize login page when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLoginPage);
+} else {
+    initLoginPage();
+}

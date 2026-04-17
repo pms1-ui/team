@@ -534,7 +534,8 @@ window.submitOKRRequest = async function(id) {
         await GoalsAPI.update(id, {
             text: goal.text,
             status: '승인 대기중',
-            is_processed: false
+            is_processed: false,
+            request_type: '신규 수립'  // Baserow에 request_type 저장
         });
         
         // Update or create key results in Baserow
@@ -581,14 +582,16 @@ window.cancelOKRRequest = async function(id) {
         try {
             if(goal.requestType === '신규 수립') {
                 await GoalsAPI.update(id, {
-                    status: '작성중'
+                    status: '작성중',
+                    request_type: null  // Baserow에서도 request_type 제거
                 });
                 goal.status = '작성중';
                 goal.requestType = null;
             } else {
                 await GoalsAPI.update(id, {
                     status: '합의 완료',
-                    temp_text: null
+                    temp_text: null,
+                    request_type: null  // Baserow에서도 request_type 제거
                 });
                 goal.status = '합의 완료';
                 goal.requestType = null;
@@ -643,15 +646,30 @@ window.submitModifyRequest = function(id) {
         <div class="mb-4 text-[13px] font-bold text-on-surface p-3 bg-surface-container rounded-lg">수정 성격 유형: <span class="text-primary ml-1">${edits.join(', ')}</span></div>
         <textarea id="modify-comment" class="w-full bg-surface-container-lowest border border-blue-50 focus:border-primary rounded px-4 py-3 text-[14px] font-medium outline-none min-h-[120px] shadow-sm resize-none placeholder:text-on-surface-variant/40" placeholder="결재권자에게 보낼 수정 사유 및 코멘트를 입력하세요..."></textarea>
     `;
-    openModal('수정/진척률 승인 요청하기', mBody, () => {
+    openModal('수정/진척률 승인 요청하기', mBody, async () => {
         const comment = document.getElementById('modify-comment').value;
-        goal.status = '승인 대기중';
-        goal.requestType = edits.join(',');
-        goal.comment = comment;
-        goal.isProcessed = false;
-        closeModal();
-        renderCurrentView();
-        updateNavigation();
+        
+        try {
+            // Update goal in Baserow
+            await GoalsAPI.update(id, {
+                status: '승인 대기중',
+                request_type: edits.join(','),
+                comment: comment,
+                is_processed: false,
+                temp_text: goal.tempText
+            });
+            
+            goal.status = '승인 대기중';
+            goal.requestType = edits.join(',');
+            goal.comment = comment;
+            goal.isProcessed = false;
+            closeModal();
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error submitting modify request:', error);
+            alert('수정 요청 중 오류가 발생했습니다.');
+        }
     }, false);
 };
 
@@ -671,6 +689,7 @@ window.approveAdminRequest = async function(id) {
                 status: '합의 완료',
                 is_processed: true,
                 temp_text: null,
+                request_type: null,  // 승인 후 request_type 제거
                 comment: goal.comment || ''
             });
             
@@ -704,6 +723,7 @@ window.approveAdminRequest = async function(id) {
             goal.tempText = undefined;
             goal.tempKeyResults = undefined;
             goal.status = '합의 완료';
+            goal.requestType = null;  // STATE에서도 request_type 제거
             goal.isProcessed = true;
             renderCurrentView();
             updateNavigation();

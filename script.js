@@ -652,8 +652,15 @@ window.cancelOKRRequest = async function(id) {
 };
 
 window.submitModifyRequest = function(id) {
-    const goal = STATE.allGoals.find(g => g.id === id);
-    if(!goal) return;
+    console.log('submitModifyRequest called with id:', id, typeof id);
+    const goal = STATE.allGoals.find(g => g.id == id); // Use == for type coercion
+    console.log('Found goal:', goal);
+    
+    if(!goal) {
+        console.error('Goal not found for id:', id);
+        alert('목표를 찾을 수 없습니다.');
+        return;
+    }
 
     ensureTempStructures(goal);
 

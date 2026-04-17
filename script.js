@@ -137,9 +137,9 @@ async function loadDataFromBaserow() {
                             progress: parseInt(kr.progress) || 0
                         })),
                         status: goal.status,
-                        requestType: null,
+                        requestType: goal.request_type || null,  // Baserow에서 request_type 필드 로드
                         comment: goal.comment || '',
-                        isProcessed: goal.is_processed,
+                        isProcessed: goal.is_processed || false,
                         tempText: goal.temp_text || undefined,
                         tempKeyResults: undefined
                     });

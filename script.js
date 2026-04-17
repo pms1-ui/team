@@ -84,10 +84,10 @@ async function loadDataFromBaserow() {
             console.error('Error loading members:', error);
             console.warn('Using fallback members data');
             STATE.members = [
-                { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
-                { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
-                { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
-                { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
+                { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+                { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
+                { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+                { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
             ];
         }
         
@@ -196,10 +196,10 @@ async function loadDataFromBaserow() {
             { id: 4, name: '마케팅팀' }
         ];
         STATE.members = [
-            { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
-            { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
-            { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
-            { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
+            { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+            { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
+            { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+            { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
         ];
         STATE.rnrData = [];
         STATE.allGoals = [
@@ -1150,24 +1150,51 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     const pw = document.getElementById('login-pw').value;
     const division = document.getElementById('login-division').value;
     
-    if(pw !== '1111') { alert('비밀번호가 틀렸습니다.'); return; }
-    
-    if(id === 'master') STATE.user = { id: 'master', name: USER_NAMES.master, role: 'admin', division: division };
-    else if(id === 'member') STATE.user = { id: 'member', name: USER_NAMES.member, role: 'user', division: division };
-    else if(id === 'member2') STATE.user = { id: 'member2', name: USER_NAMES.member2, role: 'user', division: division };
-    else if(id === 'member3') STATE.user = { id: 'member3', name: USER_NAMES.member3, role: 'user', division: division };
-    else if(id === 'member4') STATE.user = { id: 'member4', name: USER_NAMES.member4, role: 'user', division: division };
-    else { alert('유효하지 않은 계정'); return; }
+    if (!id || !pw) {
+        alert('아이디와 비밀번호를 입력하세요.');
+        return;
+    }
     
     // Show loading state
     const loginBtn = document.getElementById('btn-login');
     const originalText = loginBtn.innerText;
-    loginBtn.innerText = '데이터 로딩 중...';
+    loginBtn.innerText = '로그인 중...';
     loginBtn.disabled = true;
     
     try {
-        // Load data from Baserow
+        // Load data from Baserow first
         await loadDataFromBaserow();
+        
+        // Check master account
+        if (id === 'master' && pw === '1111') {
+            STATE.user = { id: 'master', name: '마스터 관리자', role: 'admin', division: division };
+        } else {
+            // Find member in loaded data
+            const member = STATE.members.find(m => m.user_id === id && m.division === division);
+            
+            if (!member) {
+                alert('해당 본부에 존재하지 않는 계정입니다.');
+                loginBtn.innerText = originalText;
+                loginBtn.disabled = false;
+                return;
+            }
+            
+            if (member.password !== pw) {
+                alert('비밀번호가 틀렸습니다.');
+                loginBtn.innerText = originalText;
+                loginBtn.disabled = false;
+                return;
+            }
+            
+            // Set user with member data
+            STATE.user = {
+                id: member.user_id,
+                name: member.name,
+                role: member.position === '리더' ? 'admin' : 'user',
+                division: member.division,
+                memberId: member.id
+            };
+        }
         
         document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
         document.getElementById('auth-user-name').innerText = STATE.user.name;
@@ -1229,9 +1256,10 @@ window.addMember = async function() {
         const newMember = {
             name: '',
             user_id: '',
+            password: '',
             division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
             team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
-            position: '팀원',
+            position: '멤버',
             email: '',
             role: 'user'
         };
@@ -1241,6 +1269,8 @@ window.addMember = async function() {
         STATE.members.push({
             id: created.id,
             name: created.name,
+            user_id: created.user_id,
+            password: created.password,
             division: created.division,
             team: created.team,
             position: created.position,
@@ -1406,10 +1436,16 @@ function renderMembers(container) {
                     </select>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
-                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
-                        <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
-                        <option value="팀원" ${member.position === '팀원' ? 'selected' : ''}>팀원</option>
+                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' && STATE.user.id !== member.user_id ? 'disabled' : ''}>
+                        <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>
+                        <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
                     </select>
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                    <input type="text" value="${member.user_id || ''}" oninput="updateMemberField(${member.id}, 'user_id', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="아이디 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                    <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[25%]">
                     <input type="email" value="${member.email}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
@@ -1446,6 +1482,8 @@ function renderMembers(container) {
                         <th class="py-4 px-6 border-r border-blue-50/30">소속</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">아이디</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">비밀번호</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
                         <th class="py-4 px-6 text-center">관리</th>
                     </tr>

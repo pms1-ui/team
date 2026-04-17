@@ -1337,65 +1337,69 @@ function renderGuide(container) {
                 </div>
             </div>
 
-            <!-- KPI vs OKR 섹션 -->
+            <!-- OKR이란? 섹션 -->
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 mb-6">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <h3 class="font-display text-xl font-bold text-on-surface">KPI vs OKR, 무엇이 다를까?</h3>
+                    <h3 class="font-display text-xl font-bold text-on-surface">OKR이란?</h3>
                 </div>
                 
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <div class="flex items-center gap-2 mb-4">
-                            <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                                <span class="text-blue-600 font-black text-sm">KPI</span>
-                            </div>
-                            <h4 class="font-bold text-on-surface text-lg">핵심 성과 지표</h4>
+                <div class="bg-primary/5 rounded-xl p-6 border-2 border-primary/20 mb-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                            <span class="text-primary font-black text-sm">OKR</span>
                         </div>
-                        <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
-                            <strong class="text-on-surface">Key Performance Indicator</strong>는 조직이나 개인의 성과를 측정하는 계량적 지표입니다.
-                        </p>
-                        <div class="space-y-2">
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>현재 상태 측정:</strong> 현재 성과를 수치로 표현</p>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>유지 및 개선:</strong> 기존 프로세스의 효율성 추적</p>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>예시:</strong> 월간 매출액, 고객 만족도, 이탈률</p>
-                            </div>
+                        <h4 class="font-bold text-on-surface text-lg">Objectives and Key Results</h4>
+                    </div>
+                    <p class="text-on-surface text-[14px] leading-relaxed mb-4">
+                        <strong>목표(Objectives)</strong>와 <strong>핵심 결과(Key Results)</strong>로 구성된 목표 관리 프레임워크입니다. 
+                        도전적이고 야심찬 목표를 설정하고, 측정 가능한 핵심 결과를 통해 달성 여부를 추적합니다.
+                    </p>
+                    <div class="space-y-2">
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                            <p class="text-[13px] text-on-surface"><strong>도전적 목표:</strong> 현재 수준을 뛰어넘는 야심찬 목표 설정</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                            <p class="text-[13px] text-on-surface"><strong>측정 가능:</strong> 정량적 지표로 진행 상황 추적</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                            <p class="text-[13px] text-on-surface"><strong>투명성:</strong> 전체 조직이 목표를 공유하고 정렬</p>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-primary/5 rounded-xl p-6 border-2 border-primary/20">
-                        <div class="flex items-center gap-2 mb-4">
-                            <div class="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                                <span class="text-primary font-black text-sm">OKR</span>
-                            </div>
-                            <h4 class="font-bold text-on-surface text-lg">목표 및 핵심 결과</h4>
+                <!-- 70-80% 달성률 강조 -->
+                <div class="bg-gradient-to-r from-success/5 to-success/10 rounded-xl p-6 border-l-4 border-success">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
+                            <span class="text-success font-black text-lg">70-80%</span>
                         </div>
-                        <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
-                            <strong class="text-on-surface">Objectives and Key Results</strong>는 도전적인 목표와 그 달성 여부를 측정하는 핵심 결과로 구성됩니다.
-                        </p>
-                        <div class="space-y-2">
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>미래 목표 설정:</strong> 달성하고자 하는 야심찬 목표</p>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>변화와 혁신:</strong> 새로운 도전과 성장 추구</p>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                                <p class="text-[13px] text-on-surface"><strong>예시:</strong> 신규 시장 진출, 제품 혁신, 조직 문화 개선</p>
-                            </div>
+                        <h4 class="font-bold text-on-surface text-lg">도전적 목표와 실패 포용</h4>
+                    </div>
+                    <p class="text-on-surface text-[14px] leading-relaxed mb-4">
+                        OKR은 <strong class="text-success">70~80% 달성률을 성공</strong>으로 간주합니다. 
+                        이는 충분히 도전적인 목표를 설정했다는 의미이며, 실패를 두려워하지 않고 혁신을 추구하는 문화를 만듭니다.
+                    </p>
+                    <div class="grid lg:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-lg p-4 border border-success/20">
+                            <div class="text-success font-black text-2xl mb-2">100%</div>
+                            <p class="text-[12px] text-on-surface-variant font-bold mb-1">목표가 너무 쉬움</p>
+                            <p class="text-[11px] text-on-surface-variant">더 도전적인 목표 필요</p>
+                        </div>
+                        <div class="bg-success/10 rounded-lg p-4 border-2 border-success">
+                            <div class="text-success font-black text-2xl mb-2">70-80%</div>
+                            <p class="text-[12px] text-on-surface font-bold mb-1">이상적인 달성률 ✓</p>
+                            <p class="text-[11px] text-on-surface-variant">적절한 도전 수준</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 border border-error/20">
+                            <div class="text-error font-black text-2xl mb-2">&lt;50%</div>
+                            <p class="text-[12px] text-on-surface-variant font-bold mb-1">목표 재검토 필요</p>
+                            <p class="text-[11px] text-on-surface-variant">전략 조정 고려</p>
                         </div>
                     </div>
                 </div>
@@ -1623,6 +1627,63 @@ function renderGuide(container) {
                                 월별/분기별/연간 탭을 전환하여 기간별 성과를 모니터링하세요.
                             </p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 참고 섹션 -->
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">참고: KPI와의 차이점</h3>
+                </div>
+
+                <div class="bg-surface-container rounded-xl p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                            <span class="text-blue-600 font-black text-sm">KPI</span>
+                        </div>
+                        <h4 class="font-bold text-on-surface text-lg">Key Performance Indicator (핵심 성과 지표)</h4>
+                    </div>
+                    <p class="text-on-surface-variant text-[13px] leading-relaxed mb-4">
+                        KPI는 조직이나 개인의 성과를 측정하는 계량적 지표로, <strong class="text-on-surface">현재 상태를 측정하고 유지/개선</strong>하는 데 초점을 둡니다.
+                    </p>
+                    <div class="grid lg:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg p-4 border border-blue-100">
+                            <p class="text-[12px] font-bold text-on-surface mb-2">KPI 특징</p>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface">현재 성과를 수치로 표현</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface">기존 프로세스의 효율성 추적</p>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                    <p class="text-[13px] text-on-surface"><strong>100% 달성률</strong>을 목표로 함</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 border border-blue-100">
+                            <p class="text-[12px] font-bold text-on-surface mb-2">예시</p>
+                            <div class="space-y-1">
+                                <p class="text-[13px] text-on-surface-variant">• 월간 매출액</p>
+                                <p class="text-[13px] text-on-surface-variant">• 고객 만족도 점수</p>
+                                <p class="text-[13px] text-on-surface-variant">• 이탈률</p>
+                                <p class="text-[13px] text-on-surface-variant">• 응답 시간</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-blue-50/50 rounded-lg p-4">
+                        <p class="text-[12px] font-bold text-on-surface mb-1">💡 차이점 요약</p>
+                        <p class="text-[13px] text-on-surface-variant leading-relaxed">
+                            KPI는 100% 달성을 목표로 하는 반면, <strong class="text-primary">OKR은 70-80% 달성을 성공으로 간주</strong>합니다. 
+                            OKR은 더 도전적이고 야심찬 목표를 설정하여 혁신과 성장을 추구하는 데 초점을 둡니다.
+                        </p>
                     </div>
                 </div>
             </div>

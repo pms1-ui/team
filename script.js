@@ -1604,14 +1604,38 @@ window.updateMemberField = async function(id, field, value) {
     const member = STATE.members.find(m => m.id === id);
     if(member) {
         member[field] = value;
+        // Mark as modified but don't save immediately
+        if (!member._modified) member._modified = {};
+        member._modified[field] = true;
+    }
+};
+
+window.saveAllMembers = async function() {
+    try {
+        let updateCount = 0;
         
-        // Update in Baserow
-        try {
-            await MembersAPI.update(id, { [field]: value });
-        } catch (error) {
-            console.error('Error updating member:', error);
-            alert('구성원 정보 업데이트 중 오류가 발생했습니다.');
+        for (const member of STATE.members) {
+            if (member._modified) {
+                // Update in Baserow
+                const updateData = {};
+                for (const field in member._modified) {
+                    updateData[field] = member[field];
+                }
+                
+                await MembersAPI.update(member.id, updateData);
+                delete member._modified;
+                updateCount++;
+            }
         }
+        
+        if (updateCount > 0) {
+            alert(`${updateCount}명의 구성원 정보가 저장되었습니다.`);
+        } else {
+            alert('변경된 정보가 없습니다.');
+        }
+    } catch (error) {
+        console.error('Error saving members:', error);
+        alert('구성원 정보 저장 중 오류가 발생했습니다.');
     }
 };
 
@@ -1786,7 +1810,7 @@ function renderMembers(container) {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
+                <td class="py-5 px-6 border-r border-blue-50/30" style="width: calc(9% + 10px);">
                     <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
@@ -1839,6 +1863,10 @@ function renderMembers(container) {
                 <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     구성원 추가
+                </button>
+                <button onclick="saveAllMembers()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    저장
                 </button>
             </div>
         </div>

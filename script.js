@@ -36,32 +36,7 @@ const STATE = {
     ],
     
     // R&R Data
-    rnrData: [
-        { 
-            id: 1,
-            userId: 'member', 
-            name: '김전략', 
-            team: 'DT전략팀', 
-            position: '팀장', 
-            content: '전사 디지털 전환 전략 수립 및 실행\n주요 프로젝트 기획 및 관리\n팀원 육성 및 성과 관리',
-            status: '합의 완료',
-            requestType: null,
-            tempContent: '',
-            comment: ''
-        },
-        { 
-            id: 2,
-            userId: 'member2', 
-            name: '박성공', 
-            team: 'DT전략팀', 
-            position: '팀원', 
-            content: '고객 경험 개선 프로젝트 리드\n데이터 분석 및 인사이트 도출\n마케팅 캠페인 기획 및 실행',
-            status: '합의 완료',
-            requestType: null,
-            tempContent: '',
-            comment: ''
-        }
-    ],
+    rnrData: [],
     
     // All Goals Data
     allGoals: [

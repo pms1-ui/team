@@ -272,13 +272,92 @@ function ensureTempStructures(goal) {
 
 // --- Menu Configuration ---
 const MENU_ITEMS = [
-    { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] },
-    { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'rnr', label: 'R&R 입력', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'] },
-    { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
-    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'] },
-    { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'] }
+    { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
+    { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-set' },
+    { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
+    { id: 'rnr', label: 'R&R 입력', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
+    { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
+    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
+    { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' }
+];
+
+// --- URL Routing ---
+function navigateTo(viewId, updateHistory = true) {
+    const menuItem = MENU_ITEMS.find(m => m.id === viewId);
+    if (!menuItem) {
+        console.error('Invalid view:', viewId);
+        return;
+    }
+    
+    // Check if user has permission
+    if (STATE.user && !menuItem.roles.includes(STATE.user.role)) {
+        console.warn('User does not have permission for view:', viewId);
+        return;
+    }
+    
+    STATE.currentView = viewId;
+    
+    // Update URL without page reload
+    if (updateHistory && menuItem.path) {
+        window.history.pushState({ view: viewId }, '', menuItem.path);
+    }
+    
+    updateNavigation();
+    renderCurrentView();
+    closeMobileMenuOnNavigate();
+}
+
+function handlePopState(event) {
+    if (event.state && event.state.view) {
+        navigateTo(event.state.view, false);
+    } else {
+        // Handle direct URL access
+        const path = window.location.pathname;
+        const menuItem = MENU_ITEMS.find(m => m.path === path);
+        if (menuItem) {
+            navigateTo(menuItem.id, false);
+        } else if (path === '/' || path === '/login' || path === '/main') {
+            // Show login page or dashboard based on session
+            if (!STATE.user) {
+                window.history.replaceState(null, '', '/login');
+            } else {
+                navigateTo('dashboard', false);
+            }
+        }
+    }
+}
+
+// Listen for browser back/forward buttons
+window.addEventListener('popstate', handlePopState);
+
+// Handle initial page load URL
+function handleInitialRoute() {
+    const path = window.location.pathname;
+    
+    // If on login page or root
+    if (path === '/' || path === '/login' || path === '/main') {
+        if (STATE.user) {
+            // User is logged in, go to dashboard
+            navigateTo('dashboard', true);
+        } else {
+            // Show login page
+            window.history.replaceState(null, '', '/login');
+        }
+        return;
+    }
+    
+    // Try to match path to a menu item
+    const menuItem = MENU_ITEMS.find(m => m.path === path);
+    if (menuItem && STATE.user) {
+        navigateTo(menuItem.id, false);
+    } else if (STATE.user) {
+        // Invalid path but user is logged in, go to dashboard
+        navigateTo('dashboard', true);
+    } else {
+        // User not logged in, redirect to login
+        window.history.replaceState(null, '', '/login');
+    }
+}
 ];
 
 // --- Global Dispatchers ---
@@ -726,7 +805,7 @@ function updateNavigation() {
         const isActive = STATE.currentView === item.id;
         btn.className = `flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-bold transition-all w-full ${isActive ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`;
         btn.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${item.icon}</svg> ${item.label} ${badgeHtml}`;
-        btn.onclick = () => { STATE.currentView = item.id; updateNavigation(); renderCurrentView(); closeMobileMenuOnNavigate(); };
+        btn.onclick = () => navigateTo(item.id);
         nav.appendChild(btn);
     });
 }
@@ -1400,9 +1479,9 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
-        STATE.currentView = 'dashboard';
-        updateNavigation();
-        renderCurrentView();
+        
+        // Navigate to dashboard and update URL
+        navigateTo('dashboard', true);
     } catch (error) {
         console.error('Login error:', error);
         alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -1416,6 +1495,8 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     localStorage.removeItem('okr_session');
     document.getElementById('login-view').classList.remove('hidden');
     document.getElementById('app-view').classList.add('hidden');
+    // Update URL to login page
+    window.history.pushState(null, '', '/login');
 });
 
 // 날짜 및 시간 업데이트 함수
@@ -2648,9 +2729,9 @@ async function initLoginPage() {
                     document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
                     document.getElementById('login-view').classList.add('hidden');
                     document.getElementById('app-view').classList.remove('hidden');
-                    STATE.currentView = 'dashboard';
-                    updateNavigation();
-                    renderCurrentView();
+                    
+                    // Handle initial route
+                    handleInitialRoute();
                     
                     console.log('Session restored successfully');
                     return; // Skip login page initialization

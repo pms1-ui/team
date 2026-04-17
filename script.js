@@ -811,6 +811,53 @@ window.approveAdminRequest = async function(id) {
     }
 };
 
+window.rejectAdminRequest = async function(id) {
+    const goal = STATE.allGoals.find(g => g.id == id);
+    if(goal) {
+        if(!confirm('이 요청을 거부하시겠습니까? 요청이 취소되고 원래 상태로 돌아갑니다.')) return;
+        
+        try {
+            if(goal.requestType === '신규 수립') {
+                // For new requests, delete from Baserow and revert to local-only
+                const krs = await KeyResultsAPI.listByGoalId(id);
+                for (const kr of krs) {
+                    await KeyResultsAPI.delete(kr.id);
+                }
+                await GoalsAPI.delete(id);
+                
+                // Revert to local-only state
+                goal.id = 'temp-' + Date.now();
+                goal.isLocalOnly = true;
+                goal.status = '작성중';
+                goal.requestType = null;
+            } else {
+                // For modification requests, clear temp data and revert to approved state
+                await GoalsAPI.update(id, {
+                    status: '합의 완료',
+                    temp_text: null,
+                    temp_kr: null,
+                    request_type: null,
+                    comment: '',
+                    is_processed: true
+                });
+                
+                goal.status = '합의 완료';
+                goal.requestType = null;
+                goal.tempText = undefined;
+                goal.tempKeyResults = undefined;
+                goal.isProcessed = true;
+            }
+            
+            alert('요청이 거부되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            alert('요청 거부 중 오류가 발생했습니다.');
+        }
+    }
+};
+
 window.undoApproval = function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
@@ -855,6 +902,41 @@ window.approveRnRRequest = async function(id) {
         } catch (error) {
             console.error('Error approving R&R request:', error);
             alert('R&R 승인 중 오류가 발생했습니다.');
+        }
+    }
+};
+
+window.rejectRnRRequest = async function(id) {
+    const rnr = STATE.rnrData.find(r => r.id === id);
+    if(rnr) {
+        if(!confirm('이 R&R 요청을 거부하시겠습니까? 요청이 취소되고 원래 상태로 돌아갑니다.')) return;
+        
+        try {
+            if (rnr.request_type === '합의') {
+                // For new R&R requests, delete the entry
+                await RnRAPI.delete(id);
+                STATE.rnrData = STATE.rnrData.filter(r => r.id !== id);
+            } else {
+                // For modification requests, clear temp data and revert
+                await RnRAPI.update(id, {
+                    temp_content: '',
+                    status: '합의 완료',
+                    request_type: null,
+                    comment: ''
+                });
+                
+                rnr.temp_content = '';
+                rnr.status = '합의 완료';
+                rnr.request_type = null;
+                rnr.comment = '';
+            }
+            
+            alert('R&R 요청이 거부되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error rejecting R&R request:', error);
+            alert('R&R 요청 거부 중 오류가 발생했습니다.');
         }
     }
 };
@@ -1311,7 +1393,10 @@ function renderRequests(container) {
                         <td class="py-6 px-5 text-center w-36 align-middle">
                             ${isProcessed ? 
                                 `<button onclick="undoRnRApproval(${r.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
-                                `<button onclick="approveRnRRequest(${r.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
+                                `<div class="flex flex-col gap-2">
+                                    <button onclick="approveRnRRequest(${r.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인</button>
+                                    <button onclick="rejectRnRRequest(${r.id})" class="w-full py-2 bg-white text-error font-bold text-[13px] rounded-lg shadow-sm hover:bg-error/10 transition-all border border-error">거부</button>
+                                </div>`
                             }
                         </td>
                     </tr>
@@ -1351,7 +1436,10 @@ function renderRequests(container) {
                         <td class="py-6 px-5 text-center w-36 align-middle">
                             ${g.isProcessed ? 
                                 `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
-                                `<button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인 처리</button>`
+                                `<div class="flex flex-col gap-2">
+                                    <button onclick="approveAdminRequest(${g.id})" class="w-full py-2.5 bg-primary text-white font-extrabold text-[14px] rounded-lg shadow-md hover:scale-[1.04] transition-all border border-primary-dim">승인</button>
+                                    <button onclick="rejectAdminRequest(${g.id})" class="w-full py-2 bg-white text-error font-bold text-[13px] rounded-lg shadow-sm hover:bg-error/10 transition-all border border-error">거부</button>
+                                </div>`
                             }
                         </td>
                     </tr>

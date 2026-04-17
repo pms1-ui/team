@@ -1479,7 +1479,7 @@ function renderGuide(container) {
                             <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
                                 <span class="text-blue-600 font-black text-sm">월간</span>
                             </div>
-                            <h4 class="font-bold text-on-surface text-lg">월간 OKR (Monthly)</h4>
+                            <h4 class="font-bold text-on-surface text-lg">월간 OKR</h4>
                         </div>
                         <div class="grid lg:grid-cols-3 gap-4 mb-4">
                             <div class="bg-surface-container rounded-lg p-4">
@@ -1513,7 +1513,7 @@ function renderGuide(container) {
                             <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                                 <span class="text-primary font-black text-sm">분기</span>
                             </div>
-                            <h4 class="font-bold text-on-surface text-lg">분기별 OKR (Quarterly)</h4>
+                            <h4 class="font-bold text-on-surface text-lg">분기별 OKR</h4>
                         </div>
                         <div class="grid lg:grid-cols-3 gap-4 mb-4">
                             <div class="bg-surface-container rounded-lg p-4">
@@ -1547,7 +1547,7 @@ function renderGuide(container) {
                             <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
                                 <span class="text-purple-600 font-black text-sm">연간</span>
                             </div>
-                            <h4 class="font-bold text-on-surface text-lg">연간 OKR (Yearly)</h4>
+                            <h4 class="font-bold text-on-surface text-lg">연간 OKR</h4>
                         </div>
                         <div class="grid lg:grid-cols-3 gap-4 mb-4">
                             <div class="bg-surface-container rounded-lg p-4">

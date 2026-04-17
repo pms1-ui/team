@@ -1187,8 +1187,8 @@ function renderGoalsManage(container) {
                         <div class="flex flex-col items-center gap-3">
                             <span class="text-[13px] font-black ${isPending?'text-warning':'text-success'}">${g.status}</span>
                             ${isPending ? 
-                                `<button onclick="cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
-                                `<button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">수정 요청</button>`
+                                `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
+                                `<button onclick="console.log('Modify clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">수정 요청</button>`
                             }
                         </div>
                     </td>

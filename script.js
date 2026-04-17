@@ -604,7 +604,10 @@ window.submitOKRRequest = async function(id) {
 };
 
 window.cancelOKRRequest = async function(id) {
-    const goal = STATE.allGoals.find(g => g.id === id);
+    console.log('cancelOKRRequest called with id:', id, typeof id);
+    const goal = STATE.allGoals.find(g => g.id == id); // Use == instead of === for type coercion
+    console.log('Found goal:', goal);
+    
     if(goal) {
         try {
             if(goal.requestType === '신규 수립') {
@@ -642,6 +645,9 @@ window.cancelOKRRequest = async function(id) {
             console.error('Error canceling OKR request:', error);
             alert('요청 취소 중 오류가 발생했습니다.');
         }
+    } else {
+        console.error('Goal not found for id:', id);
+        alert('목표를 찾을 수 없습니다.');
     }
 };
 

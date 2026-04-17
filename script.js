@@ -1389,6 +1389,12 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             };
         }
         
+        // Save login session to localStorage
+        localStorage.setItem('okr_session', JSON.stringify({
+            user: STATE.user,
+            timestamp: Date.now()
+        }));
+        
         document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
         document.getElementById('auth-user-name').innerText = STATE.user.name;
         document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
@@ -1406,6 +1412,8 @@ document.getElementById('btn-login').addEventListener('click', async () => {
 });
 document.getElementById('btn-logout').addEventListener('click', () => {
     STATE.user = null;
+    // Clear login session from localStorage
+    localStorage.removeItem('okr_session');
     document.getElementById('login-view').classList.remove('hidden');
     document.getElementById('app-view').classList.add('hidden');
 });
@@ -2615,6 +2623,46 @@ window.cancelRnRRequest = async function() {
 async function initLoginPage() {
     try {
         console.log('Initializing login page...');
+        
+        // Check for existing session
+        const sessionData = localStorage.getItem('okr_session');
+        if (sessionData) {
+            try {
+                const session = JSON.parse(sessionData);
+                const sessionAge = Date.now() - session.timestamp;
+                const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+                
+                // If session is valid (less than 24 hours old)
+                if (sessionAge < maxAge && session.user) {
+                    console.log('Restoring session for user:', session.user.name);
+                    
+                    // Restore user state
+                    STATE.user = session.user;
+                    
+                    // Load data from Baserow
+                    await loadDataFromBaserow();
+                    
+                    // Update UI
+                    document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
+                    document.getElementById('auth-user-name').innerText = STATE.user.name;
+                    document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('app-view').classList.remove('hidden');
+                    STATE.currentView = 'dashboard';
+                    updateNavigation();
+                    renderCurrentView();
+                    
+                    console.log('Session restored successfully');
+                    return; // Skip login page initialization
+                } else {
+                    console.log('Session expired, clearing...');
+                    localStorage.removeItem('okr_session');
+                }
+            } catch (sessionError) {
+                console.error('Error restoring session:', sessionError);
+                localStorage.removeItem('okr_session');
+            }
+        }
         
         // Load divisions for dropdown
         const divisions = await DivisionsAPI.list();

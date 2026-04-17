@@ -546,10 +546,15 @@ function renderDashboard(container) {
     h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
     h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
     h += '</div>';
-    h += '<div class="mb-4 w-full">';
+    h += '<div class="mb-4 w-full flex items-center justify-between gap-3">';
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
-    h += '</select></div>';
+    h += '</select>';
+    h += '<div class="flex items-center gap-2">';
+    h += '<button onclick="toggleAllDashboardOKRs(true)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 열기</button>';
+    h += '<button onclick="toggleAllDashboardOKRs(false)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 닫기</button>';
+    h += '</div>';
+    h += '</div>';
 
     if(Object.keys(users).length === 0) {
         h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 lg:h-64 rounded-xl lg:rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[12px] lg:text-[13px] text-center p-4">표시할 목표 데이터가 없습니다.</div>';
@@ -568,9 +573,12 @@ function renderDashboard(container) {
                 const progressColor = avgProgress === 100 ? 'bg-success' : avgProgress >= 50 ? 'bg-primary' : 'bg-gray-400';
                 
                 h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden mb-4">';
-                h += '<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-blue-50">';
+                h += '<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-blue-50 cursor-pointer hover:bg-primary/10 transition-colors" onclick="toggleDashboardOKR(' + g.id + ')">';
                 h += '<div class="flex items-center justify-between">';
+                h += '<div class="flex items-center gap-3 flex-1">';
+                h += '<svg id="toggle-icon-' + g.id + '" class="w-5 h-5 text-primary transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
                 h += '<h3 class="font-bold text-on-surface text-[15px] leading-relaxed break-keep flex-1">' + g.text + '</h3>';
+                h += '</div>';
                 h += '<div class="flex items-center gap-3 ml-4">';
                 h += '<div class="text-right"><div class="text-[11px] text-on-surface-variant font-bold mb-0.5">평균 진척률</div>';
                 h += '<div class="text-primary font-black text-[16px]">' + avgProgress + '%</div></div>';
@@ -579,7 +587,7 @@ function renderDashboard(container) {
                 h += '<circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="none" class="' + progressColor + '" stroke-dasharray="' + (avgProgress * 1.76) + ' 176" stroke-linecap="round"/></svg>';
                 h += '</div></div></div></div>';
                 
-                h += '<div class="px-6 py-5"><div class="space-y-4">';
+                h += '<div id="okr-content-' + g.id + '" class="px-6 py-5 hidden"><div class="space-y-4">';
                 g.keyResults.forEach(kr => {
                     const krColor = kr.progress === 100 ? 'bg-success' : kr.progress >= 50 ? 'bg-primary' : 'bg-gray-400';
                     const checkmark = kr.progress === 100 ? '<svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '';
@@ -601,6 +609,36 @@ function renderDashboard(container) {
     }
     container.innerHTML = h;
 }
+
+window.toggleDashboardOKR = function(okrId) {
+    const content = document.getElementById('okr-content-' + okrId);
+    const icon = document.getElementById('toggle-icon-' + okrId);
+    if (content && icon) {
+        content.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+    }
+};
+
+window.toggleAllDashboardOKRs = function(open) {
+    const allContents = document.querySelectorAll('[id^="okr-content-"]');
+    const allIcons = document.querySelectorAll('[id^="toggle-icon-"]');
+    
+    allContents.forEach(content => {
+        if (open) {
+            content.classList.remove('hidden');
+        } else {
+            content.classList.add('hidden');
+        }
+    });
+    
+    allIcons.forEach(icon => {
+        if (open) {
+            icon.classList.add('rotate-180');
+        } else {
+            icon.classList.remove('rotate-180');
+        }
+    });
+};
 function renderGoalsSet(container) {
     const drafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
     if(drafts.length === 0) {

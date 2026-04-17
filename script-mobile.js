@@ -278,6 +278,14 @@ function renderMembersMobile(members, teams) {
                 </div>
                 
                 <div>
+                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">소속</div>
+                    <select onchange="updateMemberField(${member.id}, 'division', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface outline-none focus:border-primary">
+                        <option value="">소속 선택</option>
+                        ${STATE.divisions.map(div => `<option value="${div.name}" ${member.division === div.name ? 'selected' : ''}>${div.name}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <div>
                     <div class="text-[11px] text-on-surface-variant font-bold mb-1">팀명</div>
                     <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface outline-none focus:border-primary">
                         <option value="">팀 선택</option>

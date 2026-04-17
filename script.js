@@ -1,6 +1,6 @@
 // --- State & Config ---
 const STATE = {
-    user: null, // { id: 'master'|'member', name: '...', role: 'admin'|'user' }
+    user: null, // { id: 'master'|'member', name: '...', role: 'admin'|'user', division: '운영본부' }
     currentView: 'dashboard',
     
     // Tab states
@@ -19,6 +19,11 @@ const STATE = {
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
+    // Divisions Data
+    divisions: [
+        { id: 1, name: '운영본부' }
+    ],
+    
     // Teams Data
     teams: [
         { id: 1, name: 'DT전략팀' },
@@ -29,10 +34,10 @@ const STATE = {
     
     // Members Data
     members: [
-        { id: 1, name: '김전략', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
-        { id: 2, name: '박성공', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
-        { id: 3, name: '이혁신', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
-        { id: 4, name: '최효율', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
+        { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '팀장', email: 'kim.strategy@childy.com' },
+        { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '팀원', email: 'park.success@childy.com' },
+        { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '팀장', email: 'lee.innovation@childy.com' },
+        { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '팀원', email: 'choi.efficiency@childy.com' }
     ],
     
     // R&R Data
@@ -1053,15 +1058,21 @@ function renderModal(container) {
 document.getElementById('btn-login').addEventListener('click', () => {
     const id = document.getElementById('login-id').value;
     const pw = document.getElementById('login-pw').value;
+    const division = document.getElementById('login-division').value;
+    
     if(pw !== '1111') { alert('비밀번호가 틀렸습니다.'); return; }
-    if(id === 'master') STATE.user = { id: 'master', name: USER_NAMES.master, role: 'admin' };
-    else if(id === 'member') STATE.user = { id: 'member', name: USER_NAMES.member, role: 'user' };
-    else if(id === 'member2') STATE.user = { id: 'member2', name: USER_NAMES.member2, role: 'user' };
-    else if(id === 'member3') STATE.user = { id: 'member3', name: USER_NAMES.member3, role: 'user' };
-    else if(id === 'member4') STATE.user = { id: 'member4', name: USER_NAMES.member4, role: 'user' };
+    if(!division) { alert('본부를 선택해주세요.'); return; }
+    
+    if(id === 'master') STATE.user = { id: 'master', name: USER_NAMES.master, role: 'admin', division: division };
+    else if(id === 'member') STATE.user = { id: 'member', name: USER_NAMES.member, role: 'user', division: division };
+    else if(id === 'member2') STATE.user = { id: 'member2', name: USER_NAMES.member2, role: 'user', division: division };
+    else if(id === 'member3') STATE.user = { id: 'member3', name: USER_NAMES.member3, role: 'user', division: division };
+    else if(id === 'member4') STATE.user = { id: 'member4', name: USER_NAMES.member4, role: 'user', division: division };
     else { alert('유효하지 않은 계정'); return; }
+    
     document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
     document.getElementById('auth-user-name').innerText = STATE.user.name;
+    document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('app-view').classList.remove('hidden');
     STATE.currentView = 'dashboard';
@@ -1105,6 +1116,7 @@ window.addMember = function() {
     STATE.members.push({
         id: newId,
         name: '',
+        division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
         team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
         position: '팀원',
         email: ''
@@ -1219,22 +1231,28 @@ function renderMembers(container) {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[20%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
                     <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[20%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                    <select onchange="updateMemberField(${member.id}, 'division', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
+                        <option value="">소속 선택</option>
+                        ${STATE.divisions.map(div => `<option value="${div.name}" ${member.division === div.name ? 'selected' : ''}>${div.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
                     <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="">팀 선택</option>
                         ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[15%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
                         <option value="팀원" ${member.position === '팀원' ? 'selected' : ''}>팀원</option>
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[30%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[25%]">
                     <input type="email" value="${member.email}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
                 </td>
                 <td class="py-5 px-6 text-center w-24">
@@ -1266,7 +1284,18 @@ function renderMembers(container) {
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">구성원</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">소속</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
+                        <th class="py-4 px-6 text-center">관리</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `;
+}
                         <th class="py-4 px-6 border-r border-blue-50/30">직책</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
                         <th class="py-4 px-6 text-center">관리</th>

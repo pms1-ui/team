@@ -43,6 +43,13 @@
             <p class="text-on-surface-variant text-sm mb-8 text-center">성과 기반 업무 관리 및 리소스 모니터링 시스템</p>
             
             <div class="w-full mb-4">
+                <label class="block text-xs font-semibold mb-1 text-on-surface-variant">본부 선택</label>
+                <select id="login-division" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-on-surface">
+                    <option value="">본부를 선택하세요</option>
+                    <option value="운영본부">운영본부</option>
+                </select>
+            </div>
+            <div class="w-full mb-4">
                 <label class="block text-xs font-semibold mb-1 text-on-surface-variant">사용자 ID</label>
                 <input type="text" id="login-id" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="master, member, member2, member3, member4" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
             </div>
@@ -64,7 +71,10 @@
         <!-- 사이드바 -->
         <aside id="sidebar" class="fixed lg:relative w-64 bg-white border-r border-blue-50/50 flex flex-col h-full shrink-0 shadow-[4px_0_24px_rgba(0,51,96,0.02)] z-40 -translate-x-full lg:translate-x-0 transition-transform duration-300">
             <div class="h-20 flex items-center justify-between px-6 border-b border-blue-50/50">
-                <h2 class="font-display font-bold text-lg text-primary tracking-tight">차일디 목표관리 시스템</h2>
+                <div>
+                    <h2 class="font-display font-bold text-lg text-primary tracking-tight">차일디 목표관리 시스템</h2>
+                    <p id="division-label" class="text-[11px] text-on-surface-variant font-bold mt-0.5">[운영본부]</p>
+                </div>
                 <button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant hover:text-primary p-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>

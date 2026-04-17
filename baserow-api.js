@@ -1,7 +1,7 @@
 // Baserow API Configuration
 const BASEROW_CONFIG = {
     apiUrl: 'https://baserow.childylab.com/api',
-    token: 'Token 9Q67Pj5Lz061Rpx6pk30wX6RZxQ7ko3d',
+    token: 'Token 5Z9IZSqCKhcBDXf5B20RD1KTkIwqxvGy',
     tables: {
         divisions: 1940,
         teams: 1941,

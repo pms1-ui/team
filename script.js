@@ -1748,7 +1748,7 @@ window.addMember = async function() {
             name: '',
             user_id: '',
             password: '',
-            division: STATE.divisions.length > 0 ? STATE.divisions[0].name : '',
+            division: STATE.user.division,
             team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
             job: '',
             position: '멤버',
@@ -1919,13 +1919,7 @@ function renderMembers(container) {
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
                     <input type="email" value="${member.email || ''}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
-                    <select onchange="updateMemberField(${member.id}, 'division', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
-                        <option value="">소속 선택</option>
-                        ${STATE.divisions.map(div => `<option value="${div.name}" ${member.division === div.name ? 'selected' : ''}>${div.name}</option>`).join('')}
-                    </select>
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
                     <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="">팀 선택</option>
                         ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
@@ -1980,7 +1974,6 @@ function renderMembers(container) {
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">구성원</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">이메일</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">소속</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">팀명</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">직무</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">직책</th>

@@ -278,11 +278,8 @@ function renderMembersMobile(members, teams) {
                 </div>
                 
                 <div>
-                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">소속</div>
-                    <select onchange="updateMemberField(${member.id}, 'division', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface outline-none focus:border-primary">
-                        <option value="">소속 선택</option>
-                        ${STATE.divisions.map(div => `<option value="${div.name}" ${member.division === div.name ? 'selected' : ''}>${div.name}</option>`).join('')}
-                    </select>
+                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">이메일</div>
+                    <input type="email" value="${member.email || ''}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="이메일 입력">
                 </div>
                 
                 <div>
@@ -314,11 +311,6 @@ function renderMembersMobile(members, teams) {
                 <div>
                     <div class="text-[11px] text-on-surface-variant font-bold mb-1">비밀번호</div>
                     <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
-                </div>
-                
-                <div>
-                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">이메일</div>
-                    <input type="email" value="${member.email}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="이메일 입력">
                 </div>
             </div>
         </div>

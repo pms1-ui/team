@@ -1629,14 +1629,14 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             const member = STATE.members.find(m => m.user_id === id && m.division === division);
             
             if (!member) {
-                alert('해당 본부에 존재하지 않는 계정입니다.');
+                alert('아이디가 존재하지 않습니다.');
                 loginBtn.innerText = originalText;
                 loginBtn.disabled = false;
                 return;
             }
             
             if (member.password !== pw) {
-                alert('비밀번호가 틀렸습니다.');
+                alert('비밀번호가 일치하지 않습니다.');
                 loginBtn.innerText = originalText;
                 loginBtn.disabled = false;
                 return;

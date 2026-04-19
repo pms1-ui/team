@@ -1621,36 +1621,31 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         // Load data from Baserow first
         await loadDataFromBaserow();
         
-        // Check master account
-        if (id === 'master' && pw === '1111') {
-            STATE.user = { id: 'master', name: '마스터 관리자', role: 'admin', division: division };
-        } else {
-            // Find member in loaded data
-            const member = STATE.members.find(m => m.user_id === id && m.division === division);
-            
-            if (!member) {
-                alert('아이디가 존재하지 않습니다.');
-                loginBtn.innerText = originalText;
-                loginBtn.disabled = false;
-                return;
-            }
-            
-            if (member.password !== pw) {
-                alert('비밀번호가 일치하지 않습니다.');
-                loginBtn.innerText = originalText;
-                loginBtn.disabled = false;
-                return;
-            }
-            
-            // Set user with member data
-            STATE.user = {
-                id: member.user_id,
-                name: member.name,
-                role: member.position === '리더' ? 'admin' : 'user',
-                division: member.division,
-                memberId: member.id
-            };
+        // Find member in loaded data (including master account)
+        const member = STATE.members.find(m => m.user_id === id && m.division === division);
+        
+        if (!member) {
+            alert('아이디가 존재하지 않습니다.');
+            loginBtn.innerText = originalText;
+            loginBtn.disabled = false;
+            return;
         }
+        
+        if (member.password !== pw) {
+            alert('비밀번호가 일치하지 않습니다.');
+            loginBtn.innerText = originalText;
+            loginBtn.disabled = false;
+            return;
+        }
+        
+        // Set user with member data
+        STATE.user = {
+            id: member.user_id,
+            name: member.name,
+            role: member.position === '리더' ? 'admin' : 'user',
+            division: member.division,
+            memberId: member.id
+        };
         
         // Save login session to localStorage
         localStorage.setItem('okr_session', JSON.stringify({

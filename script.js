@@ -100,11 +100,14 @@ async function loadDataFromBaserow() {
                 name: rnr.name,
                 team: rnr.team,
                 position: rnr.position,
+                job: rnr.job,
+                rnr: rnr.rnr,
                 content: rnr.content,
                 status: rnr.status,
                 request_type: rnr.request_type,
                 temp_content: rnr.temp_content,
-                comment: rnr.comment
+                comment: rnr.comment,
+                reject_comment: rnr.reject_comment
             }));
             console.log('Loaded R&R:', STATE.rnrData.length, STATE.rnrData);
         } catch (error) {
@@ -286,7 +289,7 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-set' },
     { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
-    { id: 'rnr', label: 'R&R 입력', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
+    { id: 'rnr', label: '직무기술 & R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' }
@@ -873,35 +876,50 @@ window.approveRnRRequest = async function(id) {
     const rnr = STATE.rnrData.find(r => r.id === id);
     if(rnr) {
         try {
-            if (rnr.request_type === '수정') {
-                // Apply modification
+            if (rnr.request_type && rnr.request_type.includes('수정')) {
+                // Apply modification from temp_content
+                let tempData = { job: '', rnr: '' };
+                try {
+                    tempData = JSON.parse(rnr.temp_content);
+                } catch (e) {
+                    // Fallback for old format
+                    tempData = { job: rnr.job, rnr: rnr.temp_content };
+                }
+                
                 await RnRAPI.update(id, {
-                    content: rnr.temp_content,
+                    job: tempData.job,
+                    rnr: tempData.rnr,
+                    content: tempData.rnr,
                     temp_content: '',
                     status: '합의 완료',
                     request_type: null,
-                    comment: ''
+                    comment: '',
+                    reject_comment: null
                 });
                 
-                rnr.content = rnr.temp_content;
+                rnr.job = tempData.job;
+                rnr.rnr = tempData.rnr;
+                rnr.content = tempData.rnr;
                 rnr.temp_content = '';
             } else {
                 await RnRAPI.update(id, {
                     status: '합의 완료',
                     request_type: null,
-                    comment: ''
+                    comment: '',
+                    reject_comment: null
                 });
             }
             
             rnr.status = '합의 완료';
             rnr.request_type = null;
             rnr.comment = '';
-            alert('R&R 요청이 승인되었습니다.');
+            rnr.reject_comment = null;
+            alert('요청이 승인되었습니다.');
             renderCurrentView();
             updateNavigation();
         } catch (error) {
             console.error('Error approving R&R request:', error);
-            alert('R&R 승인 중 오류가 발생했습니다.');
+            alert('승인 중 오류가 발생했습니다.');
         }
     }
 };
@@ -909,35 +927,68 @@ window.approveRnRRequest = async function(id) {
 window.rejectRnRRequest = async function(id) {
     const rnr = STATE.rnrData.find(r => r.id === id);
     if(rnr) {
-        if(!confirm('이 R&R 요청을 거부하시겠습니까? 요청이 취소되고 원래 상태로 돌아갑니다.')) return;
-        
-        try {
-            if (rnr.request_type === '합의') {
-                // For new R&R requests, delete the entry
-                await RnRAPI.delete(id);
-                STATE.rnrData = STATE.rnrData.filter(r => r.id !== id);
-            } else {
-                // For modification requests, clear temp data and revert
-                await RnRAPI.update(id, {
-                    temp_content: '',
-                    status: '합의 완료',
-                    request_type: null,
-                    comment: ''
-                });
+        // 거부 코멘트 입력 모달 표시
+        STATE.modalData = {
+            title: '요청 거부',
+            content: `
+                <div class="space-y-4">
+                    <p class="text-[14px] text-on-surface-variant">거부 사유를 입력하세요. 작성자에게 전달됩니다.</p>
+                    <textarea id="modal-reject-comment" rows="4" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none" placeholder="거부 사유 입력 (필수)" required></textarea>
+                </div>
+            `,
+            onConfirm: async () => {
+                const rejectComment = document.getElementById('modal-reject-comment')?.value.trim();
                 
-                rnr.temp_content = '';
-                rnr.status = '합의 완료';
-                rnr.request_type = null;
-                rnr.comment = '';
-            }
-            
-            alert('R&R 요청이 거부되었습니다.');
-            renderCurrentView();
-            updateNavigation();
-        } catch (error) {
-            console.error('Error rejecting R&R request:', error);
-            alert('R&R 요청 거부 중 오류가 발생했습니다.');
-        }
+                if (!rejectComment) {
+                    alert('거부 사유를 입력해주세요.');
+                    return;
+                }
+                
+                try {
+                    if (rnr.request_type && rnr.request_type.includes('등록')) {
+                        // For new requests, delete the entry but keep reject comment
+                        await RnRAPI.update(id, {
+                            status: '작성중',
+                            request_type: null,
+                            temp_content: '',
+                            comment: '',
+                            reject_comment: rejectComment
+                        });
+                        
+                        rnr.status = '작성중';
+                        rnr.request_type = null;
+                        rnr.temp_content = '';
+                        rnr.comment = '';
+                        rnr.reject_comment = rejectComment;
+                    } else {
+                        // For modification requests, clear temp data and revert
+                        await RnRAPI.update(id, {
+                            temp_content: '',
+                            status: '합의 완료',
+                            request_type: null,
+                            comment: '',
+                            reject_comment: rejectComment
+                        });
+                        
+                        rnr.temp_content = '';
+                        rnr.status = '합의 완료';
+                        rnr.request_type = null;
+                        rnr.comment = '';
+                        rnr.reject_comment = rejectComment;
+                    }
+                    
+                    STATE.modalData = null;
+                    alert('요청이 거부되었습니다.');
+                    renderCurrentView();
+                    updateNavigation();
+                } catch (error) {
+                    console.error('Error rejecting R&R request:', error);
+                    alert('요청 거부 중 오류가 발생했습니다.');
+                }
+            },
+            isWide: false
+        };
+        renderCurrentView();
     }
 };
 
@@ -1340,37 +1391,76 @@ function renderRequests(container) {
                 const r = item.data;
                 const isProcessed = r.status === '합의 완료';
                 
-                let requestTypeLabel = r.request_type === '합의' ? 'R&R 합의' : 'R&R 수정';
-                let tagClass = r.request_type === '합의' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-purple-50 text-purple-700 border border-purple-200';
+                let requestTypeLabel = r.request_type || 'R&R 등록';
+                let tagClass = 'bg-primary/10 text-primary border border-primary/20';
+                if (r.request_type && r.request_type.includes('수정')) {
+                    tagClass = 'bg-purple-50 text-purple-700 border border-purple-200';
+                }
                 
                 let diffHtml = '';
-                if (r.request_type === '수정') {
+                if (r.request_type && r.request_type.includes('수정')) {
+                    // Parse temp_content
+                    let tempData = { job: '', rnr: '' };
+                    try {
+                        tempData = JSON.parse(r.temp_content);
+                    } catch (e) {
+                        // Fallback for old format
+                        tempData = { job: r.job, rnr: r.temp_content };
+                    }
+                    
                     diffHtml = `
                         <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
+                            ${tempData.job !== r.job ? `
                             <div class="flex flex-col gap-2">
-                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 수정 요청</div>
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">직무기술 수정</div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative">
                                         <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.content}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.job || '없음'}</pre>
                                     </div>
                                     <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
                                         <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.temp_content}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${tempData.job}</pre>
                                     </div>
                                 </div>
                             </div>
+                            ` : ''}
+                            ${tempData.rnr !== (r.rnr || r.content) ? `
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 수정</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative">
+                                        <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.rnr || r.content || '없음'}</pre>
+                                    </div>
+                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
+                                        <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${tempData.rnr}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     `.replace(/"/g, '&quot;').replace(/\n/g, '');
                 } else {
                     diffHtml = `
                         <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
+                            ${r.job ? `
                             <div class="flex flex-col gap-2">
-                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 합의 요청</div>
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">직무기술</div>
                                 <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm">
-                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.content}</pre>
+                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.job}</pre>
                                 </div>
                             </div>
+                            ` : ''}
+                            ${r.rnr || r.content ? `
+                            <div class="flex flex-col gap-2">
+                                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R</div>
+                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm">
+                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.rnr || r.content}</pre>
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     `.replace(/"/g, '&quot;').replace(/\n/g, '');
                 }
@@ -2656,19 +2746,21 @@ function renderRnR(container) {
     const myRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
     
     const rnrStatus = myRnR ? myRnR.status : '작성중';
-    const rnrContent = myRnR ? myRnR.content : '';
+    const jobContent = myRnR ? (myRnR.job || '') : '';
+    const rnrContent = myRnR ? (myRnR.rnr || myRnR.content || '') : '';
     const isAgreementComplete = rnrStatus === '합의 완료';
     const isPending = rnrStatus === '승인 대기중';
+    const isRejected = myRnR && myRnR.reject_comment;
     
     let h = '<div class="max-w-4xl mx-auto">';
     
-    // 내 R&R 작성 섹션
+    // 내 직무기술 & R&R 작성 섹션
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8 mb-6">';
     h += '<div class="flex items-center gap-3 mb-6">';
     h += '<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">';
     h += '<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
     h += '</div>';
-    h += '<h3 class="font-display text-xl font-bold text-on-surface">내 R&R 작성</h3>';
+    h += '<h3 class="font-display text-xl font-bold text-on-surface">내 직무기술 & R&R 작성</h3>';
     h += '</div>';
     
     h += '<div class="space-y-4">';
@@ -2688,8 +2780,13 @@ function renderRnR(container) {
     h += '</div>';
     
     h += '<div>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">직무기술</label>';
+    h += '<textarea id="job-content" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 직무를 입력하세요.">' + jobContent + '</textarea>';
+    h += '</div>';
+    
+    h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R (Role & Responsibility)</label>';
-    h += '<textarea id="rnr-content" rows="8" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.">' + rnrContent + '</textarea>';
+    h += '<textarea id="rnr-content" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.">' + rnrContent + '</textarea>';
     h += '</div>';
     
     h += '<div class="flex justify-end gap-3">';
@@ -2703,10 +2800,26 @@ function renderRnR(container) {
         h += '<button onclick="requestRnRAgreement()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">합의 요청</button>';
     }
     h += '</div>';
+    
+    // 거부 코멘트 표시
+    if (isRejected) {
+        h += '<div class="mt-4 bg-error/5 border border-error/20 rounded-lg p-4">';
+        h += '<div class="flex items-start gap-3">';
+        h += '<svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        h += '<div class="flex-1">';
+        h += '<h4 class="font-bold text-error text-[14px] mb-1">요청이 거부되었습니다</h4>';
+        h += '<p class="text-[13px] text-on-surface-variant mb-2">관리자 코멘트:</p>';
+        h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + myRnR.reject_comment + '</p>';
+        h += '<p class="text-[12px] text-error font-bold mt-3">내용을 수정하여 다시 제출해주세요.</p>';
+        h += '</div>';
+        h += '</div>';
+        h += '</div>';
+    }
+    
     h += '</div>';
     h += '</div>';
     
-    // 관리자만 볼 수 있는 구성원 R&R 확인 섹션
+    // 관리자만 볼 수 있는 구성원 직무기술 & R&R 확인 섹션
     if (STATE.user.role === 'admin') {
         h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
         h += '<div class="flex items-center justify-between mb-6">';
@@ -2714,7 +2827,7 @@ function renderRnR(container) {
         h += '<div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">';
         h += '<svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
         h += '</div>';
-        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 R&R 확인</h3>';
+        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 직무기술 & R&R 확인</h3>';
         h += '</div>';
         h += '<div class="text-[14px] font-bold text-on-surface-variant">총 <span class="text-primary font-black mx-1">' + STATE.rnrData.length + '</span>명</div>';
         h += '</div>';
@@ -2740,8 +2853,21 @@ function renderRnR(container) {
             }
             h += '</div>';
             h += '</div>';
-            h += '<div class="bg-white rounded-lg p-4 border border-blue-50">';
-            h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.content || '작성된 R&R이 없습니다.') + '</p>';
+            
+            if (rnr.job) {
+                h += '<div class="mb-3">';
+                h += '<label class="block text-[11px] font-bold text-on-surface-variant mb-1">직무기술</label>';
+                h += '<div class="bg-white rounded-lg p-3 border border-blue-50">';
+                h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.job || '작성된 직무기술이 없습니다.') + '</p>';
+                h += '</div>';
+                h += '</div>';
+            }
+            
+            h += '<div>';
+            h += '<label class="block text-[11px] font-bold text-on-surface-variant mb-1">R&R</label>';
+            h += '<div class="bg-white rounded-lg p-3 border border-blue-50">';
+            h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.rnr || rnr.content || '작성된 R&R이 없습니다.') + '</p>';
+            h += '</div>';
             h += '</div>';
             h += '</div>';
         });
@@ -2754,97 +2880,172 @@ function renderRnR(container) {
 }
 
 window.requestRnRAgreement = async function() {
-    const content = document.getElementById('rnr-content').value.trim();
+    const jobContent = document.getElementById('job-content').value.trim();
+    const rnrContent = document.getElementById('rnr-content').value.trim();
     
-    if (!content) {
-        alert('R&R 내용을 입력해주세요.');
+    if (!jobContent && !rnrContent) {
+        alert('직무기술 또는 R&R 내용을 입력해주세요.');
         return;
     }
     
-    try {
-        const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
-        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
-        
-        if (existingRnR) {
-            // Update existing R&R
-            await RnRAPI.update(existingRnR.id, {
-                content: content,
-                status: '승인 대기중',
-                request_type: '합의'
-            });
+    // 코멘트 입력 모달 표시
+    STATE.modalData = {
+        title: '합의 요청',
+        content: `
+            <div class="space-y-4">
+                <p class="text-[14px] text-on-surface-variant">합의 요청 시 추가할 코멘트를 입력하세요. (선택사항)</p>
+                <textarea id="modal-comment" rows="4" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none" placeholder="코멘트 입력 (선택)"></textarea>
+            </div>
+        `,
+        onConfirm: async () => {
+            const comment = document.getElementById('modal-comment')?.value.trim() || '';
             
-            existingRnR.content = content;
-            existingRnR.status = '승인 대기중';
-            existingRnR.request_type = '합의';
-        } else {
-            // Create new R&R
-            const newRnR = await RnRAPI.create({
-                user_id: STATE.user.id,
-                name: STATE.user.name,
-                team: memberInfo.team,
-                position: memberInfo.position,
-                content: content,
-                status: '승인 대기중',
-                request_type: '합의',
-                temp_content: '',
-                comment: ''
-            });
-            
-            STATE.rnrData.push({
-                id: newRnR.id,
-                user_id: newRnR.user_id,
-                name: newRnR.name,
-                team: newRnR.team,
-                position: newRnR.position,
-                content: newRnR.content,
-                status: newRnR.status,
-                request_type: newRnR.request_type,
-                temp_content: newRnR.temp_content,
-                comment: newRnR.comment
-            });
-        }
-        
-        alert('R&R 합의 요청이 제출되었습니다.');
-        renderCurrentView();
-    } catch (error) {
-        console.error('Error submitting R&R:', error);
-        alert('R&R 제출 중 오류가 발생했습니다.');
-    }
+            try {
+                const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
+                const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+                
+                // 직무기술 등록인지 R&R 등록인지 판단
+                let requestType = '';
+                if (jobContent && !rnrContent) requestType = '직무기술 등록';
+                else if (!jobContent && rnrContent) requestType = 'R&R 등록';
+                else requestType = '직무기술 & R&R 등록';
+                
+                if (existingRnR) {
+                    // Update existing R&R
+                    await RnRAPI.update(existingRnR.id, {
+                        job: jobContent,
+                        rnr: rnrContent,
+                        content: rnrContent, // 하위 호환성
+                        status: '승인 대기중',
+                        request_type: requestType,
+                        comment: comment,
+                        reject_comment: null
+                    });
+                    
+                    existingRnR.job = jobContent;
+                    existingRnR.rnr = rnrContent;
+                    existingRnR.content = rnrContent;
+                    existingRnR.status = '승인 대기중';
+                    existingRnR.request_type = requestType;
+                    existingRnR.comment = comment;
+                    existingRnR.reject_comment = null;
+                } else {
+                    // Create new R&R
+                    const newRnR = await RnRAPI.create({
+                        user_id: STATE.user.id,
+                        name: STATE.user.name,
+                        team: memberInfo.team,
+                        position: memberInfo.position,
+                        job: jobContent,
+                        rnr: rnrContent,
+                        content: rnrContent,
+                        status: '승인 대기중',
+                        request_type: requestType,
+                        temp_content: '',
+                        comment: comment,
+                        reject_comment: null
+                    });
+                    
+                    STATE.rnrData.push({
+                        id: newRnR.id,
+                        user_id: newRnR.user_id,
+                        name: newRnR.name,
+                        team: newRnR.team,
+                        position: newRnR.position,
+                        job: newRnR.job,
+                        rnr: newRnR.rnr,
+                        content: newRnR.content,
+                        status: newRnR.status,
+                        request_type: newRnR.request_type,
+                        temp_content: newRnR.temp_content,
+                        comment: newRnR.comment,
+                        reject_comment: newRnR.reject_comment
+                    });
+                }
+                
+                STATE.modalData = null;
+                alert('합의 요청이 제출되었습니다.');
+                renderCurrentView();
+            } catch (error) {
+                console.error('Error submitting R&R:', error);
+                alert('제출 중 오류가 발생했습니다.');
+            }
+        },
+        isWide: false
+    };
+    renderCurrentView();
 };
 
 window.requestRnRModification = async function() {
-    const newContent = document.getElementById('rnr-content').value.trim();
+    const newJobContent = document.getElementById('job-content').value.trim();
+    const newRnRContent = document.getElementById('rnr-content').value.trim();
     
-    if (!newContent) {
-        alert('R&R 내용을 입력해주세요.');
+    if (!newJobContent && !newRnRContent) {
+        alert('직무기술 또는 R&R 내용을 입력해주세요.');
         return;
     }
     
-    try {
-        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
-        if (existingRnR) {
-            if (existingRnR.content === newContent) {
-                alert('변경된 내용이 없습니다.');
-                return;
-            }
-            
-            await RnRAPI.update(existingRnR.id, {
-                temp_content: newContent,
-                status: '승인 대기중',
-                request_type: '수정'
-            });
-            
-            existingRnR.temp_content = newContent;
-            existingRnR.status = '승인 대기중';
-            existingRnR.request_type = '수정';
-            
-            alert('R&R 수정 요청이 제출되었습니다.');
-            renderCurrentView();
-        }
-    } catch (error) {
-        console.error('Error requesting R&R modification:', error);
-        alert('R&R 수정 요청 중 오류가 발생했습니다.');
+    const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+    if (!existingRnR) return;
+    
+    if (existingRnR.job === newJobContent && (existingRnR.rnr || existingRnR.content) === newRnRContent) {
+        alert('변경된 내용이 없습니다.');
+        return;
     }
+    
+    // 코멘트 입력 모달 표시
+    STATE.modalData = {
+        title: '수정 요청',
+        content: `
+            <div class="space-y-4">
+                <p class="text-[14px] text-on-surface-variant">수정 요청 시 추가할 코멘트를 입력하세요. (선택사항)</p>
+                <textarea id="modal-comment" rows="4" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none" placeholder="코멘트 입력 (선택)"></textarea>
+            </div>
+        `,
+        onConfirm: async () => {
+            const comment = document.getElementById('modal-comment')?.value.trim() || '';
+            
+            try {
+                // 직무기술 수정인지 R&R 수정인지 판단
+                let requestType = '';
+                const jobChanged = existingRnR.job !== newJobContent;
+                const rnrChanged = (existingRnR.rnr || existingRnR.content) !== newRnRContent;
+                
+                if (jobChanged && !rnrChanged) requestType = '직무기술 수정';
+                else if (!jobChanged && rnrChanged) requestType = 'R&R 수정';
+                else requestType = '직무기술 & R&R 수정';
+                
+                // temp_content에 JSON 형태로 저장
+                const tempData = JSON.stringify({
+                    job: newJobContent,
+                    rnr: newRnRContent
+                });
+                
+                await RnRAPI.update(existingRnR.id, {
+                    temp_content: tempData,
+                    status: '승인 대기중',
+                    request_type: requestType,
+                    comment: comment,
+                    reject_comment: null
+                });
+                
+                existingRnR.temp_content = tempData;
+                existingRnR.status = '승인 대기중';
+                existingRnR.request_type = requestType;
+                existingRnR.comment = comment;
+                existingRnR.reject_comment = null;
+                
+                STATE.modalData = null;
+                alert('수정 요청이 제출되었습니다.');
+                renderCurrentView();
+            } catch (error) {
+                console.error('Error requesting R&R modification:', error);
+                alert('수정 요청 중 오류가 발생했습니다.');
+            }
+        },
+        isWide: false
+    };
+    renderCurrentView();
 };
 
 window.cancelRnRRequest = async function() {
@@ -2853,21 +3054,23 @@ window.cancelRnRRequest = async function() {
     try {
         const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
         if (existingRnR) {
-            if (existingRnR.request_type === '수정') {
+            if (existingRnR.request_type && existingRnR.request_type.includes('수정')) {
                 // 수정 요청 취소 시 합의 완료 상태로 복귀
                 await RnRAPI.update(existingRnR.id, {
                     status: '합의 완료',
                     request_type: null,
                     temp_content: '',
-                    comment: ''
+                    comment: '',
+                    reject_comment: null
                 });
                 
                 existingRnR.status = '합의 완료';
                 existingRnR.request_type = null;
                 existingRnR.temp_content = '';
                 existingRnR.comment = '';
+                existingRnR.reject_comment = null;
             } else {
-                // 합의 요청 취소 시 R&R 삭제
+                // 등록 요청 취소 시 R&R 삭제
                 try {
                     await RnRAPI.delete(existingRnR.id);
                 } catch (deleteError) {
@@ -2891,13 +3094,27 @@ window.cancelRnRRequest = async function() {
                     name: r.name,
                     team: r.team,
                     position: r.position,
+                    job: r.job,
+                    rnr: r.rnr,
                     content: r.content,
                     status: r.status,
                     request_type: r.request_type,
                     temp_content: r.temp_content,
-                    comment: r.comment
+                    comment: r.comment,
+                    reject_comment: r.reject_comment
                 }));
             } catch (reloadError) {
+                console.error('Error reloading R&R data:', reloadError);
+            }
+            
+            alert('요청이 취소되었습니다.');
+            renderCurrentView();
+        }
+    } catch (error) {
+        console.error('Error canceling R&R request:', error);
+        alert('요청 취소 중 오류가 발생했습니다.');
+    }
+};
                 console.error('Error reloading R&R data:', reloadError);
             }
             

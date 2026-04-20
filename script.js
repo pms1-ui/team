@@ -1617,29 +1617,38 @@ function renderRequests(container) {
 
 function createDiffContent(g) {
     let diff = `
-        <div class="space-y-6 max-h-[75vh] overflow-y-auto px-2 custom-scroll py-2">
-            <!-- OKR Diff Container -->
-            <div class="flex flex-col gap-2">
-                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">Target OKR</div>
+        <div class="max-h-[75vh] overflow-y-auto custom-scroll">
+            <!-- OKR Section -->
+            <div class="mb-4">
+                <div class="text-[13px] font-bold text-on-surface-variant mb-2 px-1">OKR</div>
                 ${g.tempText !== undefined && g.tempText !== g.text ? `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-5 bg-error/5 text-error text-[15px] rounded-xl border border-error/10 relative">
-                            <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
-                            <span class="line-through font-medium leading-relaxed">${g.text}</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-error/5 text-error text-[13px] rounded-lg border border-error/20">
+                            <div class="text-[10px] font-bold text-error mb-1">AS-IS</div>
+                            <div class="line-through">${g.text}</div>
                         </div>
-                        <div class="p-5 bg-success/5 text-success text-[15px] font-extrabold rounded-xl border border-success/20 relative shadow-sm">
-                            <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
-                            <span class="leading-relaxed">${g.tempText}</span>
+                        <div class="p-3 bg-success/5 text-success text-[13px] rounded-lg border border-success/20">
+                            <div class="text-[10px] font-bold text-success mb-1">TO-BE</div>
+                            <div class="font-bold">${g.tempText}</div>
                         </div>
                     </div>
-                ` : `<div class="p-5 text-on-surface font-extrabold text-[15px] bg-white rounded-xl border border-blue-100 shadow-sm leading-relaxed">${g.text}</div>`}
+                ` : `<div class="p-3 text-on-surface text-[13px] bg-surface-container rounded-lg border border-blue-100">${g.text}</div>`}
             </div>
             
-            <div class="h-px bg-blue-100/50 w-full my-6"></div>
-
-            <!-- KR Diff Container -->
-            <div class="flex flex-col gap-4">
-                <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display mb-1">Key Results Data</div>
+            <!-- Key Results Section -->
+            <div>
+                <div class="text-[13px] font-bold text-on-surface-variant mb-2 px-1">Key Results</div>
+                <div class="bg-white border border-blue-100 rounded-lg overflow-hidden">
+                    <table class="w-full text-[12px]">
+                        <thead class="bg-surface-container">
+                            <tr class="border-b border-blue-100">
+                                <th class="py-2 px-3 text-left font-bold text-on-surface-variant w-12">No.</th>
+                                <th class="py-2 px-3 text-left font-bold text-on-surface-variant border-l border-blue-100">내용</th>
+                                <th class="py-2 px-3 text-center font-bold text-on-surface-variant border-l border-blue-100 w-24">진척률</th>
+                                <th class="py-2 px-3 text-center font-bold text-on-surface-variant border-l border-blue-100 w-20">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>
     `;
 
     const krsToRender = g.tempKeyResults || g.keyResults;
@@ -1655,58 +1664,65 @@ function createDiffContent(g) {
             hasProgDiff = kr.progress !== oldKr.progress;
         }
 
-        let bgClass = "bg-surface-container-lowest";
-        if(isNew) bgClass = "bg-[#ecfdf5] border-[#10b981]/20";
+        let statusBadge = '';
+        if(isNew) {
+            statusBadge = '<span class="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded">신규</span>';
+        } else if(hasTextDiff || hasProgDiff) {
+            statusBadge = '<span class="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">수정</span>';
+        } else {
+            statusBadge = '<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">유지</span>';
+        }
 
-        diff += `<div class="p-6 ${bgClass} rounded-2xl border border-blue-50 shadow-sm relative overflow-hidden">
-                    ${isNew ? '<div class="absolute right-4 top-4 bg-success text-white text-[10px] font-bold px-2 py-1 rounded">신규 추가 항목</div>' : ''}
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 ${isNew ? 'bg-success' : 'bg-primary/30'}"></div>
-                    <div class="text-[13px] font-extrabold ${isNew ? 'text-success' : 'text-primary'} mb-4 uppercase tracking-widest pl-1">KR #${i+1}</div>`;
-        
-        // Text Comparison
-        if(hasTextDiff) {
-            diff += `
-                <div class="grid grid-cols-2 gap-4 mb-5">
-                    <div class="p-4 bg-error/5 text-error text-[14px] rounded-lg border border-error/10 font-medium line-through">${oldKr.text}</div>
-                    <div class="p-4 bg-success/5 text-success text-[14px] font-extrabold rounded-lg border border-success/20 shadow-sm">${kr.text}</div>
-                </div>
-            `;
-        } else {
-            diff += `<div class="text-[15px] text-on-surface font-bold mb-5 bg-white p-4 border border-blue-50 rounded-xl">${kr.text}</div>`;
-        }
-        
-        // Progress Comparison
-        if(hasProgDiff) {
-            diff += `
-                <div class="flex items-center gap-4 text-[14px] bg-white p-3.5 rounded-xl border border-blue-50 w-max shadow-sm">
-                    <span class="text-on-surface-variant font-bold">진척률 변동현황</span>
-                    <span class="text-on-surface-variant/40 line-through font-medium ml-2">${oldKr.progress}%</span>
-                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    <span class="text-primary font-black text-[18px]">${kr.progress}%</span>
-                </div>
-            `;
-        } else {
-            diff += `<div class="text-[13px] text-on-surface-variant font-bold bg-white w-max px-4 py-2.5 rounded-xl border border-blue-50">현재 유지 진척률: <span class="text-on-surface ml-1 text-[14px] font-black">${kr.progress}%</span></div>`;
-        }
-        diff += `</div>`;
+        diff += `
+            <tr class="border-b border-blue-50 hover:bg-surface-container-lowest/50">
+                <td class="py-2 px-3 text-center font-bold text-on-surface-variant">${i+1}</td>
+                <td class="py-2 px-3 border-l border-blue-50">
+                    ${hasTextDiff ? `
+                        <div class="space-y-1">
+                            <div class="text-error line-through text-[11px]">${oldKr.text}</div>
+                            <div class="text-success font-bold">${kr.text}</div>
+                        </div>
+                    ` : `<div class="text-on-surface">${kr.text}</div>`}
+                </td>
+                <td class="py-2 px-3 text-center border-l border-blue-50">
+                    ${hasProgDiff ? `
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-error line-through text-[11px]">${oldKr.progress}%</span>
+                            <span class="text-on-surface-variant">→</span>
+                            <span class="text-success font-bold">${kr.progress}%</span>
+                        </div>
+                    ` : `<span class="text-on-surface font-bold">${kr.progress}%</span>`}
+                </td>
+                <td class="py-2 px-3 text-center border-l border-blue-50">${statusBadge}</td>
+            </tr>
+        `;
     });
     
     // Check for deleted items
     if(g.tempKeyResults) {
         g.keyResults.forEach(oldKr => {
             if(!g.tempKeyResults.find(k => k.id === oldKr.id)) {
-                diff += `<div class="p-6 bg-error/5 rounded-2xl border border-error/20 shadow-sm relative overflow-hidden opacity-80">
-                            <div class="absolute right-4 top-4 bg-error text-white text-[10px] font-bold px-2 py-1 rounded">삭제 요청 항목</div>
-                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-error/50"></div>
-                            <div class="text-[13px] font-extrabold text-error mb-4 uppercase tracking-widest pl-1">KR (삭제됨)</div>
-                            <div class="text-[14px] text-error font-medium mb-3 bg-white/50 p-4 border border-error/20 rounded-xl line-through">${oldKr.text}</div>
-                            <div class="text-[13px] text-error font-bold bg-white/50 w-max px-4 py-2 rounded-xl border border-error/20">삭제 당시 진척률: <span class="ml-1 text-[14px] font-black">${oldKr.progress}%</span></div>
-                        </div>`;
+                diff += `
+                    <tr class="border-b border-blue-50 bg-error/5">
+                        <td class="py-2 px-3 text-center font-bold text-error">-</td>
+                        <td class="py-2 px-3 border-l border-blue-50 text-error line-through text-[11px]">${oldKr.text}</td>
+                        <td class="py-2 px-3 text-center border-l border-blue-50 text-error line-through text-[11px]">${oldKr.progress}%</td>
+                        <td class="py-2 px-3 text-center border-l border-blue-50">
+                            <span class="text-[10px] font-bold text-error bg-error/10 px-2 py-0.5 rounded">삭제</span>
+                        </td>
+                    </tr>
+                `;
             }
         });
     }
 
-    diff += `</div></div>`;
+    diff += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
     return diff.replace(/"/g, '&quot;').replace(/\n/g, '');
 }
 

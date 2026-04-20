@@ -155,7 +155,8 @@ async function loadDataFromBaserow() {
                         comment: goal.comment || '',
                         isProcessed: goal.is_processed || false,
                         tempText: goal.temp_text || undefined,
-                        tempKeyResults: tempKeyResults
+                        tempKeyResults: tempKeyResults,
+                        reject_comment: goal.reject_comment || null
                     });
                 } catch (error) {
                     console.error(`Error loading key results for goal ${goal.id}:`, error);
@@ -764,6 +765,7 @@ window.approveAdminRequest = async function(id) {
                 temp_kr: null,  // Clear temp_kr
                 is_processed: true,
                 request_type: null,
+                reject_comment: null,
                 comment: goal.comment || ''
             });
             
@@ -805,6 +807,7 @@ window.approveAdminRequest = async function(id) {
             goal.status = '합의 완료';
             goal.requestType = null;
             goal.isProcessed = true;
+            goal.reject_comment = null;
             renderCurrentView();
             updateNavigation();
         } catch (error) {
@@ -817,47 +820,70 @@ window.approveAdminRequest = async function(id) {
 window.rejectAdminRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id == id);
     if(goal) {
-        if(!confirm('이 요청을 거부하시겠습니까? 요청이 취소되고 원래 상태로 돌아갑니다.')) return;
-        
-        try {
-            if(goal.requestType === '신규 수립') {
-                // For new requests, delete from Baserow and revert to local-only
-                const krs = await KeyResultsAPI.listByGoalId(id);
-                for (const kr of krs) {
-                    await KeyResultsAPI.delete(kr.id);
+        // 거부 코멘트 입력 모달 표시
+        STATE.modalData = {
+            title: '요청 거부',
+            content: `
+                <div class="space-y-4">
+                    <p class="text-[14px] text-on-surface-variant">거부 사유를 입력하세요. 작성자에게 전달됩니다.</p>
+                    <textarea id="modal-reject-comment" rows="4" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none" placeholder="거부 사유 입력 (필수)" required></textarea>
+                </div>
+            `,
+            onConfirm: async () => {
+                const rejectComment = document.getElementById('modal-reject-comment')?.value.trim();
+                
+                if (!rejectComment) {
+                    alert('거부 사유를 입력해주세요.');
+                    return;
                 }
-                await GoalsAPI.delete(id);
                 
-                // Revert to local-only state
-                goal.id = 'temp-' + Date.now();
-                goal.isLocalOnly = true;
-                goal.status = '작성중';
-                goal.requestType = null;
-            } else {
-                // For modification requests, clear temp data and revert to approved state
-                await GoalsAPI.update(id, {
-                    status: '합의 완료',
-                    temp_text: null,
-                    temp_kr: null,
-                    request_type: null,
-                    comment: '',
-                    is_processed: true
-                });
-                
-                goal.status = '합의 완료';
-                goal.requestType = null;
-                goal.tempText = undefined;
-                goal.tempKeyResults = undefined;
-                goal.isProcessed = true;
-            }
-            
-            alert('요청이 거부되었습니다.');
-            renderCurrentView();
-            updateNavigation();
-        } catch (error) {
-            console.error('Error rejecting request:', error);
-            alert('요청 거부 중 오류가 발생했습니다.');
-        }
+                try {
+                    if(goal.requestType === '신규 수립') {
+                        // For new requests, delete from Baserow and revert to local-only
+                        const krs = await KeyResultsAPI.listByGoalId(id);
+                        for (const kr of krs) {
+                            await KeyResultsAPI.delete(kr.id);
+                        }
+                        await GoalsAPI.delete(id);
+                        
+                        // Revert to local-only state
+                        goal.id = 'temp-' + Date.now();
+                        goal.isLocalOnly = true;
+                        goal.status = '작성중';
+                        goal.requestType = null;
+                        goal.reject_comment = rejectComment;
+                    } else {
+                        // For modification requests, clear temp data and revert to approved state
+                        await GoalsAPI.update(id, {
+                            status: '합의 완료',
+                            temp_text: null,
+                            temp_kr: null,
+                            request_type: null,
+                            comment: '',
+                            reject_comment: rejectComment,
+                            is_processed: true
+                        });
+                        
+                        goal.status = '합의 완료';
+                        goal.requestType = null;
+                        goal.tempText = undefined;
+                        goal.tempKeyResults = undefined;
+                        goal.isProcessed = true;
+                        goal.reject_comment = rejectComment;
+                    }
+                    
+                    STATE.modalData = null;
+                    alert('요청이 거부되었습니다.');
+                    renderCurrentView();
+                    updateNavigation();
+                } catch (error) {
+                    console.error('Error rejecting request:', error);
+                    alert('요청 거부 중 오류가 발생했습니다.');
+                }
+            },
+            isWide: false
+        };
+        renderCurrentView();
     }
 };
 
@@ -1299,6 +1325,18 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12 align-top">${i+1}</td>
                     <td class="py-6 px-6 w-[25%] border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
+                        ${g.reject_comment ? `
+                            <div class="mt-3 bg-error/5 border border-error/20 rounded-lg p-3">
+                                <div class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-error text-[12px] mb-1">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</p>
+                                        <p class="text-[11px] text-on-surface-variant font-bold mb-0.5">리더 코멘트 :</p>
+                                        <p class="text-[11px] text-on-surface leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </td>
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
@@ -2809,7 +2847,7 @@ function renderRnR(container) {
         h += '<svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
         h += '<div class="flex-1">';
         h += '<h4 class="font-bold text-error text-[14px] mb-2">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</h4>';
-        h += '<p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트:</p>';
+        h += '<p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트 :</p>';
         h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + myRnR.reject_comment + '</p>';
         h += '</div>';
         h += '</div>';

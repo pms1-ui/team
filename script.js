@@ -1664,7 +1664,8 @@ function createDiffContent(g) {
 
 function renderModal(container) {
     if(!STATE.modalData) return;
-    const hasAction = typeof STATE.modalData.onConfirmAction === 'function';
+    const hasAction = typeof STATE.modalData.onConfirmAction === 'function' || typeof STATE.modalData.onConfirm === 'function';
+    const confirmAction = STATE.modalData.onConfirmAction || STATE.modalData.onConfirm;
     // isWide determines the width of the modal
     const maxWidthClass = STATE.modalData.isWide ? 'max-w-5xl' : 'max-w-xl';
     
@@ -1687,7 +1688,7 @@ function renderModal(container) {
         </div>
     `;
     container.insertAdjacentHTML('beforeend', mHtml);
-    if(hasAction) document.getElementById('modal-confirm-btn').onclick = () => STATE.modalData.onConfirmAction();
+    if(hasAction) document.getElementById('modal-confirm-btn').onclick = () => confirmAction();
 }
 
 // Auth

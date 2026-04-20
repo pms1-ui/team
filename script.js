@@ -1770,7 +1770,7 @@ function renderModal(container) {
                 </div>
                 <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-blue-50/50">
                     <button onclick="closeModal()" class="px-8 py-3.5 bg-surface-container hover:bg-blue-100 text-on-surface font-black text-[14px] rounded-xl transition-all">닫기</button>
-                    ${hasAction ? `<button id="modal-confirm-btn" class="px-10 py-3.5 bg-primary hover:bg-primary-dim text-white font-black text-[14px] rounded-xl shadow-xl transition-all">확인 결정</button>` : ''}
+                    ${hasAction ? `<button id="modal-confirm-btn" class="px-10 py-3.5 bg-primary hover:bg-primary-dim text-white font-black text-[14px] rounded-xl shadow-xl transition-all">확인</button>` : ''}
                 </div>
             </div>
         </div>

@@ -16,7 +16,7 @@ function renderDashboardMobile(container, users) {
                         <span class="font-bold text-on-surface text-[12px]">${name}</span>
                     </div>
                     <div class="mb-3">
-                        <div class="text-[11px] text-on-surface-variant font-bold mb-1">OKR</div>
+                        <div class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</div>
                         <div class="font-bold text-on-surface text-[13px]">${g.text}</div>
                     </div>
                     <div class="space-y-3">
@@ -59,7 +59,7 @@ function renderGoalsSetMobile(drafts) {
                 </div>
                 
                 <div class="mb-3">
-                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">OKR</div>
+                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</div>
                     <textarea rows="2" oninput="updateOKRTitle('${g.id}', this.value)" ${!isEditable?'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none" placeholder="목표 입력">${g.text}</textarea>
                 </div>
                 
@@ -109,7 +109,7 @@ function renderGoalsManageMobile(items) {
                 </div>
                 
                 <div class="mb-3">
-                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">OKR</div>
+                    <div class="text-[11px] text-on-surface-variant font-bold mb-1">Objective</div>
                     <textarea rows="2" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface outline-none focus:border-primary resize-none disabled:opacity-60">${cTitle}</textarea>
                 </div>
                 

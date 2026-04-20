@@ -1311,7 +1311,7 @@ function renderGoalsSet(container) {
                 <thead>
                     <tr class="text-[14px] text-on-surface-variant font-extrabold bg-surface-container border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">OKR</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">Objective</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
                         <th class="py-4 px-6 text-center">상태</th>
                     </tr>
@@ -1418,7 +1418,7 @@ function renderGoalsManage(container) {
                 <thead class="bg-surface-container">
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">OKR</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30">Objective</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
                         <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>
                         <th class="py-4 px-4 text-center">상태</th>
@@ -1642,9 +1642,9 @@ function renderRequests(container) {
 function createDiffContent(g) {
     let diff = `
         <div class="max-h-[75vh] overflow-y-auto custom-scroll">
-            <!-- OKR Section -->
+            <!-- Objective Section -->
             <div class="mb-4">
-                <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">OKR</div>
+                <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">Objective</div>
                 ${g.tempText !== undefined && g.tempText !== g.text ? `
                     <div class="grid grid-cols-2 gap-3">
                         <div class="p-3 bg-surface-container text-on-surface text-[13px] rounded-lg border border-blue-100">

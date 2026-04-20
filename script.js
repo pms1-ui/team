@@ -289,7 +289,7 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-set' },
     { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
-    { id: 'rnr', label: '직무기술 & R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
+    { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' }
@@ -2761,7 +2761,7 @@ function renderRnR(container) {
     h += '<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">';
     h += '<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
     h += '</div>';
-    h += '<h3 class="font-display text-xl font-bold text-on-surface">내 직무기술 & R&R 작성</h3>';
+    h += '<h3 class="font-display text-xl font-bold text-on-surface">직무기술 / R&R 작성</h3>';
     h += '</div>';
     
     h += '<div class="space-y-4">';
@@ -2786,7 +2786,7 @@ function renderRnR(container) {
     h += '</div>';
     
     h += '<div>';
-    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R (Role & Responsibility)</label>';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R</label>';
     h += '<textarea id="rnr-content" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="담당 업무와 책임을 입력하세요.">' + rnrContent + '</textarea>';
     h += '</div>';
     
@@ -2808,10 +2808,9 @@ function renderRnR(container) {
         h += '<div class="flex items-start gap-3">';
         h += '<svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
         h += '<div class="flex-1">';
-        h += '<h4 class="font-bold text-error text-[14px] mb-1">요청이 거부되었습니다</h4>';
-        h += '<p class="text-[13px] text-on-surface-variant mb-2">관리자 코멘트:</p>';
+        h += '<h4 class="font-bold text-error text-[14px] mb-2">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</h4>';
+        h += '<p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트:</p>';
         h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + myRnR.reject_comment + '</p>';
-        h += '<p class="text-[12px] text-error font-bold mt-3">내용을 수정하여 다시 제출해주세요.</p>';
         h += '</div>';
         h += '</div>';
         h += '</div>';
@@ -2828,7 +2827,7 @@ function renderRnR(container) {
         h += '<div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">';
         h += '<svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
         h += '</div>';
-        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 직무기술 & R&R 확인</h3>';
+        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 입력 정보 확인</h3>';
         h += '</div>';
         h += '<div class="text-[14px] font-bold text-on-surface-variant">총 <span class="text-primary font-black mx-1">' + STATE.rnrData.length + '</span>명</div>';
         h += '</div>';

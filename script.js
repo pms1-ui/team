@@ -3109,17 +3109,6 @@ window.cancelRnRRequest = async function() {
             
             alert('요청이 취소되었습니다.');
             renderCurrentView();
-        }
-    } catch (error) {
-        console.error('Error canceling R&R request:', error);
-        alert('요청 취소 중 오류가 발생했습니다.');
-    }
-};
-                console.error('Error reloading R&R data:', reloadError);
-            }
-            
-            alert('요청이 취소되었습니다.');
-            renderCurrentView();
             updateNavigation();
         }
     } catch (error) {

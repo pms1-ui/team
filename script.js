@@ -1320,23 +1320,11 @@ function renderGoalsManage(container) {
             const krsToRender = g.tempKeyResults || g.keyResults;
             const cTitle = g.tempText !== undefined ? g.tempText : g.text;
 
-            return `
-                <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
+            let mainRow = `
+                <tr class="hover:bg-surface-container-lowest/50 transition-colors ${g.reject_comment ? '' : 'border-b border-blue-50/50'}">
                     <td class="py-6 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12 align-top">${i+1}</td>
                     <td class="py-6 px-6 w-[25%] border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
-                        ${g.reject_comment ? `
-                            <div class="mt-3 bg-error/5 border border-error/20 rounded-lg p-3">
-                                <div class="flex items-start gap-2">
-                                    <svg class="w-4 h-4 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <div class="flex-1">
-                                        <p class="font-bold text-error text-[12px] mb-1">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</p>
-                                        <p class="text-[11px] text-on-surface-variant font-bold mb-0.5">리더 코멘트 :</p>
-                                        <p class="text-[11px] text-on-surface leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
                     </td>
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
@@ -1372,6 +1360,28 @@ function renderGoalsManage(container) {
                     </td>
                 </tr>
             `;
+            
+            let rejectRow = '';
+            if (g.reject_comment) {
+                rejectRow = `
+                    <tr class="border-b border-blue-50/50">
+                        <td colspan="5" class="px-6 pb-6">
+                            <div class="bg-error/5 border border-error/20 rounded-lg p-4">
+                                <div class="flex items-start gap-3">
+                                    <svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-error text-[14px] mb-2">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</p>
+                                        <p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트 :</p>
+                                        <p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            return mainRow + rejectRow;
         }).join('');
     }
 

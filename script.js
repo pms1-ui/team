@@ -1620,15 +1620,15 @@ function createDiffContent(g) {
         <div class="max-h-[75vh] overflow-y-auto custom-scroll">
             <!-- OKR Section -->
             <div class="mb-4">
-                <div class="text-[13px] font-bold text-on-surface-variant mb-2 px-1">OKR</div>
+                <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">OKR</div>
                 ${g.tempText !== undefined && g.tempText !== g.text ? `
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-error/5 text-error text-[13px] rounded-lg border border-error/20">
-                            <div class="text-[10px] font-bold text-error mb-1">AS-IS</div>
-                            <div class="line-through">${g.text}</div>
+                        <div class="p-3 bg-surface-container text-on-surface text-[13px] rounded-lg border border-blue-100">
+                            <div class="text-[10px] font-bold text-on-surface-variant mb-1">변경 전</div>
+                            <div class="line-through opacity-60">${g.text}</div>
                         </div>
-                        <div class="p-3 bg-success/5 text-success text-[13px] rounded-lg border border-success/20">
-                            <div class="text-[10px] font-bold text-success mb-1">TO-BE</div>
+                        <div class="p-3 bg-surface-container text-on-surface text-[13px] rounded-lg border border-blue-100">
+                            <div class="text-[10px] font-bold text-on-surface-variant mb-1">변경 후</div>
                             <div class="font-bold">${g.tempText}</div>
                         </div>
                     </div>
@@ -1637,7 +1637,7 @@ function createDiffContent(g) {
             
             <!-- Key Results Section -->
             <div>
-                <div class="text-[13px] font-bold text-on-surface-variant mb-2 px-1">Key Results</div>
+                <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">Key Results</div>
                 <div class="bg-white border border-blue-100 rounded-lg overflow-hidden">
                     <table class="w-full text-[12px]">
                         <thead class="bg-surface-container">
@@ -1666,32 +1666,32 @@ function createDiffContent(g) {
 
         let statusBadge = '';
         if(isNew) {
-            statusBadge = '<span class="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded">신규</span>';
+            statusBadge = '<span class="text-[10px] font-bold text-on-surface bg-surface-container px-2 py-0.5 rounded border border-blue-100">신규</span>';
         } else if(hasTextDiff || hasProgDiff) {
-            statusBadge = '<span class="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">수정</span>';
+            statusBadge = '<span class="text-[10px] font-bold text-on-surface bg-surface-container px-2 py-0.5 rounded border border-blue-100">수정</span>';
         } else {
-            statusBadge = '<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">유지</span>';
+            statusBadge = '<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">유지</span>';
         }
 
         diff += `
             <tr class="border-b border-blue-50 hover:bg-surface-container-lowest/50">
                 <td class="py-2 px-3 text-center font-bold text-on-surface-variant">${i+1}</td>
-                <td class="py-2 px-3 border-l border-blue-50">
+                <td class="py-2 px-3 border-l border-blue-50 text-on-surface">
                     ${hasTextDiff ? `
                         <div class="space-y-1">
-                            <div class="text-error line-through text-[11px]">${oldKr.text}</div>
-                            <div class="text-success font-bold">${kr.text}</div>
+                            <div class="line-through opacity-50 text-[11px]">${oldKr.text}</div>
+                            <div class="font-bold">${kr.text}</div>
                         </div>
-                    ` : `<div class="text-on-surface">${kr.text}</div>`}
+                    ` : `<div>${kr.text}</div>`}
                 </td>
-                <td class="py-2 px-3 text-center border-l border-blue-50">
+                <td class="py-2 px-3 text-center border-l border-blue-50 text-on-surface">
                     ${hasProgDiff ? `
                         <div class="flex items-center justify-center gap-1">
-                            <span class="text-error line-through text-[11px]">${oldKr.progress}%</span>
+                            <span class="line-through opacity-50 text-[11px]">${oldKr.progress}%</span>
                             <span class="text-on-surface-variant">→</span>
-                            <span class="text-success font-bold">${kr.progress}%</span>
+                            <span class="font-bold">${kr.progress}%</span>
                         </div>
-                    ` : `<span class="text-on-surface font-bold">${kr.progress}%</span>`}
+                    ` : `<span class="font-bold">${kr.progress}%</span>`}
                 </td>
                 <td class="py-2 px-3 text-center border-l border-blue-50">${statusBadge}</td>
             </tr>
@@ -1703,12 +1703,12 @@ function createDiffContent(g) {
         g.keyResults.forEach(oldKr => {
             if(!g.tempKeyResults.find(k => k.id === oldKr.id)) {
                 diff += `
-                    <tr class="border-b border-blue-50 bg-error/5">
-                        <td class="py-2 px-3 text-center font-bold text-error">-</td>
-                        <td class="py-2 px-3 border-l border-blue-50 text-error line-through text-[11px]">${oldKr.text}</td>
-                        <td class="py-2 px-3 text-center border-l border-blue-50 text-error line-through text-[11px]">${oldKr.progress}%</td>
+                    <tr class="border-b border-blue-50 bg-surface-container-low">
+                        <td class="py-2 px-3 text-center font-bold text-on-surface-variant">-</td>
+                        <td class="py-2 px-3 border-l border-blue-50 text-on-surface line-through opacity-50 text-[11px]">${oldKr.text}</td>
+                        <td class="py-2 px-3 text-center border-l border-blue-50 text-on-surface line-through opacity-50 text-[11px]">${oldKr.progress}%</td>
                         <td class="py-2 px-3 text-center border-l border-blue-50">
-                            <span class="text-[10px] font-bold text-error bg-error/10 px-2 py-0.5 rounded">삭제</span>
+                            <span class="text-[10px] font-bold text-on-surface bg-surface-container px-2 py-0.5 rounded border border-blue-100">삭제</span>
                         </td>
                     </tr>
                 `;

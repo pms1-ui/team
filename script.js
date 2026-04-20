@@ -46,6 +46,18 @@ const USER_NAMES = {
     'member4': '최효율'
 };
 
+// Format date to Korean format (YYYY-MM-DD HH:mm)
+function formatRequestDate(isoString) {
+    if (!isoString) return '-';
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 // --- Baserow Data Loading ---
 async function loadDataFromBaserow() {
     try {
@@ -107,7 +119,8 @@ async function loadDataFromBaserow() {
                 request_type: rnr.request_type,
                 temp_content: rnr.temp_content,
                 comment: rnr.comment,
-                reject_comment: rnr.reject_comment
+                reject_comment: rnr.reject_comment,
+                request_date: rnr.request_date || null
             }));
             console.log('Loaded R&R:', STATE.rnrData.length, STATE.rnrData);
         } catch (error) {
@@ -156,7 +169,8 @@ async function loadDataFromBaserow() {
                         isProcessed: goal.is_processed || false,
                         tempText: goal.temp_text || undefined,
                         tempKeyResults: tempKeyResults,
-                        reject_comment: goal.reject_comment || null
+                        reject_comment: goal.reject_comment || null,
+                        request_date: goal.request_date || null
                     });
                 } catch (error) {
                     console.error(`Error loading key results for goal ${goal.id}:`, error);
@@ -544,7 +558,8 @@ window.submitOKRRequest = async function(id) {
                 is_processed: false,
                 comment: '',
                 temp_text: null,
-                request_type: '신규 수립'
+                request_type: '신규 수립',
+                request_date: new Date().toISOString()
             };
             
             const createdGoal = await GoalsAPI.create(newGoal);
@@ -570,7 +585,8 @@ window.submitOKRRequest = async function(id) {
                 OKR: goal.text,
                 status: '승인 대기중',
                 is_processed: false,
-                request_type: '신규 수립'
+                request_type: '신규 수립',
+                request_date: new Date().toISOString()
             });
             
             // Update or create key results in Baserow
@@ -717,7 +733,8 @@ window.submitModifyRequest = function(id) {
                 status: '승인 대기중',
                 request_type: edits.join(','),
                 comment: comment,
-                is_processed: false
+                is_processed: false,
+                request_date: new Date().toISOString()
             };
             
             if (goal.tempText !== undefined) {
@@ -1432,7 +1449,7 @@ function renderRequests(container) {
 
     let rowsHtml = '';
     if(combinedList.length === 0) {
-        rowsHtml = `<tr><td colspan="7" class="py-24 text-center text-on-surface-variant font-bold text-[14px]">불러올 수 있는 요청 데이터가 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="8" class="py-24 text-center text-on-surface-variant font-bold text-[14px]">불러올 수 있는 요청 데이터가 없습니다.</td></tr>`;
     } else {
         rowsHtml = combinedList.map(item => {
             if (item.type === 'rnr') {
@@ -1528,6 +1545,9 @@ function renderRequests(container) {
                         <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
                             ${r.comment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${r.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
                         </td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
+                            <span class="text-[13px] text-on-surface-variant font-semibold">${formatRequestDate(r.request_date)}</span>
+                        </td>
                         <td class="py-6 px-5 text-center w-36 align-middle">
                             ${isProcessed ? 
                                 `<button onclick="undoRnRApproval(${r.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
@@ -1571,6 +1591,9 @@ function renderRequests(container) {
                         <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
                             ${hasComment ? `<button onclick="openModal('요청 전달 코멘트', '<div class=\\'p-6 bg-surface-container-lowest rounded-2xl text-[15px] leading-relaxed text-on-surface font-semibold border border-blue-100 shadow-sm\\'>${g.comment.replace(/\n/g, '<br/>')}</div>', null, true)" class="px-5 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[14px] rounded-lg hover:bg-surface-container shadow-sm transition-all mx-auto block w-max">코멘트 보기</button>` : `<span class="text-[13px] text-on-surface-variant/40 font-bold">없음</span>`}
                         </td>
+                        <td class="py-6 px-4 border-r border-blue-50/50 text-center w-40">
+                            <span class="text-[13px] text-on-surface-variant font-semibold">${formatRequestDate(g.request_date)}</span>
+                        </td>
                         <td class="py-6 px-5 text-center w-36 align-middle">
                             ${g.isProcessed ? 
                                 `<button onclick="undoApproval(${g.id})" class="w-full py-2.5 bg-white text-error font-extrabold text-[14px] rounded-lg shadow-sm hover:bg-error/5 transition-all border border-error">취소</button>` : 
@@ -1606,6 +1629,7 @@ function renderRequests(container) {
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">성격</th>
                         <th class="py-4 px-5 text-center border-r border-blue-50/30">데이터 상세</th>
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">코멘트</th>
+                        <th class="py-4 px-4 text-center border-r border-blue-50/30">요청일시</th>
                         <th class="py-4 px-5 text-center">관리</th>
                     </tr>
                 </thead>
@@ -2983,7 +3007,8 @@ window.requestRnRAgreement = async function() {
                         status: '승인 대기중',
                         request_type: requestType,
                         comment: comment,
-                        reject_comment: null
+                        reject_comment: null,
+                        request_date: new Date().toISOString()
                     });
                     
                     existingRnR.job = jobContent;
@@ -3007,7 +3032,8 @@ window.requestRnRAgreement = async function() {
                         request_type: requestType,
                         temp_content: '',
                         comment: comment,
-                        reject_comment: null
+                        reject_comment: null,
+                        request_date: new Date().toISOString()
                     });
                     
                     STATE.rnrData.push({
@@ -3090,7 +3116,8 @@ window.requestRnRModification = async function() {
                     status: '승인 대기중',
                     request_type: requestType,
                     comment: comment,
-                    reject_comment: null
+                    reject_comment: null,
+                    request_date: new Date().toISOString()
                 });
                 
                 existingRnR.temp_content = tempData;

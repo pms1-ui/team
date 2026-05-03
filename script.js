@@ -2954,13 +2954,19 @@ function renderRnR(container) {
     h += '</div>';
     
     h += '<div class="relative">';
-    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">직무기술</label>';
+    h += '<div class="flex items-center justify-between mb-2">';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant">직무기술</label>';
+    h += '<button onclick="showJobExample()" class="text-[12px] text-primary hover:text-primary-dim font-bold underline">예시 보기</button>';
+    h += '</div>';
     h += '<textarea id="job-content" maxlength="2000" oninput="updateCharCount(\'job-content\', \'job-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 pb-8 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="본인이 보유한 디자인 전문 역량과 실제 수행 가능한 업무의 범위를 상세히 작성해 주세요. ex) 사용 가능한 툴(Figma, Adobe Creative Cloud, Framer, Protopie 등)과 각 툴의 숙련도를 포함하여, UI/UX 설계, 브랜드 시스템 구축, 프로토타이핑, 또는 GUI 디자인 등 본인이 결과물을 만들어낼 수 있는 구체적인 직무 영역을 기술해 주시기 바랍니다. 예를 들어 &#39;Figma를 활용한 컴포넌트 기반의 디자인 시스템 구축 및 고도화가 가능하며, AOS/iOS 가이드라인에 맞춘 모바일 앱 UI 설계와 웹 반응형 디자인을 실무 수준에서 완행할 수 있음&#39;과 같이 본인의 기술적 스택과 업무 범위를 연결하여 작성해 주세요.">' + jobContent + '</textarea>';
     h += '<div class="absolute bottom-2 right-3 text-[11px] text-on-surface-variant" id="job-char-count">' + jobContent.length + ' / 2000</div>';
     h += '</div>';
     
     h += '<div class="relative">';
-    h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R</label>';
+    h += '<div class="flex items-center justify-between mb-2">';
+    h += '<label class="block text-[13px] font-bold text-on-surface-variant">R&R</label>';
+    h += '<button onclick="showRnRExample()" class="text-[12px] text-primary hover:text-primary-dim font-bold underline">예시 보기</button>';
+    h += '</div>';
     h += '<textarea id="rnr-content" maxlength="2000" oninput="updateCharCount(\'rnr-content\', \'rnr-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 pb-8 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="현재 담당하고 있는 업무와 프로젝트별 상세 과업, 그리고 각 업무에 투입되는 실제 소요 시간을 구체적으로 작성해 주세요. 주 단위 또는 월 단위로 반복되는 루틴 업무를 기재하고, 참고할 수 있는 대시보드나 리포트 링크를 반드시 첨부해 주시기 바랍니다. 특히 전체 업무 비중을 고려하여 각 항목별로 소요되는 리소스를 M/D 혹은 M/M 단위로 산정해 주세요.\n\n[마케팅 직무 작성 예시]\n- 진행 중인 캠페인의 성과 관리 및 매체 최적화(SA/DA), 데이터 추출 및 리포트 작성\n- 예: &#39;주간 매체 효율 최적화 및 소재 교체 작업에 주 2일(월 0.4 M/M)을 투입하며, 신규 프로모션 기획 및 성과 분석 리포트 작성에 월 0.3 M/M를 사용함&#39;">' + rnrContent + '</textarea>';
     h += '<div class="absolute bottom-2 right-3 text-[11px] text-on-surface-variant" id="rnr-char-count">' + rnrContent.length + ' / 2000</div>';
     h += '</div>';
@@ -3077,6 +3083,105 @@ window.updateCharCount = function(textareaId, counterId) {
             counter.classList.remove('text-error', 'text-success');
         }
     }
+};
+
+// Show job description example
+window.showJobExample = function() {
+    const exampleContent = `
+        <div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">
+            <div class="bg-blue-50/50 rounded-xl p-5 border border-blue-100">
+                <h4 class="font-bold text-on-surface text-[15px] mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    백엔드 개발자 직무기술 예시
+                </h4>
+                <div class="bg-white rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-3">
+                    <p class="font-bold text-primary">[ 핵심 기술 스택 ]</p>
+                    <p>• <strong>백엔드 개발:</strong> Node.js(Express, NestJS), Python(FastAPI, Django), Java(Spring Boot) 기반 RESTful API 및 GraphQL 서버 설계 및 구축 가능</p>
+                    <p>• <strong>데이터베이스:</strong> PostgreSQL, MySQL, MongoDB 등 관계형 및 NoSQL 데이터베이스 설계, 쿼리 최적화, 인덱싱 전략 수립 실무 경험 보유</p>
+                    <p>• <strong>AWS 인프라:</strong> EC2, RDS, S3, Lambda, CloudFront, Route53, ECS/EKS 등 AWS 서비스를 활용한 클라우드 인프라 설계 및 운영 가능. Terraform을 통한 IaC(Infrastructure as Code) 구현 경험</p>
+                    
+                    <p class="font-bold text-primary mt-4">[ 수행 가능 업무 범위 ]</p>
+                    <p>• 마이크로서비스 아키텍처 설계 및 구현, Docker/Kubernetes 기반 컨테이너 오케스트레이션</p>
+                    <p>• CI/CD 파이프라인 구축(GitHub Actions, Jenkins), 무중단 배포 전략 수립 및 실행</p>
+                    <p>• 서버 모니터링 및 로깅 시스템 구축(CloudWatch, Datadog, ELK Stack)</p>
+                    <p>• 보안 강화(JWT 인증, OAuth 2.0, API Rate Limiting, SQL Injection 방어)</p>
+                    <p>• 성능 최적화(캐싱 전략, 쿼리 튜닝, 로드 밸런싱, CDN 활용)</p>
+                    <p>• React, Vue.js를 활용한 풀스택 개발 가능, 프론트엔드와의 원활한 협업 및 API 문서화(Swagger, Postman)</p>
+                    
+                    <p class="text-[11px] text-on-surface-variant mt-4 pt-3 border-t border-blue-100">
+                        <strong>글자수:</strong> 약 820자 | 실무 수준의 기술 스택과 구체적인 업무 범위를 명시하여 작성
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    STATE.modalData = {
+        title: '직무기술 작성 예시',
+        content: exampleContent,
+        onConfirm: null,
+        isWide: true
+    };
+    renderCurrentView();
+};
+
+// Show R&R example
+window.showRnRExample = function() {
+    const exampleContent = `
+        <div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">
+            <div class="bg-purple-50/50 rounded-xl p-5 border border-purple-100">
+                <h4 class="font-bold text-on-surface text-[15px] mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    퍼포먼스 마케터 R&R 예시
+                </h4>
+                <div class="bg-white rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-3">
+                    <p class="font-bold text-primary">[ 주요 담당 업무 ]</p>
+                    
+                    <p><strong>1. 마케팅 믹스 전략 수립 및 예산 관리 (월 0.3 M/M)</strong></p>
+                    <p>• 월간 마케팅 예산 배분 계획 수립 및 채널별 ROI 분석을 통한 최적 예산 분배</p>
+                    <p>• 네이버 SA/DA, 메타(Facebook/Instagram), 구글 애즈 등 주요 매체별 예산 집행 및 성과 모니터링</p>
+                    <p>• 주간 예산 소진율 및 CPA, ROAS 지표 추적, 월간 마케팅 성과 리포트 작성</p>
+                    
+                    <p><strong>2. 차일디 브랜드 캠페인 성과 관리 및 운영 (월 0.5 M/M)</strong></p>
+                    <p>• 네이버 브랜드검색, 메타 브랜드 캠페인 기획 및 소재 제작 협업(디자인팀)</p>
+                    <p>• 주간 캠페인 성과 분석(CTR, CVR, CPC) 및 A/B 테스트를 통한 소재 최적화</p>
+                    <p>• 실시간 입찰 전략 조정 및 타겟 오디언스 세그먼트 관리</p>
+                    <p>• 참고 대시보드: https://analytics.childy.com/campaign-dashboard</p>
+                    
+                    <p><strong>3. 네이버 광고 운영 (SA/DA/쇼핑) (월 0.4 M/M)</strong></p>
+                    <p>• 네이버 검색광고(SA) 키워드 발굴, 입찰가 조정, 품질지수 관리</p>
+                    <p>• 네이버 디스플레이광고(DA) 소재 교체 및 타겟팅 최적화(주 2회)</p>
+                    <p>• 네이버 쇼핑 광고 상품 등록 및 성과 개선, 월간 매출 기여도 분석</p>
+                    
+                    <p><strong>4. 메타 광고 운영 및 최적화 (월 0.3 M/M)</strong></p>
+                    <p>• Facebook/Instagram 광고 캠페인 세팅, 픽셀 이벤트 추적 및 전환 최적화</p>
+                    <p>• 오디언스 네트워크 확장 및 리타겟팅 캠페인 운영</p>
+                    <p>• 주간 광고 소재 성과 분석 및 크리에이티브 개선 제안</p>
+                    
+                    <p><strong>5. 데이터 분석 및 리포팅 (월 0.2 M/M)</strong></p>
+                    <p>• Google Analytics, 네이버 애널리틱스 데이터 추출 및 인사이트 도출</p>
+                    <p>• 월간 마케팅 성과 리포트 작성(매출 기여도, CAC, LTV 분석)</p>
+                    <p>• 경쟁사 벤치마킹 및 시장 트렌드 분석 자료 정리</p>
+                    
+                    <p class="text-[11px] text-on-surface-variant mt-4 pt-3 border-t border-purple-100">
+                        <strong>글자수:</strong> 약 850자 | <strong>총 리소스:</strong> 1.7 M/M | 구체적인 업무 내용과 소요 시간을 M/M 단위로 명시
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    STATE.modalData = {
+        title: 'R&R 작성 예시',
+        content: exampleContent,
+        onConfirm: null,
+        isWide: true
+    };
+    renderCurrentView();
 };
 
 window.requestRnRAgreement = async function() {

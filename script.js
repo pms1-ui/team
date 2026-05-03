@@ -81,10 +81,11 @@ async function loadDataFromBaserow() {
             console.error('Error loading teams:', error);
             console.warn('Using fallback teams data');
             STATE.teams = [
-                { id: 1, name: 'DT전략팀' },
-                { id: 2, name: '개발팀' },
-                { id: 3, name: '디자인팀' },
-                { id: 4, name: '마케팅팀' }
+                { id: 1, name: 'DX팀' },
+                { id: 2, name: 'MD팀' },
+                { id: 3, name: 'CX팀' },
+                { id: 4, name: '디자인팀' },
+                { id: 5, name: '물류팀' }
             ];
         }
         
@@ -96,10 +97,10 @@ async function loadDataFromBaserow() {
             console.error('Error loading members:', error);
             console.warn('Using fallback members data');
             STATE.members = [
-                { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
-                { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-                { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
-                { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
+                { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+                { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
+                { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+                { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
             ];
         }
         
@@ -237,10 +238,10 @@ async function loadDataFromBaserow() {
             { id: 4, name: '마케팅팀' }
         ];
         STATE.members = [
-            { id: 1, name: '김전략', division: '운영본부', team: 'DT전략팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
-            { id: 2, name: '박성공', division: '운영본부', team: 'DT전략팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-            { id: 3, name: '이혁신', division: '운영본부', team: '개발팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
-            { id: 4, name: '최효율', division: '운영본부', team: '개발팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
+            { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+            { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
+            { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+            { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
         ];
         STATE.rnrData = [];
         STATE.allGoals = [
@@ -2959,7 +2960,7 @@ function renderRnR(container) {
     
     h += '<div>';
     h += '<label class="block text-[13px] font-bold text-on-surface-variant mb-2">R&R</label>';
-    h += '<textarea id="rnr-content" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="현재 담당하고 있는 마케팅 운영 업무와 프로젝트별 상세 과업, 그리고 각 업무에 투입되는 실제 소요 시간을 구체적으로 작성해 주세요. 진행 중인 캠페인의 성과 관리 및 매체 최적화(SA/DA), 데이터 추출 및 리포트 작성 등 주 단위 또는 월 단위로 반복되는 루틴 업무를 기재하고, 참고할 수 있는 대시보드나 리포트 링크를 반드시 첨부해 주시기 바랍니다. 특히 전체 업무 비중을 고려하여 각 항목별로 소요되는 리소스를 M/D 혹은 M/M 단위로 산정해 주세요. 예를 들어 &#39;주간 매체 효율 최적화 및 소재 교체 작업에 주 2일(월 0.4 M/M)을 투입하며, 신규 프로모션 기획 및 성과 분석 리포트 작성에 월 0.3 M/M를 사용함&#39;과 같이 실제 시간 배분을 명확히 기술해 주시면 됩니다.">' + rnrContent + '</textarea>';
+    h += '<textarea id="rnr-content" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="현재 담당하고 있는 업무와 프로젝트별 상세 과업, 그리고 각 업무에 투입되는 실제 소요 시간을 구체적으로 작성해 주세요. 주 단위 또는 월 단위로 반복되는 루틴 업무를 기재하고, 참고할 수 있는 대시보드나 리포트 링크를 반드시 첨부해 주시기 바랍니다. 특히 전체 업무 비중을 고려하여 각 항목별로 소요되는 리소스를 M/D 혹은 M/M 단위로 산정해 주세요.\n\n[마케팅 직무 작성 예시]\n- 진행 중인 캠페인의 성과 관리 및 매체 최적화(SA/DA), 데이터 추출 및 리포트 작성\n- 예: &#39;주간 매체 효율 최적화 및 소재 교체 작업에 주 2일(월 0.4 M/M)을 투입하며, 신규 프로모션 기획 및 성과 분석 리포트 작성에 월 0.3 M/M를 사용함&#39;">' + rnrContent + '</textarea>';
     h += '</div>';
     
     h += '<div class="flex justify-end gap-3">';

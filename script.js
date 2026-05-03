@@ -2969,6 +2969,9 @@ function renderRnR(container) {
     } else if (isPending) {
         h += '<button disabled class="bg-surface-container text-on-surface-variant px-6 py-2.5 rounded-lg font-bold text-[13px] cursor-not-allowed">검토 중</button>';
         h += '<button onclick="cancelRnRRequest()" class="bg-error text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-error/90 transition-all shadow-sm">요청 취소</button>';
+    } else if (isRejected) {
+        h += '<button onclick="cancelRejectedRnRRequest()" class="bg-white border border-error text-error px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-error/10 transition-all shadow-sm">요청 취소</button>';
+        h += '<button onclick="requestRnRAgreement()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">합의 요청</button>';
     } else {
         h += '<button onclick="requestRnRAgreement()" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-[13px] hover:bg-primary-dim transition-all shadow-sm">합의 요청</button>';
     }
@@ -3288,6 +3291,60 @@ window.cancelRnRRequest = async function() {
         }
     } catch (error) {
         console.error('Error canceling R&R request:', error);
+        alert('요청 취소 중 오류가 발생했습니다.');
+    }
+};
+
+// Cancel rejected R&R request (delete from database)
+window.cancelRejectedRnRRequest = async function() {
+    if (!confirm('거부된 요청을 취소하시겠습니까?\n\n요청 데이터가 삭제되며, 처음부터 다시 작성해야 합니다.')) return;
+    
+    try {
+        const existingRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
+        if (existingRnR) {
+            // Delete R&R from Baserow
+            try {
+                await RnRAPI.delete(existingRnR.id);
+            } catch (deleteError) {
+                // 이미 삭제된 경우 무시
+                if (!deleteError.message.includes('404') && !deleteError.message.includes('ERROR_ROW_DOES_NOT_EXIST')) {
+                    throw deleteError;
+                }
+                console.log('R&R already deleted, continuing...');
+            }
+            
+            // Remove from STATE
+            STATE.rnrData = STATE.rnrData.filter(r => r.id !== existingRnR.id);
+            
+            // Reload R&R data from Baserow to ensure state is fresh
+            try {
+                const rnrData = await RnRAPI.list();
+                STATE.rnrData = rnrData.map(r => ({
+                    id: r.id,
+                    user_id: r.user_id,
+                    name: r.name,
+                    team: r.team,
+                    position: r.position,
+                    job: r.job,
+                    rnr: r.rnr,
+                    content: r.content,
+                    status: r.status,
+                    request_type: r.request_type,
+                    temp_content: r.temp_content,
+                    comment: r.comment,
+                    reject_comment: r.reject_comment,
+                    request_date: r.request_date || null
+                }));
+            } catch (reloadError) {
+                console.error('Error reloading R&R data:', reloadError);
+            }
+            
+            alert('요청이 취소되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        }
+    } catch (error) {
+        console.error('Error canceling rejected R&R request:', error);
         alert('요청 취소 중 오류가 발생했습니다.');
     }
 };

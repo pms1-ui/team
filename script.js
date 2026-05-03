@@ -1863,6 +1863,90 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     window.history.pushState(null, '', '/login');
 });
 
+// Password Change Function
+window.openPasswordChangeModal = function() {
+    STATE.modalData = {
+        title: '비밀번호 변경',
+        content: `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[13px] font-bold text-on-surface-variant mb-2">현재 비밀번호</label>
+                    <input type="password" id="current-password" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary" placeholder="현재 비밀번호 입력">
+                </div>
+                <div>
+                    <label class="block text-[13px] font-bold text-on-surface-variant mb-2">새 비밀번호</label>
+                    <input type="password" id="new-password" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary" placeholder="새 비밀번호 입력">
+                </div>
+                <div>
+                    <label class="block text-[13px] font-bold text-on-surface-variant mb-2">새 비밀번호 확인</label>
+                    <input type="password" id="new-password-confirm" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary" placeholder="새 비밀번호 재입력">
+                </div>
+            </div>
+        `,
+        onConfirm: async () => {
+            const currentPassword = document.getElementById('current-password')?.value.trim();
+            const newPassword = document.getElementById('new-password')?.value.trim();
+            const newPasswordConfirm = document.getElementById('new-password-confirm')?.value.trim();
+            
+            if (!currentPassword || !newPassword || !newPasswordConfirm) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // Find current user in members
+            const currentMember = STATE.members.find(m => m.user_id === STATE.user.id);
+            if (!currentMember) {
+                alert('사용자 정보를 찾을 수 없습니다.');
+                return;
+            }
+            
+            // Verify current password
+            if (currentMember.password !== currentPassword) {
+                alert('현재 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            // Verify new password confirmation
+            if (newPassword !== newPasswordConfirm) {
+                alert('새 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            // Validate new password (minimum 4 characters)
+            if (newPassword.length < 4) {
+                alert('새 비밀번호는 최소 4자 이상이어야 합니다.');
+                return;
+            }
+            
+            try {
+                // Update password in Baserow
+                await MembersAPI.update(currentMember.id, {
+                    password: newPassword
+                });
+                
+                // Update local state
+                currentMember.password = newPassword;
+                
+                // Update session
+                const session = {
+                    user: STATE.user,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('okr_session', JSON.stringify(session));
+                
+                STATE.modalData = null;
+                alert('비밀번호가 성공적으로 변경되었습니다.');
+                renderCurrentView();
+            } catch (error) {
+                console.error('Error changing password:', error);
+                alert('비밀번호 변경 중 오류가 발생했습니다.');
+            }
+        },
+        isWide: false
+    };
+    renderCurrentView();
+};
+
 // 날짜 및 시간 업데이트 함수
 function updateDateTime() {
     const now = new Date();

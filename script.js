@@ -19,6 +19,9 @@ const STATE = {
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
+    // Members filter state
+    membersTeamFilter: 'all', // 'all' or team name
+    
     // Divisions Data (loaded from Baserow)
     divisions: [],
     
@@ -308,7 +311,8 @@ const MENU_ITEMS = [
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
-    { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' }
+    { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' },
+    { id: 'ai_poll', label: 'AI 설문', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
 ];
 
 // --- URL Routing ---
@@ -1098,6 +1102,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'members') renderMembers(content);
     else if (STATE.currentView === 'rnr') renderRnR(content);
     else if (STATE.currentView === 'guide') renderGuide(content);
+    else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -2006,6 +2011,12 @@ window.saveAllMembers = async function() {
     }
 };
 
+// Set members team filter
+window.setMembersTeamFilter = function(teamName) {
+    STATE.membersTeamFilter = teamName;
+    renderCurrentView();
+};
+
 window.addMember = async function() {
     try {
         const newMember = {
@@ -2013,7 +2024,7 @@ window.addMember = async function() {
             user_id: '',
             password: '',
             division: STATE.user.division,
-            team: STATE.teams.length > 0 ? STATE.teams[0].name : '',
+            team: STATE.membersTeamFilter !== 'all' ? STATE.membersTeamFilter : (STATE.teams.length > 0 ? STATE.teams[0].name : ''),
             job: '',
             position: '멤버',
             email: '',
@@ -2173,7 +2184,12 @@ function renderMembers(container) {
         `<option value="${team.name}">${team.name}</option>`
     ).join('');
 
-    let rowsHtml = STATE.members.map((member, i) => {
+    // Filter members by team
+    const filteredMembers = STATE.membersTeamFilter === 'all' 
+        ? STATE.members 
+        : STATE.members.filter(m => m.team === STATE.membersTeamFilter);
+
+    let rowsHtml = filteredMembers.map((member, i) => {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
@@ -2212,9 +2228,16 @@ function renderMembers(container) {
     }).join('');
 
     container.innerHTML = `
-        <div class="mb-4 w-full flex justify-between items-center">
-            <div class="text-[14px] font-bold text-on-surface-variant">
-                총 <span class="text-primary font-black mx-1">${STATE.members.length}</span>명의 구성원
+        <div class="mb-4 w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="text-[14px] font-bold text-on-surface-variant">
+                    총 <span class="text-primary font-black mx-1">${filteredMembers.length}</span>명의 구성원
+                    ${STATE.membersTeamFilter !== 'all' ? `<span class="text-on-surface-variant/60 ml-1">(${STATE.membersTeamFilter})</span>` : ''}
+                </div>
+                <select onchange="setMembersTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm transition-all">
+                    <option value="all" ${STATE.membersTeamFilter === 'all' ? 'selected' : ''}>전체 팀</option>
+                    ${STATE.teams.map(team => `<option value="${team.name}" ${STATE.membersTeamFilter === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
+                </select>
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="openTeamManagement()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
@@ -3581,4 +3604,363 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initLoginPage);
 } else {
     initLoginPage();
+}
+
+
+// --- AI Poll View ---
+function renderAIPoll(container) {
+    const h = `
+        <div class="max-w-4xl mx-auto py-6">
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-on-surface">AI 도구 활용 현황 설문</h3>
+                </div>
+                
+                <p class="text-on-surface-variant text-[14px] mb-6">
+                    조직 내 AI 도구 활용 현황을 파악하여 더 나은 업무 환경을 만들기 위한 설문입니다.
+                </p>
+
+                <form id="ai-poll-form" class="space-y-6">
+                    <!-- Q1: 소속 부서 -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q1. 소속 부서를 입력해주세요 <span class="text-error">*</span>
+                        </label>
+                        <input type="text" id="q1_department" required
+                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                            placeholder="예: DX팀, MD팀 등" maxlength="50">
+                    </div>
+
+                    <!-- Q2: AI 도구 사용 빈도 -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q2. 업무 중 AI 도구를 얼마나 자주 사용하고 계신가요? <span class="text-error">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="거의 사용하지 않음" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">거의 사용하지 않음 (거의 다시 사용하지 않음)</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="월 1-2회" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">월 1-2회 (특정 작업에만 활용)</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="주 3-4회" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">주 3-4회 (필요한 경우에 적극적으로 활용)</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="주 1-3회 이상" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">주 1-3회 이상 (거의 매일 사용)</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="매일 지속적으로 사용" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">매일 지속적으로 사용</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q3: 주로 사용하는 AI 도구 (복수 선택) -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q3. 업무에서 주로 활용하는 AI 도구는 무엇인가요? (복수 선택 가능) <span class="text-error">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="GPT, Gemini" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">GPT, Gemini : 문서 작성, 번역, 일반적인 질의응답</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Google AI Studio, Open AI" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">Google AI Studio, Open AI : 프롬프트 테스트, 더 깊은 활용</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Claude" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">Claude (Desktop/Code) : 멀티턴, 자료크, 개발 환경 통합 및 활용</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Cursor, AmazonQ" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">Cursor, AmazonQ 등 : AI 기반 코드 작성 및 개발 생산성 향상</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Antigravity, Codex" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">Antigravity, Codex 등 : AI 기반 생산성 향상</span>
+                            </label>
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                                <input type="checkbox" name="q3_tools" value="기타" class="w-4 h-4 text-primary rounded" id="q3_other_check">
+                                <span class="text-[14px] text-on-surface">기타:</span>
+                                <input type="text" id="q3_other_text" placeholder="직접 입력"
+                                    class="flex-1 bg-surface-container border border-blue-100 rounded px-3 py-1.5 text-[13px] focus:outline-none focus:border-primary">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4: AI 도구 효과성 평가 (5점 척도) -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q4. 업무 중 사용한 AI 도구가 실제 효과적이라고 느끼는 정도는 어느 정도인가요? (5점 척도) <span class="text-error">*</span>
+                        </label>
+                        <div class="flex items-center justify-between gap-2">
+                            <label class="flex-1 text-center cursor-pointer">
+                                <input type="radio" name="q4_effectiveness" value="1" required class="peer sr-only">
+                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-2xl mb-1">😞</div>
+                                    <div class="text-[12px] font-bold text-on-surface">전혀 효과 없음</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 text-center cursor-pointer">
+                                <input type="radio" name="q4_effectiveness" value="2" required class="peer sr-only">
+                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-2xl mb-1">😐</div>
+                                    <div class="text-[12px] font-bold text-on-surface">별로</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 text-center cursor-pointer">
+                                <input type="radio" name="q4_effectiveness" value="3" required class="peer sr-only">
+                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-2xl mb-1">😊</div>
+                                    <div class="text-[12px] font-bold text-on-surface">보통</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 text-center cursor-pointer">
+                                <input type="radio" name="q4_effectiveness" value="4" required class="peer sr-only">
+                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-2xl mb-1">😄</div>
+                                    <div class="text-[12px] font-bold text-on-surface">효과적</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 text-center cursor-pointer">
+                                <input type="radio" name="q4_effectiveness" value="5" required class="peer sr-only">
+                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-2xl mb-1">🤩</div>
+                                    <div class="text-[12px] font-bold text-on-surface">매우 효과적</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q5: AI 도구 활용 시 가장 큰 장점 -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q5. AI 도구 활용 시 느끼는 가장 큰 장점이나 개선점은 무엇인가요? <span class="text-error">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="시간 및 비용 절감" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">시간 및 비용 절감 : 반복 작업을 빠르게 처리할 수 있어 효율 향상</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="정보의 정확성" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">정보의 정확성 : 환각(Hallucination) 문제가 있지만 대체로 신뢰할 만함</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="접근 및 사용성" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">접근 및 사용성 : 무료 버전(Pro/Team 등) 사용 가능 편리</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="업무 범위 확장" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">업무 범위 확장 : 프로젝트 작성이나 더 활용도가 높은 업무</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="기술적 한계" required class="w-4 h-4 text-primary">
+                                <span class="text-[14px] text-on-surface">기술적 한계 : 복잡한 반복 시스템과의 통합 불가</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q6: 향후 확대 희망 분야 (복수 선택) -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q6. 향후 어떤 분야에서 AI 도구 활용이 확대되기를 원하시나요? (복수 선택 가능) <span class="text-error">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="개발자 환경 통합 도구" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">개발자 환경 통합 도구 (클라우드 코드 등)</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="RAG 시스템 도입" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">RAG 시스템 도입 : 우리 회사 데이터를 학습하는 AI</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="교육 및 워크숍" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">교육 및 워크숍 : 정기 교육을 프로젝트 진행하여 활용</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="업무 자동화 도구" class="w-4 h-4 text-primary rounded">
+                                <span class="text-[14px] text-on-surface">업무 자동화 도구 : AI가 단순 반복 작업을 대신 처리하는 워크플로우 구축</span>
+                            </label>
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                                <input type="checkbox" name="q6_expansion" value="기타" class="w-4 h-4 text-primary rounded" id="q6_other_check">
+                                <span class="text-[14px] text-on-surface">기타:</span>
+                                <input type="text" id="q6_other_text" placeholder="직접 입력"
+                                    class="flex-1 bg-surface-container border border-blue-100 rounded px-3 py-1.5 text-[13px] focus:outline-none focus:border-primary">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q7: 업무 프로세스 AI 도입 의견 -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q7. 현재 업무 프로세스 중 "이 부분은 AI가 도입되면 훨씬 좋겠다"는 생각이 드는 부분이 있다면 구체적으로 말씀해주세요. <span class="text-error">*</span>
+                        </label>
+                        <textarea id="q7_process" required rows="4"
+                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
+                            placeholder="예: 반복적인 데이터 입력 작업, 고객 문의 응답 자동화 등" maxlength="500"></textarea>
+                        <div class="text-right text-[12px] text-on-surface-variant mt-1">최대 500자</div>
+                    </div>
+
+                    <!-- Q8: 추가 의견 -->
+                    <div class="bg-surface-container rounded-xl p-6">
+                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                            Q8. 향후 팀 AI 활용 활성화를 위해 회사 차원에서 지원해주었으면 하는 것이 있다면 자유롭게 의견을 남겨주세요. <span class="text-error">*</span>
+                        </label>
+                        <textarea id="q8_suggestion" required rows="4"
+                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
+                            placeholder="예: 유료 AI 도구 구독 지원, 정기 교육 프로그램 등" maxlength="500"></textarea>
+                        <div class="text-right text-[12px] text-on-surface-variant mt-1">최대 500자</div>
+                    </div>
+
+                    <!-- 제출 버튼 -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-gradient-to-br from-primary to-primary-dim text-white font-bold py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[14px]">
+                            설문 제출하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = h;
+    
+    // Form submission handler
+    const form = document.getElementById('ai-poll-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await submitAIPoll();
+    });
+    
+    // Handle "기타" checkbox for Q3
+    const q3OtherCheck = document.getElementById('q3_other_check');
+    const q3OtherText = document.getElementById('q3_other_text');
+    q3OtherCheck.addEventListener('change', () => {
+        if (!q3OtherCheck.checked) {
+            q3OtherText.value = '';
+        }
+    });
+    
+    // Handle "기타" checkbox for Q6
+    const q6OtherCheck = document.getElementById('q6_other_check');
+    const q6OtherText = document.getElementById('q6_other_text');
+    q6OtherCheck.addEventListener('change', () => {
+        if (!q6OtherCheck.checked) {
+            q6OtherText.value = '';
+        }
+    });
+}
+
+// Submit AI Poll
+async function submitAIPoll() {
+    try {
+        // Collect form data
+        const q1_department = document.getElementById('q1_department').value.trim();
+        const q2_frequency = document.querySelector('input[name="q2_frequency"]:checked')?.value;
+        
+        // Q3: Collect all checked tools
+        const q3_tools_checkboxes = document.querySelectorAll('input[name="q3_tools"]:checked');
+        let q3_tools = Array.from(q3_tools_checkboxes).map(cb => cb.value);
+        
+        // Add "기타" text if checked
+        const q3_other_check = document.getElementById('q3_other_check');
+        const q3_other_text = document.getElementById('q3_other_text').value.trim();
+        if (q3_other_check.checked && q3_other_text) {
+            q3_tools = q3_tools.filter(t => t !== '기타');
+            q3_tools.push(`기타: ${q3_other_text}`);
+        }
+        
+        const q4_effectiveness = document.querySelector('input[name="q4_effectiveness"]:checked')?.value;
+        const q5_benefit = document.querySelector('input[name="q5_benefit"]:checked')?.value;
+        
+        // Q6: Collect all checked expansion areas
+        const q6_expansion_checkboxes = document.querySelectorAll('input[name="q6_expansion"]:checked');
+        let q6_expansion = Array.from(q6_expansion_checkboxes).map(cb => cb.value);
+        
+        // Add "기타" text if checked
+        const q6_other_check = document.getElementById('q6_other_check');
+        const q6_other_text = document.getElementById('q6_other_text').value.trim();
+        if (q6_other_check.checked && q6_other_text) {
+            q6_expansion = q6_expansion.filter(t => t !== '기타');
+            q6_expansion.push(`기타: ${q6_other_text}`);
+        }
+        
+        const q7_process = document.getElementById('q7_process').value.trim();
+        const q8_suggestion = document.getElementById('q8_suggestion').value.trim();
+        
+        // Validation
+        if (!q1_department) {
+            alert('소속 부서를 입력해주세요.');
+            return;
+        }
+        if (!q2_frequency) {
+            alert('AI 도구 사용 빈도를 선택해주세요.');
+            return;
+        }
+        if (q3_tools.length === 0) {
+            alert('주로 사용하는 AI 도구를 하나 이상 선택해주세요.');
+            return;
+        }
+        if (!q4_effectiveness) {
+            alert('AI 도구 효과성을 평가해주세요.');
+            return;
+        }
+        if (!q5_benefit) {
+            alert('AI 도구 활용 시 가장 큰 장점을 선택해주세요.');
+            return;
+        }
+        if (q6_expansion.length === 0) {
+            alert('향후 확대 희망 분야를 하나 이상 선택해주세요.');
+            return;
+        }
+        if (!q7_process) {
+            alert('업무 프로세스 AI 도입 의견을 입력해주세요.');
+            return;
+        }
+        if (!q8_suggestion) {
+            alert('추가 의견을 입력해주세요.');
+            return;
+        }
+        
+        // Create poll data
+        const pollData = {
+            user_id: STATE.user.id,
+            user_name: STATE.user.name,
+            department: q1_department,
+            frequency: q2_frequency,
+            tools: q3_tools.join(', '),
+            effectiveness: parseInt(q4_effectiveness),
+            benefit: q5_benefit,
+            expansion: q6_expansion.join(', '),
+            process_opinion: q7_process,
+            suggestion: q8_suggestion,
+            submitted_at: new Date().toISOString()
+        };
+        
+        // Submit to Baserow
+        await PollAPI.create(pollData);
+        
+        alert('설문이 성공적으로 제출되었습니다. 감사합니다!');
+        
+        // Reset form
+        document.getElementById('ai-poll-form').reset();
+        
+    } catch (error) {
+        console.error('Error submitting AI poll:', error);
+        alert('설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
 }

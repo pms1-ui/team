@@ -222,3 +222,31 @@ const RnRAPI = {
         });
     }
 };
+
+// Poll API
+const PollAPI = {
+    async list() {
+        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.poll}/?user_field_names=true&size=200`);
+        return data.results;
+    },
+    
+    async create(poll) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.poll}/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(poll)
+        });
+    },
+    
+    async update(id, poll) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.poll}/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(poll)
+        });
+    },
+    
+    async delete(id) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.poll}/${id}/`, {
+            method: 'DELETE'
+        });
+    }
+};

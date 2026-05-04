@@ -1829,6 +1829,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             name: member.name,
             role: member.position === '리더' ? 'admin' : 'user',
             division: member.division,
+            team: member.team,
             memberId: member.id
         };
         

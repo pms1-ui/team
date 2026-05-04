@@ -3996,16 +3996,26 @@ window.showSignupView = async function() {
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('signup-view').classList.remove('hidden');
     
-    // Load teams for signup
+    // Load divisions and teams for signup
     try {
+        // Load divisions
+        if (STATE.divisions.length === 0) {
+            STATE.divisions = await DivisionsAPI.list();
+        }
+        
+        // Load teams
         if (STATE.teams.length === 0) {
             STATE.teams = await TeamsAPI.list();
         }
         
-        // Add event listener for division change to filter teams
+        // Populate division dropdown
         const divisionSelect = document.getElementById('signup-division');
+        divisionSelect.innerHTML = '<option value="">본부 선택</option>' + 
+            STATE.divisions.map(division => `<option value="${division.name}">${division.name}</option>`).join('');
+        
         const teamSelect = document.getElementById('signup-team');
         
+        // Add event listener for division change to filter teams
         divisionSelect.addEventListener('change', function() {
             const selectedDivision = this.value;
             
@@ -4028,7 +4038,7 @@ window.showSignupView = async function() {
         teamSelect.disabled = true;
         
     } catch (error) {
-        console.error('Error loading teams:', error);
+        console.error('Error loading divisions and teams:', error);
     }
 };
 

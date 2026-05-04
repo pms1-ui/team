@@ -2218,34 +2218,34 @@ function renderMembers(container) {
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[10%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
                     <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[18%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[17%]">
                     <input type="email" value="${member.email || ''}" oninput="updateMemberField(${member.id}, 'email', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이메일 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[13%]">
                     <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
                         <option value="">팀 선택</option>
                         ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[11%]">
                     <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[10%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
                         <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>
                         <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
                     </select>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[11%]">
                     <input type="text" value="${member.user_id || ''}" oninput="updateMemberField(${member.id}, 'user_id', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="아이디 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[11%]">
                     <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
                 </td>
-                <td class="py-5 px-6 text-center w-24">
+                <td class="py-5 px-6 text-center w-32">
                     <button onclick="removeMember(${member.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
                 </td>
             </tr>

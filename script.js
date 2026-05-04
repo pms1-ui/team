@@ -3686,7 +3686,7 @@ function renderAIPoll(container) {
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
                                 <input type="checkbox" name="q2_tools" value="Claude" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
-                                <span class="text-[13px] lg:text-[14px] text-on-surface">Claude (Desktop/Code) : 멀티턴, 자료크, 개발 환경 통합 및 활용</span>
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">Claude (Desktop/Code) : 멀티턴, 자료, 개발 환경 통합 및 활용</span>
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
                                 <input type="checkbox" name="q2_tools" value="Cursor, AmazonQ" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">

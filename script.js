@@ -312,7 +312,7 @@ const MENU_ITEMS = [
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     { id: 'guide', label: 'OKR 가이드', icon: '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/guide' },
-    { id: 'ai_poll', label: 'AI 설문', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
+    { id: 'ai_poll', label: '설문조사', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
 ];
 
 // --- URL Routing ---
@@ -3610,44 +3610,44 @@ if (document.readyState === 'loading') {
 // --- AI Poll View ---
 function renderAIPoll(container) {
     const h = `
-        <div class="max-w-4xl mx-auto py-6">
-            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="max-w-4xl mx-auto py-4 lg:py-6 px-2 lg:px-0">
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-4 lg:p-8">
+                <div class="flex items-center gap-3 mb-4 lg:mb-6">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                         </svg>
                     </div>
-                    <h3 class="font-display text-xl font-bold text-on-surface">AI 도구 활용 현황 설문</h3>
+                    <h3 class="font-display text-lg lg:text-xl font-bold text-on-surface">AI 도구 활용 현황 설문</h3>
                 </div>
                 
-                <p class="text-on-surface-variant text-[14px] mb-6">
+                <p class="text-on-surface-variant text-[13px] lg:text-[14px] mb-4 lg:mb-6">
                     조직 내 AI 도구 활용 현황을 파악하여 더 나은 업무 환경을 만들기 위한 설문입니다.
                 </p>
 
-                <form id="ai-poll-form" class="space-y-6">
+                <form id="ai-poll-form" class="space-y-4 lg:space-y-6">
                     <!-- Q1: 소속 부서 -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q1. 소속 부서를 입력해주세요 <span class="text-error">*</span>
                         </label>
                         <input type="text" id="q1_department" required
-                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                            class="w-full bg-white border border-blue-100 rounded-lg px-3 lg:px-4 py-2 lg:py-2.5 text-[13px] lg:text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
                             placeholder="예: DX팀, MD팀 등" maxlength="50">
                     </div>
 
                     <!-- Q2: AI 도구 사용 빈도 -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q2. 업무 중 AI 도구를 얼마나 자주 사용하고 계신가요? <span class="text-error">*</span>
                         </label>
                         <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q2_frequency" value="거의 사용하지 않음" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">거의 사용하지 않음 (거의 다시 사용하지 않음)</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="거의 사용하지 않음" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">거의 사용하지 않음 (거의 다시 사용하지 않음)</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q2_frequency" value="월 1-2회" required class="w-4 h-4 text-primary">
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q2_frequency" value="월 1-2회" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
                                 <span class="text-[14px] text-on-surface">월 1-2회 (특정 작업에만 활용)</span>
                             </label>
                             <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
@@ -3827,8 +3827,8 @@ function renderAIPoll(container) {
                     </div>
 
                     <!-- 제출 버튼 -->
-                    <div class="flex gap-3 pt-4">
-                        <button type="submit" class="flex-1 bg-gradient-to-br from-primary to-primary-dim text-white font-bold py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[14px]">
+                    <div class="flex gap-3 pt-2 lg:pt-4">
+                        <button type="submit" class="flex-1 bg-gradient-to-br from-primary to-primary-dim text-white font-bold py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[13px] lg:text-[14px]">
                             설문 제출하기
                         </button>
                     </div>
@@ -3964,3 +3964,115 @@ async function submitAIPoll() {
         alert('설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
 }
+
+
+// Show/Hide signup view
+window.showSignupView = async function() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('signup-view').classList.remove('hidden');
+    
+    // Load teams for signup
+    try {
+        if (STATE.teams.length === 0) {
+            STATE.teams = await TeamsAPI.list();
+        }
+        const teamSelect = document.getElementById('signup-team');
+        teamSelect.innerHTML = '<option value="">팀 선택</option>' + 
+            STATE.teams.map(team => `<option value="${team.name}">${team.name}</option>`).join('');
+    } catch (error) {
+        console.error('Error loading teams:', error);
+    }
+};
+
+window.showLoginView = function() {
+    document.getElementById('signup-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+};
+
+// Signup form submission
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    const division = document.getElementById('signup-division').value;
+    const team = document.getElementById('signup-team').value;
+    const job = document.getElementById('signup-job').value.trim();
+    
+    // Validation
+    if (!name || !email || !password || !passwordConfirm || !division || !team || !job) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+    
+    if (password !== passwordConfirm) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+    }
+    
+    if (password.length < 4) {
+        alert('비밀번호는 최소 4자 이상이어야 합니다.');
+        return;
+    }
+    
+    // Extract user_id from email (part before @)
+    const emailParts = email.split('@');
+    if (emailParts.length !== 2) {
+        alert('올바른 이메일 형식이 아닙니다.');
+        return;
+    }
+    const user_id = emailParts[0];
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = '가입 처리 중...';
+    submitBtn.disabled = true;
+    
+    try {
+        // Check if user_id already exists
+        if (STATE.members.length === 0) {
+            STATE.members = await MembersAPI.list();
+        }
+        
+        const existingMember = STATE.members.find(m => m.user_id === user_id);
+        if (existingMember) {
+            alert('이미 사용 중인 아이디입니다. 다른 이메일을 사용해주세요.');
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        // Create new member
+        const newMember = {
+            name: name,
+            email: email,
+            user_id: user_id,
+            password: password,
+            division: division,
+            team: team,
+            job: job,
+            position: '멤버'
+        };
+        
+        await MembersAPI.create(newMember);
+        
+        alert('회원가입이 완료되었습니다! 로그인해주세요.');
+        
+        // Reset form and go back to login
+        document.getElementById('signup-form').reset();
+        showLoginView();
+        
+        // Pre-fill login form
+        document.getElementById('login-id').value = user_id;
+        document.getElementById('login-division').value = division;
+        
+    } catch (error) {
+        console.error('Signup error:', error);
+        alert('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+    }
+});

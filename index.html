@@ -49,8 +49,8 @@
 <body class="bg-surface text-on-surface font-sans antialiased overflow-hidden h-screen w-screen flex">
 
     <!-- 로그인 화면 -->
-    <div id="login-view" class="fixed inset-0 bg-surface z-50 flex items-center justify-center px-4">
-        <div class="w-full max-w-md flex flex-col items-center">
+    <div id="login-view" class="fixed inset-0 bg-surface z-50 flex items-center justify-center px-4 overflow-y-auto">
+        <div class="w-full max-w-md flex flex-col items-center my-8">
             <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
                 <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
@@ -71,9 +71,76 @@
                 <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">비밀번호</label>
                 <input type="password" id="login-pw" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" onkeypress="if(event.key==='Enter') document.getElementById('btn-login').click()">
             </div>
-            <button id="btn-login" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-medium py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[14px]">
+            <button id="btn-login" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-medium py-3 rounded-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity text-[14px] mb-3">
                 시스템 접속
             </button>
+            <button id="btn-show-signup" onclick="showSignupView()" class="w-full bg-white border border-primary text-primary font-medium py-3 rounded-lg hover:bg-blue-50 transition-all text-[14px]">
+                회원가입
+            </button>
+        </div>
+    </div>
+
+    <!-- 회원가입 화면 -->
+    <div id="signup-view" class="fixed inset-0 bg-surface z-50 hidden flex items-center justify-center px-4 overflow-y-auto">
+        <div class="w-full max-w-md flex flex-col items-center my-8">
+            <div class="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+            </div>
+            <h1 class="font-display text-2xl font-bold mb-2 text-center">회원가입</h1>
+            <p class="text-on-surface-variant text-sm mb-8 text-center">차일디 목표관리 시스템에 가입하세요</p>
+            
+            <form id="signup-form" class="w-full space-y-4">
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">이름 <span class="text-error">*</span></label>
+                    <input type="text" id="signup-name" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="홍길동">
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">이메일 <span class="text-error">*</span></label>
+                    <input type="email" id="signup-email" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="example@childy.co.kr">
+                    <p class="text-[12px] text-on-surface-variant mt-1">이메일의 @ 앞부분이 아이디로 사용됩니다</p>
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">비밀번호 <span class="text-error">*</span></label>
+                    <input type="password" id="signup-password" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="비밀번호 입력">
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">비밀번호 확인 <span class="text-error">*</span></label>
+                    <input type="password" id="signup-password-confirm" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="비밀번호 재입력">
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">본부 <span class="text-error">*</span></label>
+                    <select id="signup-division" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-on-surface text-[14px]">
+                        <option value="">본부 선택</option>
+                        <option value="운영본부">운영본부</option>
+                        <option value="경영지원본부">경영지원본부</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">팀 <span class="text-error">*</span></label>
+                    <select id="signup-team" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-on-surface text-[14px]">
+                        <option value="">팀 선택</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-[14px] font-semibold mb-2 text-on-surface-variant">직무 <span class="text-error">*</span></label>
+                    <input type="text" id="signup-job" required class="w-full bg-white border border-blue-100 rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" placeholder="예: 개발자, 디자이너, 기획자">
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-gradient-to-br from-success to-success/90 text-white font-medium py-3 rounded-lg shadow-lg shadow-success/30 hover:opacity-90 transition-opacity text-[14px] mb-3">
+                        가입하기
+                    </button>
+                    <button type="button" onclick="showLoginView()" class="w-full bg-white border border-blue-100 text-on-surface font-medium py-3 rounded-lg hover:bg-blue-50 transition-all text-[14px]">
+                        로그인으로 돌아가기
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

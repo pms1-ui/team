@@ -1991,6 +1991,7 @@ window.updateMemberField = async function(id, field, value) {
 window.saveAllMembers = async function() {
     try {
         let updateCount = 0;
+        let currentUserUpdated = false;
         
         for (const member of STATE.members) {
             if (member._modified) {
@@ -2001,6 +2002,20 @@ window.saveAllMembers = async function() {
                 }
                 
                 await MembersAPI.update(member.id, updateData);
+                
+                // Check if current user's position was updated
+                if (member.user_id === STATE.user.id && member._modified.position) {
+                    currentUserUpdated = true;
+                    STATE.user.role = member.position === '리더' ? 'admin' : 'user';
+                    
+                    // Update localStorage session
+                    const session = JSON.parse(localStorage.getItem('okr_session') || '{}');
+                    if (session.user) {
+                        session.user.role = STATE.user.role;
+                        localStorage.setItem('okr_session', JSON.stringify(session));
+                    }
+                }
+                
                 delete member._modified;
                 updateCount++;
             }
@@ -2008,6 +2023,10 @@ window.saveAllMembers = async function() {
         
         if (updateCount > 0) {
             alert(`${updateCount}명의 구성원 정보가 저장되었습니다.`);
+            if (currentUserUpdated) {
+                alert('회원님의 권한이 변경되었습니다. 페이지를 새로고침합니다.');
+                location.reload();
+            }
         } else {
             alert('변경된 정보가 없습니다.');
         }
@@ -2215,7 +2234,7 @@ function renderMembers(container) {
                     <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[10%]">
-                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' && STATE.user.id !== member.user_id ? 'disabled' : ''}>
+                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
                         <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>
                         <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
                     </select>

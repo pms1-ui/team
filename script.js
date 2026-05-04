@@ -3740,27 +3740,27 @@ function renderAIPoll(container) {
                     <!-- Q4: AI 도구 활용 시 가장 큰 장점 -->
                     <div class="bg-surface-container rounded-xl p-4 lg:p-6">
                         <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
-                            Q4. AI 도구 활용 시 느끼는 가장 큰 장점이나 개선점은 무엇인가요? <span class="text-error">*</span>
+                            Q4. AI 도구 활용 시 느끼는 가장 큰 장점이나 개선점은 무엇인가요? (복수 선택 가능) <span class="text-error">*</span>
                         </label>
                         <div class="space-y-2">
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q4_benefit" value="시간 및 비용 절감" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <input type="checkbox" name="q4_benefit" value="시간 및 비용 절감" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
                                 <span class="text-[13px] lg:text-[14px] text-on-surface">시간 및 비용 절감 : 반복 작업을 빠르게 처리할 수 있어 효율 향상</span>
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q4_benefit" value="정보의 정확성" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <input type="checkbox" name="q4_benefit" value="정보의 정확성" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
                                 <span class="text-[13px] lg:text-[14px] text-on-surface">정보의 정확성 : 환각(Hallucination) 문제가 있지만 대체로 신뢰할 만함</span>
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q4_benefit" value="접근 및 사용성" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <input type="checkbox" name="q4_benefit" value="접근 및 사용성" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
                                 <span class="text-[13px] lg:text-[14px] text-on-surface">접근 및 사용성 : 무료 버전(Pro/Team 등) 사용 가능 편리</span>
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q4_benefit" value="업무 범위 확장" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <input type="checkbox" name="q4_benefit" value="업무 범위 확장" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
                                 <span class="text-[13px] lg:text-[14px] text-on-surface">업무 범위 확장 : 프로젝트 작성이나 더 활용도가 높은 업무</span>
                             </label>
                             <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q4_benefit" value="기술적 한계" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <input type="checkbox" name="q4_benefit" value="기술적 한계" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
                                 <span class="text-[13px] lg:text-[14px] text-on-surface">기술적 한계 : 복잡한 반복 시스템과의 통합 불가</span>
                             </label>
                         </div>
@@ -3877,7 +3877,10 @@ async function submitAIPoll() {
         }
         
         const q3_effectiveness = document.querySelector('input[name="q3_effectiveness"]:checked')?.value;
-        const q4_benefit = document.querySelector('input[name="q4_benefit"]:checked')?.value;
+        
+        // Q4: Collect all checked benefits
+        const q4_benefit_checkboxes = document.querySelectorAll('input[name="q4_benefit"]:checked');
+        let q4_benefit = Array.from(q4_benefit_checkboxes).map(cb => cb.value);
         
         // Q5: Collect all checked expansion areas
         const q5_expansion_checkboxes = document.querySelectorAll('input[name="q5_expansion"]:checked');
@@ -3907,8 +3910,8 @@ async function submitAIPoll() {
             alert('AI 도구 효과성을 평가해주세요.');
             return;
         }
-        if (!q4_benefit) {
-            alert('AI 도구 활용 시 가장 큰 장점을 선택해주세요.');
+        if (q4_benefit.length === 0) {
+            alert('AI 도구 활용 시 가장 큰 장점을 하나 이상 선택해주세요.');
             return;
         }
         if (q5_expansion.length === 0) {
@@ -3932,7 +3935,7 @@ async function submitAIPoll() {
             frequency: q1_frequency,
             tools: q2_tools.join(', '),
             effectiveness: parseInt(q3_effectiveness),
-            benefit: q4_benefit,
+            benefit: q4_benefit.join(', '),
             expansion: q5_expansion.join(', '),
             process_opinion: q6_process,
             suggestion: q7_suggestion,

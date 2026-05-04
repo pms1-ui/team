@@ -3629,7 +3629,7 @@ function renderAIPoll(container) {
                     <!-- Q1: 소속 부서 -->
                     <div class="bg-surface-container rounded-xl p-4 lg:p-6">
                         <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
-                            Q1. 소속 부서를 입력해주세요 <span class="text-error">*</span>
+                            Q1. 이름과 소속 부서를 입력해주세요. <span class="text-error">*</span>
                         </label>
                         <input type="text" id="q1_department" required
                             class="w-full bg-white border border-blue-100 rounded-lg px-3 lg:px-4 py-2 lg:py-2.5 text-[13px] lg:text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
@@ -3666,164 +3666,167 @@ function renderAIPoll(container) {
                     </div>
 
                     <!-- Q3: 주로 사용하는 AI 도구 (복수 선택) -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <!-- Q3: 주로 사용하는 AI 도구 (복수 선택) -->
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q3. 업무에서 주로 활용하는 AI 도구는 무엇인가요? (복수 선택 가능) <span class="text-error">*</span>
                         </label>
                         <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q3_tools" value="GPT, Gemini" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">GPT, Gemini : 문서 작성, 번역, 일반적인 질의응답</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="GPT, Gemini" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">GPT, Gemini : 문서 작성, 번역, 일반적인 질의응답</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q3_tools" value="Google AI Studio, Open AI" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">Google AI Studio, Open AI : 프롬프트 테스트, 더 깊은 활용</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Google AI Studio, Open AI" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">Google AI Studio, Open AI : 프롬프트 테스트, 더 깊은 활용</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q3_tools" value="Claude" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">Claude (Desktop/Code) : 멀티턴, 자료크, 개발 환경 통합 및 활용</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Claude" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">Claude (Desktop/Code) : 멀티턴, 자료크, 개발 환경 통합 및 활용</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q3_tools" value="Cursor, AmazonQ" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">Cursor, AmazonQ 등 : AI 기반 코드 작성 및 개발 생산성 향상</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Cursor, AmazonQ" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">Cursor, AmazonQ 등 : AI 기반 코드 작성 및 개발 생산성 향상</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q3_tools" value="Antigravity, Codex" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">Antigravity, Codex 등 : AI 기반 생산성 향상</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q3_tools" value="Antigravity, Codex" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">Antigravity, Codex 등 : AI 기반 생산성 향상</span>
                             </label>
-                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
-                                <input type="checkbox" name="q3_tools" value="기타" class="w-4 h-4 text-primary rounded" id="q3_other_check">
-                                <span class="text-[14px] text-on-surface">기타:</span>
+                            <div class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100">
+                                <input type="checkbox" name="q3_tools" value="기타" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0" id="q3_other_check">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface flex-shrink-0">기타:</span>
                                 <input type="text" id="q3_other_text" placeholder="직접 입력"
-                                    class="flex-1 bg-surface-container border border-blue-100 rounded px-3 py-1.5 text-[13px] focus:outline-none focus:border-primary">
+                                    class="flex-1 min-w-0 bg-surface-container border border-blue-100 rounded px-2 lg:px-3 py-1 lg:py-1.5 text-[12px] lg:text-[13px] focus:outline-none focus:border-primary">
                             </div>
                         </div>
                     </div>
 
                     <!-- Q4: AI 도구 효과성 평가 (5점 척도) -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <!-- Q4: AI 도구 효과성 평가 (5점 척도) -->
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q4. 업무 중 사용한 AI 도구가 실제 효과적이라고 느끼는 정도는 어느 정도인가요? (5점 척도) <span class="text-error">*</span>
                         </label>
-                        <div class="flex items-center justify-between gap-2">
-                            <label class="flex-1 text-center cursor-pointer">
+                        <div class="grid grid-cols-3 lg:flex lg:items-center lg:justify-between gap-2">
+                            <label class="lg:flex-1 text-center cursor-pointer">
                                 <input type="radio" name="q4_effectiveness" value="1" required class="peer sr-only">
-                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
-                                    <div class="text-2xl mb-1">😞</div>
-                                    <div class="text-[12px] font-bold text-on-surface">전혀 효과 없음</div>
+                                <div class="p-2 lg:p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-xl lg:text-2xl mb-1">😞</div>
+                                    <div class="text-[10px] lg:text-[12px] font-bold text-on-surface leading-tight">전혀<br class="lg:hidden"/>효과<br class="lg:hidden"/>없음</div>
                                 </div>
                             </label>
-                            <label class="flex-1 text-center cursor-pointer">
+                            <label class="lg:flex-1 text-center cursor-pointer">
                                 <input type="radio" name="q4_effectiveness" value="2" required class="peer sr-only">
-                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
-                                    <div class="text-2xl mb-1">😐</div>
-                                    <div class="text-[12px] font-bold text-on-surface">별로</div>
+                                <div class="p-2 lg:p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-xl lg:text-2xl mb-1">😐</div>
+                                    <div class="text-[10px] lg:text-[12px] font-bold text-on-surface">별로</div>
                                 </div>
                             </label>
-                            <label class="flex-1 text-center cursor-pointer">
+                            <label class="lg:flex-1 text-center cursor-pointer">
                                 <input type="radio" name="q4_effectiveness" value="3" required class="peer sr-only">
-                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
-                                    <div class="text-2xl mb-1">😊</div>
-                                    <div class="text-[12px] font-bold text-on-surface">보통</div>
+                                <div class="p-2 lg:p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-xl lg:text-2xl mb-1">😊</div>
+                                    <div class="text-[10px] lg:text-[12px] font-bold text-on-surface">보통</div>
                                 </div>
                             </label>
-                            <label class="flex-1 text-center cursor-pointer">
+                            <label class="lg:flex-1 text-center cursor-pointer">
                                 <input type="radio" name="q4_effectiveness" value="4" required class="peer sr-only">
-                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
-                                    <div class="text-2xl mb-1">😄</div>
-                                    <div class="text-[12px] font-bold text-on-surface">효과적</div>
+                                <div class="p-2 lg:p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-xl lg:text-2xl mb-1">😄</div>
+                                    <div class="text-[10px] lg:text-[12px] font-bold text-on-surface">효과적</div>
                                 </div>
                             </label>
-                            <label class="flex-1 text-center cursor-pointer">
+                            <label class="lg:flex-1 text-center cursor-pointer">
                                 <input type="radio" name="q4_effectiveness" value="5" required class="peer sr-only">
-                                <div class="p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
-                                    <div class="text-2xl mb-1">🤩</div>
-                                    <div class="text-[12px] font-bold text-on-surface">매우 효과적</div>
+                                <div class="p-2 lg:p-4 bg-white rounded-lg border-2 border-blue-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                    <div class="text-xl lg:text-2xl mb-1">🤩</div>
+                                    <div class="text-[10px] lg:text-[12px] font-bold text-on-surface leading-tight">매우<br class="lg:hidden"/>효과적</div>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     <!-- Q5: AI 도구 활용 시 가장 큰 장점 -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <!-- Q5: AI 도구 활용 시 가장 큰 장점 -->
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q5. AI 도구 활용 시 느끼는 가장 큰 장점이나 개선점은 무엇인가요? <span class="text-error">*</span>
                         </label>
                         <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q5_benefit" value="시간 및 비용 절감" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">시간 및 비용 절감 : 반복 작업을 빠르게 처리할 수 있어 효율 향상</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="시간 및 비용 절감" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">시간 및 비용 절감 : 반복 작업을 빠르게 처리할 수 있어 효율 향상</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q5_benefit" value="정보의 정확성" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">정보의 정확성 : 환각(Hallucination) 문제가 있지만 대체로 신뢰할 만함</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="정보의 정확성" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">정보의 정확성 : 환각(Hallucination) 문제가 있지만 대체로 신뢰할 만함</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q5_benefit" value="접근 및 사용성" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">접근 및 사용성 : 무료 버전(Pro/Team 등) 사용 가능 편리</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="접근 및 사용성" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">접근 및 사용성 : 무료 버전(Pro/Team 등) 사용 가능 편리</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q5_benefit" value="업무 범위 확장" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">업무 범위 확장 : 프로젝트 작성이나 더 활용도가 높은 업무</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="업무 범위 확장" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">업무 범위 확장 : 프로젝트 작성이나 더 활용도가 높은 업무</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="radio" name="q5_benefit" value="기술적 한계" required class="w-4 h-4 text-primary">
-                                <span class="text-[14px] text-on-surface">기술적 한계 : 복잡한 반복 시스템과의 통합 불가</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="radio" name="q5_benefit" value="기술적 한계" required class="w-4 h-4 text-primary mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">기술적 한계 : 복잡한 반복 시스템과의 통합 불가</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Q6: 향후 확대 희망 분야 (복수 선택) -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q6. 향후 어떤 분야에서 AI 도구 활용이 확대되기를 원하시나요? (복수 선택 가능) <span class="text-error">*</span>
                         </label>
                         <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q6_expansion" value="개발자 환경 통합 도구" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">개발자 환경 통합 도구 (클라우드 코드 등)</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="개발자 환경 통합 도구" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">개발자 환경 통합 도구 (클라우드 코드 등)</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q6_expansion" value="RAG 시스템 도입" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">RAG 시스템 도입 : 우리 회사 데이터를 학습하는 AI</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="RAG 시스템 도입" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">RAG 시스템 도입 : 우리 회사 데이터를 학습하는 AI</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q6_expansion" value="교육 및 워크숍" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">교육 및 워크숍 : 정기 교육을 프로젝트 진행하여 활용</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="교육 및 워크숍" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">교육 및 워크숍 : 정기 교육을 프로젝트 진행하여 활용</span>
                             </label>
-                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
-                                <input type="checkbox" name="q6_expansion" value="업무 자동화 도구" class="w-4 h-4 text-primary rounded">
-                                <span class="text-[14px] text-on-surface">업무 자동화 도구 : AI가 단순 반복 작업을 대신 처리하는 워크플로우 구축</span>
+                            <label class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100 hover:border-primary cursor-pointer transition-all">
+                                <input type="checkbox" name="q6_expansion" value="업무 자동화 도구" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface">업무 자동화 도구 : AI가 단순 반복 작업을 대신 처리하는 워크플로우 구축</span>
                             </label>
-                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
-                                <input type="checkbox" name="q6_expansion" value="기타" class="w-4 h-4 text-primary rounded" id="q6_other_check">
-                                <span class="text-[14px] text-on-surface">기타:</span>
+                            <div class="flex items-start gap-2 lg:gap-3 p-2.5 lg:p-3 bg-white rounded-lg border border-blue-100">
+                                <input type="checkbox" name="q6_expansion" value="기타" class="w-4 h-4 text-primary rounded mt-0.5 flex-shrink-0" id="q6_other_check">
+                                <span class="text-[13px] lg:text-[14px] text-on-surface flex-shrink-0">기타:</span>
                                 <input type="text" id="q6_other_text" placeholder="직접 입력"
-                                    class="flex-1 bg-surface-container border border-blue-100 rounded px-3 py-1.5 text-[13px] focus:outline-none focus:border-primary">
+                                    class="flex-1 min-w-0 bg-surface-container border border-blue-100 rounded px-2 lg:px-3 py-1 lg:py-1.5 text-[12px] lg:text-[13px] focus:outline-none focus:border-primary">
                             </div>
                         </div>
                     </div>
 
                     <!-- Q7: 업무 프로세스 AI 도입 의견 -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q7. 현재 업무 프로세스 중 "이 부분은 AI가 도입되면 훨씬 좋겠다"는 생각이 드는 부분이 있다면 구체적으로 말씀해주세요. <span class="text-error">*</span>
                         </label>
                         <textarea id="q7_process" required rows="4"
-                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
+                            class="w-full bg-white border border-blue-100 rounded-lg px-3 lg:px-4 py-2.5 lg:py-3 text-[13px] lg:text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
                             placeholder="예: 반복적인 데이터 입력 작업, 고객 문의 응답 자동화 등" maxlength="500"></textarea>
-                        <div class="text-right text-[12px] text-on-surface-variant mt-1">최대 500자</div>
+                        <div class="text-right text-[11px] lg:text-[12px] text-on-surface-variant mt-1">최대 500자</div>
                     </div>
 
                     <!-- Q8: 추가 의견 -->
-                    <div class="bg-surface-container rounded-xl p-6">
-                        <label class="block text-[14px] font-bold text-on-surface mb-3">
+                    <div class="bg-surface-container rounded-xl p-4 lg:p-6">
+                        <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q8. 향후 팀 AI 활용 활성화를 위해 회사 차원에서 지원해주었으면 하는 것이 있다면 자유롭게 의견을 남겨주세요. <span class="text-error">*</span>
                         </label>
                         <textarea id="q8_suggestion" required rows="4"
-                            class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
+                            class="w-full bg-white border border-blue-100 rounded-lg px-3 lg:px-4 py-2.5 lg:py-3 text-[13px] lg:text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all resize-none"
                             placeholder="예: 유료 AI 도구 구독 지원, 정기 교육 프로그램 등" maxlength="500"></textarea>
-                        <div class="text-right text-[12px] text-on-surface-variant mt-1">최대 500자</div>
+                        <div class="text-right text-[11px] lg:text-[12px] text-on-surface-variant mt-1">최대 500자</div>
                     </div>
 
                     <!-- 제출 버튼 -->
@@ -3976,9 +3979,32 @@ window.showSignupView = async function() {
         if (STATE.teams.length === 0) {
             STATE.teams = await TeamsAPI.list();
         }
+        
+        // Add event listener for division change to filter teams
+        const divisionSelect = document.getElementById('signup-division');
         const teamSelect = document.getElementById('signup-team');
-        teamSelect.innerHTML = '<option value="">팀 선택</option>' + 
-            STATE.teams.map(team => `<option value="${team.name}">${team.name}</option>`).join('');
+        
+        divisionSelect.addEventListener('change', function() {
+            const selectedDivision = this.value;
+            
+            if (!selectedDivision) {
+                teamSelect.innerHTML = '<option value="">팀 선택</option>';
+                teamSelect.disabled = true;
+                return;
+            }
+            
+            // Filter teams by selected division
+            const filteredTeams = STATE.teams.filter(team => team.division === selectedDivision);
+            
+            teamSelect.innerHTML = '<option value="">팀 선택</option>' + 
+                filteredTeams.map(team => `<option value="${team.name}">${team.name}</option>`).join('');
+            teamSelect.disabled = false;
+        });
+        
+        // Initialize team select as disabled
+        teamSelect.innerHTML = '<option value="">팀 선택</option>';
+        teamSelect.disabled = true;
+        
     } catch (error) {
         console.error('Error loading teams:', error);
     }

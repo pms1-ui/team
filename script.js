@@ -1823,6 +1823,10 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             return;
         }
         
+        // Debug logging
+        console.log('Login - member data:', member);
+        console.log('Login - member.team:', member.team);
+        
         // Set user with member data
         STATE.user = {
             id: member.user_id,
@@ -1833,6 +1837,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             memberId: member.id
         };
         
+        console.log('Login - STATE.user after setting:', STATE.user);
         // Save login session to localStorage
         localStorage.setItem('okr_session', JSON.stringify({
             user: STATE.user,
@@ -3958,6 +3963,10 @@ async function submitAIPoll() {
             suggestion: q8_suggestion,
             submitted_at: new Date().toISOString()
         };
+        
+        // Debug logging
+        console.log('STATE.user:', STATE.user);
+        console.log('Poll data being submitted:', pollData);
         
         // Submit to Baserow
         await PollAPI.create(pollData);

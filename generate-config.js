@@ -11,7 +11,8 @@ const BASEROW_CONFIG = {
         members: ${process.env.TABLE_MEMBERS || 1942},
         goals: ${process.env.TABLE_GOALS || 1943},
         keyResults: ${process.env.TABLE_KEY_RESULTS || 1944},
-        rnr: ${process.env.TABLE_RNR || 1945}
+        rnr: ${process.env.TABLE_RNR || 1945},
+        poll: ${process.env.TABLE_POLL || 1955}
     }
 };
 `;

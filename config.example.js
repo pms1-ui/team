@@ -9,6 +9,7 @@ const BASEROW_CONFIG = {
         members: 1942,
         goals: 1943,
         keyResults: 1944,
-        rnr: 1945
+        rnr: 1945,
+        poll: 1955
     }
 };

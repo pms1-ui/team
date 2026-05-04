@@ -3627,9 +3627,17 @@ function renderAIPoll(container) {
                     <h3 class="font-display text-lg lg:text-xl font-bold text-on-surface">AI 도구 활용 현황 설문</h3>
                 </div>
                 
-                <p class="text-on-surface-variant text-[13px] lg:text-[14px] mb-4 lg:mb-6">
+                <p class="text-on-surface-variant text-[13px] lg:text-[14px] mb-2">
                     조직 내 AI 도구 활용 현황을 파악하여 더 나은 업무 환경을 만들기 위한 설문입니다.
                 </p>
+                
+                <div class="bg-error/5 border border-error/20 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
+                    <p class="text-error text-[12px] lg:text-[13px] leading-relaxed">
+                        현재 당사에는 <strong>Gemini, Google AI Studio, OpenAI, Midjourney</strong> 등 즉시 사용 가능한 환경이 구축되어 있습니다.<br/>
+                        기존 구축된 환경 외에, 추가적으로 필요한 AI SaaS 서비스에 대해<br/>
+                        필요도가 높은 실 사용자 대상으로 공동 구매 또는 세팅을 검토하고자 하오니 신중한 설문 부탁드립니다.
+                    </p>
+                </div>
 
                 <form id="ai-poll-form" class="space-y-4 lg:space-y-6">
                     <!-- Q1: AI 도구 사용 빈도 -->

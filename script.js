@@ -3006,7 +3006,7 @@ function renderRnR(container) {
     h += '<label class="block text-[13px] font-bold text-on-surface-variant">직무기술</label>';
     h += '<button onclick="showJobExample()" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-bold rounded-md transition-all border border-primary/20">예시 보기</button>';
     h += '</div>';
-    h += '<textarea id="job-content" maxlength="2000" oninput="updateCharCount(\'job-content\', \'job-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="본인이 보유한 디자인 전문 역량과 실제 수행 가능한 업무의 범위를 상세히 작성해 주세요. ex) 사용 가능한 툴(Figma, Adobe Creative Cloud, Framer, Protopie 등)과 각 툴의 숙련도를 포함하여, UI/UX 설계, 브랜드 시스템 구축, 프로토타이핑, 또는 GUI 디자인 등 본인이 결과물을 만들어낼 수 있는 구체적인 직무 영역을 기술해 주시기 바랍니다. 예를 들어 &#39;Figma를 활용한 컴포넌트 기반의 디자인 시스템 구축 및 고도화가 가능하며, AOS/iOS 가이드라인에 맞춘 모바일 앱 UI 설계와 웹 반응형 디자인을 실무 수준에서 완행할 수 있음&#39;과 같이 본인의 기술적 스택과 업무 범위를 연결하여 작성해 주세요.">' + jobContent + '</textarea>';
+    h += '<textarea id="job-content" maxlength="2000" oninput="updateCharCount(\'job-content\', \'job-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed">' + jobContent + '</textarea>';
     h += '<div class="text-right mt-1 text-[11px] text-on-surface-variant" id="job-char-count">' + jobContent.length + ' / 2000</div>';
     h += '</div>';
     
@@ -3015,7 +3015,7 @@ function renderRnR(container) {
     h += '<label class="block text-[13px] font-bold text-on-surface-variant">R&R</label>';
     h += '<button onclick="showRnRExample()" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-bold rounded-md transition-all border border-primary/20">예시 보기</button>';
     h += '</div>';
-    h += '<textarea id="rnr-content" maxlength="2000" oninput="updateCharCount(\'rnr-content\', \'rnr-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="현재 담당하고 있는 업무와 프로젝트별 상세 과업, 그리고 각 업무에 투입되는 실제 소요 시간을 구체적으로 작성해 주세요. 주 단위 또는 월 단위로 반복되는 루틴 업무를 기재하고, 참고할 수 있는 대시보드나 리포트 링크를 반드시 첨부해 주시기 바랍니다. 특히 전체 업무 비중을 고려하여 각 항목별로 소요되는 리소스를 M/D 혹은 M/M 단위로 산정해 주세요.\n\n[마케팅 직무 작성 예시]\n- 진행 중인 캠페인의 성과 관리 및 매체 최적화(SA/DA), 데이터 추출 및 리포트 작성\n- 예: &#39;주간 매체 효율 최적화 및 소재 교체 작업에 주 2일(월 0.4 M/M)을 투입하며, 신규 프로모션 기획 및 성과 분석 리포트 작성에 월 0.3 M/M를 사용함&#39;">' + rnrContent + '</textarea>';
+    h += '<textarea id="rnr-content" maxlength="2000" oninput="updateCharCount(\'rnr-content\', \'rnr-char-count\')" rows="6" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed">' + rnrContent + '</textarea>';
     h += '<div class="text-right mt-1 text-[11px] text-on-surface-variant" id="rnr-char-count">' + rnrContent.length + ' / 2000</div>';
     h += '</div>';
     

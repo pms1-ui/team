@@ -1485,13 +1485,13 @@ function renderRequests(container) {
                             <div class="flex flex-col gap-2">
                                 <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">직무기술 수정</div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative">
+                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative overflow-hidden">
                                         <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.job || '없음'}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${r.job || '없음'}</pre>
                                     </div>
-                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
+                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm overflow-hidden">
                                         <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${tempData.job}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${tempData.job}</pre>
                                     </div>
                                 </div>
                             </div>
@@ -1500,13 +1500,13 @@ function renderRequests(container) {
                             <div class="flex flex-col gap-2">
                                 <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R 수정</div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative">
+                                    <div class="p-5 bg-error/5 text-error text-[13px] rounded-xl border border-error/10 relative overflow-hidden">
                                         <span class="absolute top-0 right-0 bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">AS-IS</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.rnr || r.content || '없음'}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${r.rnr || r.content || '없음'}</pre>
                                     </div>
-                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm">
+                                    <div class="p-5 bg-success/5 text-success text-[13px] font-bold rounded-xl border border-success/20 relative shadow-sm overflow-hidden">
                                         <span class="absolute top-0 right-0 bg-success text-white text-[11px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">TO-BE</span>
-                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap">${tempData.rnr}</pre>
+                                        <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${tempData.rnr}</pre>
                                     </div>
                                 </div>
                             </div>
@@ -1519,16 +1519,16 @@ function renderRequests(container) {
                             ${r.job ? `
                             <div class="flex flex-col gap-2">
                                 <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">직무기술</div>
-                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm">
-                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.job}</pre>
+                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${r.job}</pre>
                                 </div>
                             </div>
                             ` : ''}
                             ${r.rnr || r.content ? `
                             <div class="flex flex-col gap-2">
                                 <div class="text-[14px] font-black text-on-surface-variant uppercase tracking-wider pl-1 font-display">R&R</div>
-                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm">
-                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap">${r.rnr || r.content}</pre>
+                                <div class="p-5 text-on-surface text-[13px] bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                                    <pre class="font-sans leading-relaxed whitespace-pre-wrap break-all">${r.rnr || r.content}</pre>
                                 </div>
                             </div>
                             ` : ''}
@@ -3090,7 +3090,7 @@ function renderRnR(container) {
                 h += '<div class="mb-3">';
                 h += '<label class="block text-[11px] font-bold text-on-surface-variant mb-1">직무기술</label>';
                 h += '<div class="bg-white rounded-lg p-3 border border-blue-50">';
-                h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.job || '작성된 직무기술이 없습니다.') + '</p>';
+                h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap break-all">' + (rnr.job || '작성된 직무기술이 없습니다.') + '</p>';
                 h += '</div>';
                 h += '</div>';
             }
@@ -3098,7 +3098,7 @@ function renderRnR(container) {
             h += '<div>';
             h += '<label class="block text-[11px] font-bold text-on-surface-variant mb-1">R&R</label>';
             h += '<div class="bg-white rounded-lg p-3 border border-blue-50">';
-            h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + (rnr.rnr || rnr.content || '작성된 R&R이 없습니다.') + '</p>';
+            h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap break-all">' + (rnr.rnr || rnr.content || '작성된 R&R이 없습니다.') + '</p>';
             h += '</div>';
             h += '</div>';
             h += '</div>';

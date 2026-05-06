@@ -3120,10 +3120,10 @@ window.updateCharCount = function(textareaId, counterId) {
         counter.textContent = length + ' / 2000';
         
         // Change color based on length
-        if (length < 500) {
+        if (length < 300) {
             counter.classList.add('text-error');
             counter.classList.remove('text-on-surface-variant', 'text-success');
-        } else if (length >= 500 && length < 2000) {
+        } else if (length >= 300 && length < 2000) {
             counter.classList.add('text-success');
             counter.classList.remove('text-on-surface-variant', 'text-error');
         } else {
@@ -3242,13 +3242,13 @@ window.requestRnRAgreement = async function() {
     }
     
     // Validate minimum character count
-    if (jobContent && jobContent.length < 500) {
-        alert('직무기술은 최소 500자 이상 입력해주세요.\n현재: ' + jobContent.length + '자');
+    if (jobContent && jobContent.length < 300) {
+        alert('직무기술은 최소 300자 이상 입력해주세요.\n현재: ' + jobContent.length + '자');
         return;
     }
     
-    if (rnrContent && rnrContent.length < 500) {
-        alert('R&R은 최소 500자 이상 입력해주세요.\n현재: ' + rnrContent.length + '자');
+    if (rnrContent && rnrContent.length < 300) {
+        alert('R&R은 최소 300자 이상 입력해주세요.\n현재: ' + rnrContent.length + '자');
         return;
     }
     
@@ -3352,13 +3352,13 @@ window.requestRnRModification = async function() {
     }
     
     // Validate minimum character count
-    if (newJobContent && newJobContent.length < 500) {
-        alert('직무기술은 최소 500자 이상 입력해주세요.\n현재: ' + newJobContent.length + '자');
+    if (newJobContent && newJobContent.length < 300) {
+        alert('직무기술은 최소 300자 이상 입력해주세요.\n현재: ' + newJobContent.length + '자');
         return;
     }
     
-    if (newRnRContent && newRnRContent.length < 500) {
-        alert('R&R은 최소 500자 이상 입력해주세요.\n현재: ' + newRnRContent.length + '자');
+    if (newRnRContent && newRnRContent.length < 300) {
+        alert('R&R은 최소 300자 이상 입력해주세요.\n현재: ' + newRnRContent.length + '자');
         return;
     }
     

@@ -408,6 +408,69 @@ window.setPeriod = function(view, val) {
     renderCurrentView();
 };
 
+window.openDivisionGoalModal = function() {
+    const content = `
+        <div class="max-h-[75vh] overflow-y-auto custom-scroll">
+            <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-6 mb-6 border border-primary/10">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-[15px] font-black text-on-surface">AI 기반 운영 혁신 및 비용 최적화</h3>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="flex gap-3 p-4 bg-surface-container rounded-xl border border-blue-50">
+                    <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-white font-black text-[11px]">1</span>
+                    </div>
+                    <div>
+                        <p class="text-[13px] font-bold text-on-surface mb-1">비용 절감의 재정의</p>
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">단순 지출 억제를 넘어 DT(디지털 전환) 기반의 근본적인 운영 구조 혁신에 집중합니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 p-4 bg-surface-container rounded-xl border border-blue-50">
+                    <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-white font-black text-[11px]">2</span>
+                    </div>
+                    <div>
+                        <p class="text-[13px] font-bold text-on-surface mb-1">AI 전격 도입</p>
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">모든 업무 프로세스에 AI를 결합하여 저효율 반복 업무를 제거하고 인적 생산성을 극대화합니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 p-4 bg-surface-container rounded-xl border border-blue-50">
+                    <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-white font-black text-[11px]">3</span>
+                    </div>
+                    <div>
+                        <p class="text-[13px] font-bold text-on-surface mb-1">지능형 시스템 구축</p>
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">데이터 기반의 관리 시스템을 통해 리소스 누수를 실시간으로 차단하고 의사결정의 정밀도를 높입니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 p-4 bg-surface-container rounded-xl border border-blue-50">
+                    <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-white font-black text-[11px]">4</span>
+                    </div>
+                    <div>
+                        <p class="text-[13px] font-bold text-on-surface mb-1">효율화의 가치</p>
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">기술 중심의 프로세스 최적화로 고정비 부담은 줄이고 빠르게 프로덕트를 런칭하며, 비즈니스 대응 속도는 획기적으로 높입니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 p-4 bg-surface-container rounded-xl border border-blue-50">
+                    <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-white font-black text-[11px]">5</span>
+                    </div>
+                    <div>
+                        <p class="text-[13px] font-bold text-on-surface mb-1">체질 개선</p>
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">이러한 혁신을 통해 전사적 수익 구조를 근본적으로 개선하고 지속 가능한 고효율 모델을 완성합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    openModal('2026 운영본부 연간 주요 목표', content, null, true);
+};
+
 window.openModal = function(title, content, onConfirmAction = null, isWide = false) {
     STATE.modalData = { title, content, onConfirmAction, isWide };
     renderCurrentView();

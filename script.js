@@ -475,7 +475,7 @@ window.openDivisionGoalModal = function() {
             <!-- Objective 3 -->
             <div class="bg-white rounded-xl border border-blue-100 p-6">
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-8 h-8 bg-warning rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                         <span class="text-white font-black text-[13px]">O3</span>
                     </div>
                     <div>
@@ -485,22 +485,22 @@ window.openDivisionGoalModal = function() {
                 </div>
                 <div class="space-y-3 pl-11">
                     <div class="flex gap-2 items-start">
-                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR1</span>
+                        <span class="text-[12px] font-black text-purple-600 bg-purple-100 px-2 py-0.5 rounded flex-shrink-0">KR1</span>
                         <p class="text-[14px] text-on-surface leading-relaxed">전 브랜드 공식 앱 통합 MAU(월간 활성 사용자) 전년 대비 30% 증대</p>
                     </div>
                     <div class="flex gap-2 items-start">
-                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR2</span>
+                        <span class="text-[12px] font-black text-purple-600 bg-purple-100 px-2 py-0.5 rounded flex-shrink-0">KR2</span>
                         <p class="text-[14px] text-on-surface leading-relaxed">CX 데이터 분석을 통한 제품 개선 제안 및 실제 반영 건수 분기별 5건 이상</p>
                     </div>
                     <div class="flex gap-2 items-start">
-                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR3</span>
+                        <span class="text-[12px] font-black text-purple-600 bg-purple-100 px-2 py-0.5 rounded flex-shrink-0">KR3</span>
                         <p class="text-[14px] text-on-surface leading-relaxed">앱 내 핵심 전환 프로세스(결제/환불 등) 안정성 지수 99.9% 유지</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
-    openModal('2026 운영본부 OKR (Draft)', content, null, true);
+    openModal('2026 운영본부 OKR', content, null, true);
 };
 
 window.openModal = function(title, content, onConfirmAction = null, isWide = false) {
@@ -954,17 +954,14 @@ window.rejectAdminRequest = async function(id) {
                 
                 try {
                     if(goal.requestType === '신규 수립') {
-                        // For new requests, delete from Baserow and revert to local-only
-                        const krs = await KeyResultsAPI.listByGoalId(id);
-                        for (const kr of krs) {
-                            await KeyResultsAPI.delete(kr.id);
-                        }
-                        await GoalsAPI.delete(id);
+                        // For new requests, keep the row and set status to '거부'
+                        await GoalsAPI.update(id, {
+                            status: '거부',
+                            request_type: null,
+                            reject_comment: rejectComment
+                        });
                         
-                        // Revert to local-only state
-                        goal.id = 'temp-' + Date.now();
-                        goal.isLocalOnly = true;
-                        goal.status = '작성중';
+                        goal.status = '거부';
                         goal.requestType = null;
                         goal.reject_comment = rejectComment;
                     } else {
@@ -1087,16 +1084,16 @@ window.rejectRnRRequest = async function(id) {
                 
                 try {
                     if (rnr.request_type && rnr.request_type.includes('등록')) {
-                        // For new requests, delete the entry but keep reject comment
+                        // For new requests, keep the row and set status to '거부'
                         await RnRAPI.update(id, {
-                            status: '작성중',
+                            status: '거부',
                             request_type: null,
                             temp_content: '',
                             comment: '',
                             reject_comment: rejectComment
                         });
                         
-                        rnr.status = '작성중';
+                        rnr.status = '거부';
                         rnr.request_type = null;
                         rnr.temp_content = '';
                         rnr.comment = '';

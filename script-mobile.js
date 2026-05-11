@@ -139,7 +139,7 @@ function renderGoalsManageMobile(items) {
                 ${isPending ? `
                     <button onclick="cancelOKRRequest('${g.id}')" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
                 ` : `
-                    <button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">수정 요청</button>
+                    <button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">체크인</button>
                 `}
             </div>
         `;

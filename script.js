@@ -416,7 +416,7 @@ window.openDivisionGoalModal = function() {
                     <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <h3 class="text-[17px] font-black text-on-surface">AI 기반 운영 혁신 및 비용 최적화(포천 물류 컨버젼, 중국 글로벌 진출, 디자인 자동화, 마케팅 오퍼레이팅 및 소재 고도화, 개발 프로세스/인프라 혁신 등)</h3>
+                    <h3 class="text-[17px] font-black text-on-surface">AI 기반 운영 혁신 및 비용 최적화<br><span class="text-[14px] font-bold text-on-surface-variant">(포천 물류 컨버젼, 중국 글로벌 진출, 디자인 자동화, 마케팅 오퍼레이팅 및 소재 고도화, 개발 프로세스/인프라 혁신 등)</span></h3>
                 </div>
             </div>
             <div class="space-y-4">

@@ -44,11 +44,13 @@ function renderDashboardMobile(container, users) {
 // Goals Set - Mobile Card Layout
 function renderGoalsSetMobile(drafts) {
     return drafts.map((g, i) => {
-        const isEditable = g.status === '작성중';
+        const isEditable = g.status === '작성중' || g.status === '거부';
         const isPending = g.status.includes('대기중');
+        const isRejected = g.status === '거부';
         
         let statusBadge = '';
         if(isPending) statusBadge = `<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">승인 대기중</span>`;
+        else if(isRejected) statusBadge = `<span class="text-[10px] font-bold text-error bg-error/10 px-2 py-1 rounded">거부됨</span>`;
         else if(g.status === '합의 완료') statusBadge = `<span class="text-[10px] font-bold text-success bg-success/10 px-2 py-1 rounded">합의 완료</span>`;
         
         return `
@@ -76,7 +78,15 @@ function renderGoalsSetMobile(drafts) {
                     </div>
                 </div>
                 
-                ${isEditable ? `
+                ${isRejected ? `
+                    <div class="mb-2">
+                        ${g.reject_comment ? `<p class="text-[11px] text-error mb-2">거부 사유: ${g.reject_comment}</p>` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="submitOKRRequest('${g.id}')" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">재요청</button>
+                        <button onclick="removeOKR('${g.id}')" class="px-4 bg-white border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>
+                    </div>
+                ` : isEditable ? `
                     <div class="flex gap-2">
                         <button onclick="submitOKRRequest('${g.id}')" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">승인 요청</button>
                         <button onclick="removeOKR('${g.id}')" class="px-4 bg-white border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>

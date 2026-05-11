@@ -1332,22 +1332,31 @@ function renderGoalsSet(container) {
     }
 
     let itemsHtml = drafts.map((g, i) => {
-        const isEditable = g.status === '작성중';
+        const isEditable = g.status === '작성중' || g.status === '거부';
         const isPending = g.status.includes('대기중');
+        const isRejected = g.status === '거부';
 
         let opHtml = '';
-        if(isEditable) {
-            opHtml = `
-                <div class="flex flex-col items-center gap-2 px-1">
-                    <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">승인 요청</button>
-                    <button onclick="removeOKR('${g.id}')" class="w-full bg-surface-container text-on-surface-variant py-2 px-2 rounded-lg text-[13px] font-bold hover:bg-error hover:text-white transition-colors border border-blue-50">삭제</button>
-                </div>
-            `;
-        } else if(isPending) {
+        if(isPending) {
             opHtml = `
                 <div class="flex flex-col items-center gap-2 px-1">
                     <span class="text-on-surface-variant text-[13px] font-bold">승인 대기중</span>
                     <button onclick="cancelOKRRequest('${g.id}')" class="w-full text-error border border-error hover:bg-error/10 py-1.5 rounded-lg text-[12px] font-bold transition-colors">요청 취소</button>
+                </div>
+            `;
+        } else if(isRejected) {
+            opHtml = `
+                <div class="flex flex-col items-center gap-2 px-1">
+                    <span class="text-error font-black text-[13px]">거부됨</span>
+                    ${g.reject_comment ? `<p class="text-[11px] text-on-surface-variant text-center leading-tight">${g.reject_comment}</p>` : ''}
+                    <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">재요청</button>
+                </div>
+            `;
+        } else if(isEditable) {
+            opHtml = `
+                <div class="flex flex-col items-center gap-2 px-1">
+                    <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">승인 요청</button>
+                    <button onclick="removeOKR('${g.id}')" class="w-full bg-surface-container text-on-surface-variant py-2 px-2 rounded-lg text-[13px] font-bold hover:bg-error hover:text-white transition-colors border border-blue-50">삭제</button>
                 </div>
             `;
         } else {

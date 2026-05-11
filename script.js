@@ -296,7 +296,7 @@ function getPeriodLabel(type, value) {
 
 // Ensure temp structures exist for Manage tab
 function ensureTempStructures(goal) {
-    if(goal.status === '합의 완료' && !goal.tempKeyResults) {
+    if((goal.status === '합의 완료' || goal.status === '거부') && !goal.tempKeyResults) {
         goal.tempKeyResults = JSON.parse(JSON.stringify(goal.keyResults));
     }
 }
@@ -816,7 +816,8 @@ window.submitModifyRequest = function(id) {
     if(hasKrAddRem) edits.push('KR 항목 증감');
     if(hasKrProg) edits.push('진척률 보고');
 
-    if(edits.length === 0) { alert('변경사항이 없습니다.'); return; }
+    if(edits.length === 0 && goal.status !== '거부') { alert('변경사항이 없습니다.'); return; }
+    if(edits.length === 0 && goal.status === '거부') edits.push('재요청');
 
     const mBody = `
         <div class="mb-4 text-[13px] font-bold text-on-surface p-3 bg-surface-container rounded-lg">수정 성격 유형: <span class="text-primary ml-1">${edits.join(', ')}</span></div>
@@ -1216,7 +1217,7 @@ function generatePeriodOptions(tab, selectedValue) {
 
 // Rendering Views
 function renderDashboard(container) {
-    const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status !== '작성중');
+    const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status !== '작성중' && g.status !== '거부');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
     if(STATE.user.role !== 'admin') {
@@ -1348,7 +1349,6 @@ function renderGoalsSet(container) {
             opHtml = `
                 <div class="flex flex-col items-center gap-2 px-1">
                     <span class="text-error font-black text-[13px]">거부됨</span>
-                    ${g.reject_comment ? `<p class="text-[11px] text-on-surface-variant text-center leading-tight">${g.reject_comment}</p>` : ''}
                     <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">재요청</button>
                 </div>
             `;
@@ -1428,6 +1428,7 @@ function renderGoalsManage(container) {
     } else {
         rowsHtml = items.map((g, i) => {
             const isPending = g.status.includes('대기중');
+            const isRejected = g.status === '거부';
             
             ensureTempStructures(g);
             
@@ -1435,7 +1436,7 @@ function renderGoalsManage(container) {
             const cTitle = g.tempText !== undefined ? g.tempText : g.text;
 
             let mainRow = `
-                <tr class="hover:bg-surface-container-lowest/50 transition-colors ${g.reject_comment ? '' : 'border-b border-blue-50/50'}">
+                <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
                     <td class="py-6 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12 align-top">${i+1}</td>
                     <td class="py-6 px-6 w-[25%] border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
@@ -1465,9 +1466,11 @@ function renderGoalsManage(container) {
                     </td>
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
-                            <span class="text-[13px] font-black ${isPending?'text-warning':'text-success'}">${g.status}</span>
+                            <span class="text-[13px] font-black ${isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${isRejected ? '거부됨' : g.status}</span>
                             ${isPending ? 
                                 `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
+                                isRejected ?
+                                `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button>` :
                                 `<button onclick="console.log('Modify clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">수정 요청</button>`
                             }
                         </div>
@@ -1475,27 +1478,7 @@ function renderGoalsManage(container) {
                 </tr>
             `;
             
-            let rejectRow = '';
-            if (g.reject_comment) {
-                rejectRow = `
-                    <tr class="border-b border-blue-50/50">
-                        <td colspan="5" class="px-6 pb-6">
-                            <div class="bg-error/5 border border-error/20 rounded-lg p-4">
-                                <div class="flex items-start gap-3">
-                                    <svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <div class="flex-1">
-                                        <p class="font-bold text-error text-[14px] mb-2">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</p>
-                                        <p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트 :</p>
-                                        <p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            return mainRow + rejectRow;
+            return mainRow;
         }).join('');
     }
 

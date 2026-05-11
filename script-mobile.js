@@ -79,9 +79,6 @@ function renderGoalsSetMobile(drafts) {
                 </div>
                 
                 ${isRejected ? `
-                    <div class="mb-2">
-                        ${g.reject_comment ? `<p class="text-[11px] text-error mb-2">거부 사유: ${g.reject_comment}</p>` : ''}
-                    </div>
                     <div class="flex gap-2">
                         <button onclick="submitOKRRequest('${g.id}')" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">재요청</button>
                         <button onclick="removeOKR('${g.id}')" class="px-4 bg-white border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>

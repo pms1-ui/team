@@ -4,16 +4,16 @@ const STATE = {
     currentView: 'dashboard',
     
     // Tab states
-    dashboardTab: 'monthly',
+    dashboardTab: 'quarterly',
     dashboardPeriodValue: '',
     
-    goalsSetTab: 'monthly',
+    goalsSetTab: 'quarterly',
     goalsSetPeriodValue: '',
     
-    goalsManageTab: 'monthly',
+    goalsManageTab: 'quarterly',
     goalsManagePeriodValue: '',
     
-    requestsTab: 'monthly',
+    requestsTab: 'quarterly',
     requestsPeriodValue: '',
     
     // Modal State
@@ -187,8 +187,8 @@ async function loadDataFromBaserow() {
                 { 
                     id: 101, 
                     userId: 'member', 
-                    periodType: 'monthly', 
-                    periodValue: '2026-04', 
+                    periodType: 'quarterly', 
+                    periodValue: '2026-Q2', 
                     text: '전사 UI/UX 품질 혁신', 
                     keyResults: [
                         { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
@@ -202,8 +202,8 @@ async function loadDataFromBaserow() {
                 { 
                     id: 201, 
                     userId: 'member2', 
-                    periodType: 'monthly', 
-                    periodValue: '2026-04', 
+                    periodType: 'quarterly', 
+                    periodValue: '2026-Q2', 
                     text: '고객 만족도 향상 프로젝트', 
                     keyResults: [
                         { id: 'kr201-1', text: 'CS 응답 시간 30% 단축', progress: 55 },
@@ -251,8 +251,8 @@ async function loadDataFromBaserow() {
             { 
                 id: 101, 
                 userId: 'member', 
-                periodType: 'monthly', 
-                periodValue: '2026-04', 
+                periodType: 'quarterly', 
+                periodValue: '2026-Q2', 
                 text: '전사 UI/UX 품질 혁신', 
                 keyResults: [
                     { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
@@ -274,23 +274,21 @@ async function loadDataFromBaserow() {
 function getDefaultPeriodValue(type) {
     const d = new Date();
     const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
-    if(type === 'monthly') return `${currYear}-${String(d.getMonth()+1).padStart(2, '0')}`;
     if(type === 'quarterly') return `${currYear}-Q${Math.floor(d.getMonth()/3)+1}`;
     return `${currYear}`;
 }
 
 function initDates() {
-    STATE.dashboardPeriodValue = getDefaultPeriodValue('monthly');
-    STATE.goalsSetPeriodValue = getDefaultPeriodValue('monthly');
-    STATE.goalsManagePeriodValue = getDefaultPeriodValue('monthly');
-    STATE.requestsPeriodValue = getDefaultPeriodValue('monthly');
+    STATE.dashboardPeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.goalsSetPeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.goalsManagePeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.requestsPeriodValue = getDefaultPeriodValue('quarterly');
 }
 initDates();
 
 // --- Helpers ---
 function getPeriodLabel(type, value) {
     if(!value) return '알 수 없음';
-    if (type === 'monthly') return `${value.split('-')[0]}년 ${value.split('-')[1]}월`;
     if (type === 'quarterly') return `${value.split('-')[0]}년 ${value.split('-')[1]}분기`;
     if (type === 'yearly') return `${value}년`;
     return value;
@@ -1115,13 +1113,7 @@ function generatePeriodOptions(tab, selectedValue) {
     let html = '';
     const d = new Date();
     const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
-    if (tab === 'monthly') {
-        const startMonth = STATE.currentView === 'dashboard' ? 1 : (d.getMonth() + 1);
-        for(let m = startMonth; m <= 12; m++) {
-            let val = `${currYear}-${String(m).padStart(2, '0')}`;
-            html += `<option value="${val}" ${selectedValue === val ? 'selected' : ''}>${currYear}년 ${m}월</option>`;
-        }
-    } else if (tab === 'quarterly') {
+    if (tab === 'quarterly') {
         const startQ = STATE.currentView === 'dashboard' ? 1 : (Math.floor(d.getMonth()/3)+1);
         for(let q = startQ; q <= 4; q++) html += `<option value="${currYear}-Q${q}" ${selectedValue === `${currYear}-Q${q}` ? 'selected' : ''}>${currYear}년 ${q}분기</option>`;
     } else if (tab === 'yearly') {
@@ -1144,7 +1136,6 @@ function renderDashboard(container) {
     const isMobile = window.innerWidth < 1024;
     
     let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
-    h += '<button onclick="setTab(\'dashboard\', \'monthly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">월별</button>';
     h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
     h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
     h += '</div>';
@@ -1297,7 +1288,6 @@ function renderGoalsSet(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -1410,7 +1400,6 @@ function renderGoalsManage(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -1626,7 +1615,6 @@ function renderRequests(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('requests', 'monthly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -2355,7 +2343,6 @@ renderGoalsSet = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_set', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -2388,7 +2375,6 @@ renderGoalsManage = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_manage', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -2430,7 +2416,6 @@ renderRequests = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('requests', 'monthly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'monthly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">월별</button>
             <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
@@ -2693,40 +2678,6 @@ function renderGuide(container) {
                 </div>
 
                 <div class="space-y-6">
-                    <!-- 월간 OKR -->
-                    <div class="border border-blue-100 rounded-xl p-6 hover:border-primary/30 transition-all">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                                <span class="text-blue-600 font-black text-sm">월간</span>
-                            </div>
-                            <h4 class="font-bold text-on-surface text-lg">월간 OKR</h4>
-                        </div>
-                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
-                            <div class="bg-surface-container rounded-lg p-4">
-                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
-                                <p class="text-[13px] text-on-surface font-medium">매월 마지막 주</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">다음 달 목표 설정</p>
-                            </div>
-                            <div class="bg-surface-container rounded-lg p-4">
-                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
-                                <p class="text-[13px] text-on-surface font-medium">주 1회 (매주 금요일)</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">진척률 업데이트</p>
-                            </div>
-                            <div class="bg-surface-container rounded-lg p-4">
-                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
-                                <p class="text-[13px] text-on-surface font-medium">매월 마지막 날</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">달성도 평가 및 회고</p>
-                            </div>
-                        </div>
-                        <div class="bg-blue-50/50 rounded-lg p-4">
-                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
-                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
-                                단기 실행 과제에 집중하세요. 구체적이고 즉시 실행 가능한 목표를 설정하고, 
-                                주간 체크인을 통해 빠르게 방향을 조정할 수 있습니다.
-                            </p>
-                        </div>
-                    </div>
-
                     <!-- 분기별 OKR -->
                     <div class="border border-blue-100 rounded-xl p-6 hover:border-primary/30 transition-all">
                         <div class="flex items-center gap-3 mb-4">
@@ -2755,7 +2706,7 @@ function renderGuide(container) {
                         <div class="bg-primary/5 rounded-lg p-4">
                             <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
                             <p class="text-[13px] text-on-surface-variant leading-relaxed">
-                                전략적 프로젝트와 중기 목표에 적합합니다. 월간 OKR보다 도전적인 목표를 설정하고, 
+                                전략적 프로젝트와 중기 목표에 적합합니다. 도전적인 목표를 설정하고, 
                                 월별 체크인을 통해 진행 상황을 모니터링하세요.
                             </p>
                         </div>

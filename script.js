@@ -410,65 +410,97 @@ window.setPeriod = function(view, val) {
 
 window.openDivisionGoalModal = function() {
     const content = `
-        <div class="max-h-[75vh] overflow-y-auto custom-scroll">
-            <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-6 mb-6 border border-primary/10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <div class="max-h-[75vh] overflow-y-auto custom-scroll space-y-6">
+            <!-- 핵심 과제 요약 -->
+            <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-6 border border-primary/10">
+                <h3 class="text-[16px] font-black text-on-surface mb-2">2026년 운영본부 핵심 과제</h3>
+                <p class="text-[14px] text-on-surface-variant leading-relaxed">비용 절감이라는 '내실'과 글로벌 진출 및 DT라는 '성장'의 균형을 잡는 것이 이번 OKR의 핵심입니다.</p>
+                <p class="text-[14px] text-on-surface font-bold mt-3">슬로건: "효율을 넘어 가치로, 로컬을 넘어 글로벌로"</p>
+            </div>
+
+            <!-- Objective 1 -->
+            <div class="bg-white rounded-xl border border-blue-100 p-6">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-white font-black text-[13px]">O1</span>
                     </div>
-                    <h3 class="text-[17px] font-black text-on-surface">AI 기반 운영 혁신 및 비용 최적화<br><span class="text-[14px] font-bold text-on-surface-variant">(포천 물류 컨버젼, 중국 글로벌 진출, 디자인 자동화, 마케팅 오퍼레이팅 및 소재 고도화, 개발 프로세스/인프라 혁신 등)</span></h3>
+                    <div>
+                        <h4 class="text-[15px] font-black text-on-surface">기술과 혁신을 통한 압도적 운영 효율화 및 수익 구조 개선</h4>
+                        <p class="text-[13px] text-on-surface-variant mt-1">인력 효율화 이후의 공백을 AI와 시스템으로 메우고, 불필요한 비용을 제거하여 본부의 존재 가치를 증명합니다.</p>
+                    </div>
+                </div>
+                <div class="space-y-3 pl-11">
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded flex-shrink-0">KR1</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">AI 룩북 및 업무 자동화 솔루션 도입을 통해 콘텐츠 제작 비용 및 운영 리소스 50% 절감</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded flex-shrink-0">KR2</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">전사 업무 DT 기반 구축을 위한 1단계 통합 대시보드 구축 및 유관 부서 활용도 50% 달성</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded flex-shrink-0">KR3</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">본부 내 인당 생산성 지표(Revenue per Head) 전년 대비 20% 향상</p>
+                    </div>
                 </div>
             </div>
-            <div class="space-y-4">
-                <div class="flex gap-4 p-5 bg-surface-container rounded-xl border border-blue-50">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span class="text-white font-black text-[13px]">1</span>
+
+            <!-- Objective 2 -->
+            <div class="bg-white rounded-xl border border-blue-100 p-6">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-8 h-8 bg-success rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-white font-black text-[13px]">O2</span>
                     </div>
                     <div>
-                        <p class="text-[15px] font-bold text-on-surface mb-1">비용 절감의 재정의</p>
-                        <p class="text-[14px] text-on-surface-variant leading-relaxed">단순 지출 억제를 넘어 DT(디지털 전환) 기반의 근본적인 운영 구조 혁신에 집중합니다.</p>
+                        <h4 class="text-[15px] font-black text-on-surface">글로벌 표준 물류 체계 구축 및 JV 운영 기반 확립</h4>
+                        <p class="text-[13px] text-on-surface-variant mt-1">전사 통합 물류의 안정적 안착을 넘어, 글로벌 파트너(JV)가 브랜드 가치를 유지하며 유통할 수 있는 표준 운영 체계(Playbook)를 마련합니다.</p>
                     </div>
                 </div>
-                <div class="flex gap-4 p-5 bg-surface-container rounded-xl border border-blue-50">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span class="text-white font-black text-[13px]">2</span>
+                <div class="space-y-3 pl-11">
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-success bg-success/10 px-2 py-0.5 rounded flex-shrink-0">KR1</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed"><span class="text-[12px] font-bold text-on-surface-variant">[내실: 통합 물류 안정화]</span> 신규 물류센터로의 전사 브랜드 이관 100% 완료, 자체 물류 당일 입/출고 완료율 80% 이상 관리</p>
                     </div>
-                    <div>
-                        <p class="text-[15px] font-bold text-on-surface mb-1">AI 전격 도입</p>
-                        <p class="text-[14px] text-on-surface-variant leading-relaxed">모든 업무 프로세스에 AI를 결합하여 저효율 반복 업무를 제거하고 인적 생산성을 극대화합니다.</p>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-success bg-success/10 px-2 py-0.5 rounded flex-shrink-0">KR2</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed"><span class="text-[12px] font-bold text-on-surface-variant">[기반: 중국 JV 거버넌스]</span> 중국 JV의 원활한 유통을 위한 SCM 데이터 연동 규격 정의 및 운영 가이드라인(SOP) 수립</p>
                     </div>
-                </div>
-                <div class="flex gap-4 p-5 bg-surface-container rounded-xl border border-blue-50">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span class="text-white font-black text-[13px]">3</span>
-                    </div>
-                    <div>
-                        <p class="text-[15px] font-bold text-on-surface mb-1">지능형 시스템 구축</p>
-                        <p class="text-[14px] text-on-surface-variant leading-relaxed">데이터 기반의 관리 시스템을 통해 리소스 누수를 실시간으로 차단하고 의사결정의 정밀도를 높입니다.</p>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-success bg-success/10 px-2 py-0.5 rounded flex-shrink-0">KR3</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed"><span class="text-[12px] font-bold text-on-surface-variant">[확장: 글로벌 인프라 레디니스]</span> 해외 진출용 결제/물류 API 표준화 및 타겟 국가별 현지화 물류 프로세스 검증</p>
                     </div>
                 </div>
-                <div class="flex gap-4 p-5 bg-surface-container rounded-xl border border-blue-50">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span class="text-white font-black text-[13px]">4</span>
+            </div>
+
+            <!-- Objective 3 -->
+            <div class="bg-white rounded-xl border border-blue-100 p-6">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-8 h-8 bg-warning rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-white font-black text-[13px]">O3</span>
                     </div>
                     <div>
-                        <p class="text-[15px] font-bold text-on-surface mb-1">효율화의 가치</p>
-                        <p class="text-[14px] text-on-surface-variant leading-relaxed">기술 중심의 프로세스 최적화로 고정비 부담은 줄이고 빠르게 프로덕트를 런칭하며, 비즈니스 대응 속도는 획기적으로 높입니다.</p>
+                        <h4 class="text-[15px] font-black text-on-surface">고객 경험(CX) 고도화를 통한 브랜드 로열티 및 앱 활성 지표 강화</h4>
+                        <p class="text-[13px] text-on-surface-variant mt-1">단순 CS를 넘어 데이터 기반의 DX 활동으로 고객을 묶어두는(Lock-in) 전략입니다.</p>
                     </div>
                 </div>
-                <div class="flex gap-4 p-5 bg-surface-container rounded-xl border border-blue-50">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span class="text-white font-black text-[13px]">5</span>
+                <div class="space-y-3 pl-11">
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR1</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">전 브랜드 공식 앱 통합 MAU(월간 활성 사용자) 전년 대비 30% 증대</p>
                     </div>
-                    <div>
-                        <p class="text-[15px] font-bold text-on-surface mb-1">체질 개선</p>
-                        <p class="text-[14px] text-on-surface-variant leading-relaxed">이러한 혁신을 통해 전사적 수익 구조를 근본적으로 개선하고 지속 가능한 고효율 모델을 완성합니다.</p>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR2</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">CX 데이터 분석을 통한 제품 개선 제안 및 실제 반영 건수 분기별 5건 이상</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-[12px] font-black text-warning bg-warning/10 px-2 py-0.5 rounded flex-shrink-0">KR3</span>
+                        <p class="text-[14px] text-on-surface leading-relaxed">앱 내 핵심 전환 프로세스(결제/환불 등) 안정성 지수 99.9% 유지</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
-    openModal('2026 운영본부 연간 주요 목표', content, null, true);
+    openModal('2026 운영본부 OKR (Draft)', content, null, true);
 };
 
 window.openModal = function(title, content, onConfirmAction = null, isWide = false) {

@@ -1267,7 +1267,12 @@ function renderCurrentView() {
     // Auto-resize all textareas after render and sync progress row heights
     setTimeout(() => {
         document.querySelectorAll('textarea[oninput*="scrollHeight"]').forEach(ta => {
+            // Reset height to recalculate
             ta.style.height = 'auto';
+            // Set rows based on content line count for proper initial sizing
+            const lines = (ta.value || '').split('\n').length;
+            ta.rows = Math.max(1, lines);
+            // Then use scrollHeight for accurate pixel height
             ta.style.height = ta.scrollHeight + 'px';
             // Sync corresponding progress row height
             const oninput = ta.getAttribute('oninput') || '';
@@ -1275,11 +1280,11 @@ function renderCurrentView() {
             if (match) {
                 const progRow = document.getElementById('kr-prog-row-' + match[1]);
                 if (progRow) {
-                    progRow.style.height = ta.style.height;
+                    progRow.style.minHeight = ta.scrollHeight + 'px';
                 }
             }
         });
-    }, 0);
+    }, 50);
 }
 
 function generatePeriodOptions(tab, selectedValue) {

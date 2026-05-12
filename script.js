@@ -1264,25 +1264,13 @@ function renderCurrentView() {
         if(modal) modal.remove();
     }
     
-    // Auto-resize all textareas after render and sync progress row heights
+    // Auto-resize all textareas after render
     setTimeout(() => {
         document.querySelectorAll('textarea[oninput*="scrollHeight"]').forEach(ta => {
-            // Reset height to recalculate
             ta.style.height = 'auto';
-            // Set rows based on content line count for proper initial sizing
             const lines = (ta.value || '').split('\n').length;
             ta.rows = Math.max(1, lines);
-            // Then use scrollHeight for accurate pixel height
             ta.style.height = ta.scrollHeight + 'px';
-            // Sync corresponding progress row height
-            const oninput = ta.getAttribute('oninput') || '';
-            const match = oninput.match(/kr-prog-row-([\w-]+)/);
-            if (match) {
-                const progRow = document.getElementById('kr-prog-row-' + match[1]);
-                if (progRow) {
-                    progRow.style.minHeight = ta.scrollHeight + 'px';
-                }
-            }
         });
     }, 50);
 }
@@ -1545,27 +1533,21 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-6 ${g.periodType === 'yearly' ? 'w-[45%]' : 'w-[25%]'} border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
                     </td>
-                    ${g.periodType !== 'yearly' ? `<td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
+                    ${g.periodType !== 'yearly' ? `<td class="py-6 px-6 w-[60%] border-r border-blue-50/30 align-top" colspan="2">
                         <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
-                                <div class="flex group items-center gap-2 min-h-[44px]">
-                                    <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px'; document.getElementById('kr-prog-row-${kr.id}').style.height=this.style.height;" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
-                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                <div class="flex group items-start gap-3">
+                                    <div class="flex-1 flex items-start gap-2">
+                                        <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
+                                        ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="mt-2 px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                    </div>
+                                    <div class="flex items-center gap-2 w-[180px] shrink-0 pt-2">
+                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer">
+                                        <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${kr.progress}%</span>
+                                    </div>
                                 </div>
                             `).join('')}
                             ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
-                        </div>
-                    </td>
-                    <td class="py-6 px-4 w-[25%] border-r border-blue-50/30 align-top">
-                        <div class="flex flex-col gap-4">
-                            ${krsToRender.map(kr => {
-                                return `
-                                    <div id="kr-prog-row-${kr.id}" class="flex items-center justify-between px-4 min-h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
-                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
-                                        <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${kr.progress}%</span>
-                                    </div>
-                                `;
-                            }).join('')}
                         </div>
                     </td>` : `<td class="py-6 px-4 border-r border-blue-50/30 align-top">
                         <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
@@ -1614,8 +1596,7 @@ function renderGoalsManage(container) {
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Objective</th>
-                        ${STATE.goalsManageTab !== 'yearly' ? `<th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>` : `<th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률</th>`}
+                        ${STATE.goalsManageTab !== 'yearly' ? `<th class="py-4 px-6 border-r border-blue-50/30" colspan="2">Key Results / 진척률</th>` : `<th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률</th>`}
                         <th class="py-4 px-4 text-center">상태</th>
                     </tr>
                 </thead>

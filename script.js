@@ -2752,8 +2752,12 @@ function renderFeedbackDashboard(container) {
             ? (directorAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / directorAssessments.length).toFixed(1)
             : '-';
         
-        const tlFeedback = teamLeaderAssessments.length > 0 ? '완료' : '미완료';
-        const dirFeedback = directorAssessments.length > 0 ? '완료' : '미완료';
+        const tlFeedbackHtml = teamLeaderAssessments.length > 0 
+            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[12px] font-bold text-primary hover:text-primary-dim bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
+        const dirFeedbackHtml = directorAssessments.length > 0 
+            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[12px] font-bold text-purple-600 hover:text-purple-700 bg-purple-100 hover:bg-purple-200 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
 
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
@@ -2768,13 +2772,13 @@ function renderFeedbackDashboard(container) {
                     </div>
                 </td>
                 <td class="py-4 px-4 text-center">
-                    <span class="text-[12px] font-bold ${tlFeedback === '완료' ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container'} px-2 py-1 rounded-full">${tlFeedback}</span>
+                    ${tlFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
                     <span class="text-[14px] font-bold ${tlScore !== '-' ? 'text-primary' : 'text-on-surface-variant'}">${tlScore}</span>
                 </td>
                 <td class="py-4 px-4 text-center">
-                    <span class="text-[12px] font-bold ${dirFeedback === '완료' ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container'} px-2 py-1 rounded-full">${dirFeedback}</span>
+                    ${dirFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
                     <span class="text-[14px] font-bold ${dirScore !== '-' ? 'text-purple-600' : 'text-on-surface-variant'}">${dirScore}</span>
@@ -2829,6 +2833,29 @@ async function loadAssessmentData() {
         STATE.assessmentData = [];
     }
 }
+
+window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
+    try {
+        const assessments = JSON.parse(decodeURIComponent(encodedData));
+        let content = `<div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">`;
+        assessments.forEach(a => {
+            content += `
+                <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[13px] font-bold text-on-surface">${a.goal_text || 'OKR'}</p>
+                        <span class="text-[12px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">${a.score || '-'}점</span>
+                    </div>
+                    <p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${a.feedback || '피드백 없음'}</p>
+                    <p class="text-[11px] text-on-surface-variant mt-3">작성자: ${a.reviewer_name || '-'} | ${a.created_at ? new Date(a.created_at).toLocaleDateString('ko-KR') : '-'}</p>
+                </div>
+            `;
+        });
+        content += `</div>`;
+        openModal(memberName + ' - ' + reviewerType + ' 피드백', content, null, true);
+    } catch (e) {
+        console.error('Error showing feedback modal:', e);
+    }
+};
 
 window.submitFeedback = async function() {
     const selectedMemberId = STATE.feedbackSelectedMember;

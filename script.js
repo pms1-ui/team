@@ -315,7 +315,7 @@ function ensureTempStructures(goal) {
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
-    { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-set' },
+
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
@@ -1457,7 +1457,7 @@ function renderGoalsSet(container) {
 }
 
 function renderGoalsManage(container) {
-    const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue && g.status !== '작성중');
+    const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue);
     
     let rowsHtml = '';
     if(items.length === 0) {
@@ -1481,9 +1481,9 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         ${g.periodType === 'yearly' ? '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
-                                <div class="flex group items-center gap-2 h-[44px]">
-                                    <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="h-full w-full bg-white border border-blue-100 rounded-lg px-3 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all">
-                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="h-full px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                                <div class="flex group items-center gap-2">
+                                    <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
+                                    ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                                 </div>
                             `).join('')}
                             ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
@@ -1503,8 +1503,11 @@ function renderGoalsManage(container) {
                     </td>
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
-                            <span class="text-[13px] font-black ${isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${isRejected ? '거부됨' : g.status}</span>
-                            ${isPending ? 
+                            <span class="text-[13px] font-black ${g.status === '작성중' ? 'text-on-surface-variant' : isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${g.status === '작성중' ? '작성중' : isRejected ? '거부됨' : g.status}</span>
+                            ${g.status === '작성중' ?
+                                `<button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">승인 요청</button>
+                                <button onclick="removeOKR('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">삭제</button>` :
+                            isPending ? 
                                 `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
                                 isRejected ?
                                 `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button>` :
@@ -1524,10 +1527,14 @@ function renderGoalsManage(container) {
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
-        <div class="mb-4 w-full">
+        <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
             </select>
+            <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                새 OKR 추가
+            </button>
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">
@@ -2489,7 +2496,7 @@ renderGoalsSet = function(container) {
 };
 
 renderGoalsManage = function(container) {
-    const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue && g.status !== '작성중');
+    const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue);
     const isMobile = window.innerWidth < 1024;
     
     let h = `
@@ -2497,10 +2504,14 @@ renderGoalsManage = function(container) {
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
-        <div class="mb-4 w-full">
-            <select onchange="setPeriod('goals_manage', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+        <div class="mb-4 w-full flex items-center justify-between">
+            <select onchange="setPeriod('goals_manage', this.value)" class="w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
             </select>
+            <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                새 OKR 추가
+            </button>
         </div>
     `;
     

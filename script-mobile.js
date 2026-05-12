@@ -104,6 +104,8 @@ function renderGoalsManageMobile(items) {
     
     return items.map((g, i) => {
         const isPending = g.status.includes('대기중');
+        const isDraft = g.status === '작성중';
+        const isRejected = g.status === '거부';
         ensureTempStructures(g);
         const krsToRender = g.tempKeyResults || g.keyResults;
         const cTitle = g.tempText !== undefined ? g.tempText : g.text;
@@ -112,7 +114,9 @@ function renderGoalsManageMobile(items) {
             <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-4 mb-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-black text-on-surface-variant">No. ${i+1}</span>
-                    ${isPending ? `<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">승인 대기중</span>` : ''}
+                    ${isDraft ? `<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">작성중</span>` :
+                    isPending ? `<span class="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">승인 대기중</span>` :
+                    isRejected ? `<span class="text-[10px] font-bold text-error bg-error/10 px-2 py-1 rounded">거부됨</span>` : ''}
                 </div>
                 
                 <div class="mb-3">
@@ -125,19 +129,27 @@ function renderGoalsManageMobile(items) {
                     ${g.periodType === 'yearly' ? '<div class="text-[11px] text-on-surface-variant italic">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="space-y-3">
                         ${krsToRender.map(kr => `
                             <div class="bg-surface-container rounded-lg p-3">
-                                <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60">
+                                <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60 resize-none overflow-hidden">${kr.text}</textarea>
                                 <div class="flex items-center gap-2">
                                     <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
                                     <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[12px] min-w-[35px] text-right">${kr.progress}%</span>
                                 </div>
                             </div>
                         `).join('')}
-                        ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
+                        ${!isPending && !isDraft ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
+                        ${isDraft ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
                     </div>`}
                 </div>
                 
-                ${isPending ? `
+                ${isDraft ? `
+                    <div class="flex gap-2">
+                        <button onclick="submitOKRRequest('${g.id}')" class="flex-1 bg-primary text-white py-2 rounded-lg text-[12px] font-bold">승인 요청</button>
+                        <button onclick="removeOKR('${g.id}')" class="flex-1 border border-error text-error py-2 rounded-lg text-[12px] font-bold">삭제</button>
+                    </div>
+                ` : isPending ? `
                     <button onclick="cancelOKRRequest('${g.id}')" class="w-full border border-error text-error py-2 rounded-lg text-[12px] font-bold">요청 취소</button>
+                ` : isRejected ? `
+                    <button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">재요청</button>
                 ` : `
                     <button onclick="submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[12px] font-bold">체크인</button>
                 `}

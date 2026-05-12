@@ -3039,7 +3039,7 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
                 <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-[13px] font-bold text-on-surface">${a.goal_text || 'OKR'}</p>
-                        <span class="text-[12px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">${a.score || '-'}점</span>
+                        <span class="text-[12px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">${a.score || '-'}</span>
                     </div>
                     <p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${a.feedback || '피드백 없음'}</p>
                     <p class="text-[11px] text-on-surface-variant mt-3">작성자: ${a.reviewer_name || '-'} | ${a.created_at ? new Date(a.created_at).toLocaleDateString('ko-KR') : '-'}</p>

@@ -3222,46 +3222,65 @@ window.showJobExample = function() {
 // Show R&R example
 window.showRnRExample = function() {
     const exampleContent = `
-        <div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">
-            <div class="bg-purple-50/50 rounded-xl p-5 border border-purple-100">
-                <h4 class="font-bold text-on-surface text-[15px] mb-3 flex items-center gap-2">
+        <div class="space-y-5 max-h-[70vh] overflow-y-auto custom-scroll">
+            <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-5 border border-primary/10">
+                <h4 class="font-bold text-on-surface text-[15px] mb-2">현재 vs 미래 구분 작성</h4>
+                <p class="text-[14px] text-on-surface-variant leading-relaxed">이번 작성에서는 현재 수행 중인 과업과 앞으로 지향하는 목표를 아래와 같이 분리하여 입력해 주세요.</p>
+                <div class="mt-3 space-y-2">
+                    <div class="flex items-start gap-2">
+                        <span class="text-[12px] font-black text-white bg-primary px-2 py-0.5 rounded flex-shrink-0">현재</span>
+                        <p class="text-[13px] text-on-surface">지금 당장 내가 책임지고 수행하고 있는 실제 업무와 역할</p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-[12px] font-black text-white bg-purple-600 px-2 py-0.5 rounded flex-shrink-0">미래</span>
+                        <p class="text-[13px] text-on-surface">향후 도전하고 싶은 업무, 확장하고 싶은 전문성, 또는 본인의 커리어 목적성이 반영된 역할</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 border border-blue-100">
+                <h4 class="font-bold text-on-surface text-[15px] mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
-                    퍼포먼스 마케터 R&R 예시
+                    퍼포먼스 마케터 R&R 작성 예시
                 </h4>
-                <div class="bg-white rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-3">
-                    <p class="font-bold text-primary">[ 주요 담당 업무 ]</p>
-                    
-                    <p><strong>1. 마케팅 믹스 전략 수립 및 예산 관리 (월 0.3 M/M)</strong></p>
-                    <p>• 월간 마케팅 예산 배분 계획 수립 및 채널별 ROI 분석을 통한 최적 예산 분배</p>
-                    <p>• 네이버 SA/DA, 메타(Facebook/Instagram), 구글 애즈 등 주요 매체별 예산 집행 및 성과 모니터링</p>
-                    <p>• 주간 예산 소진율 및 CPA, ROAS 지표 추적, 월간 마케팅 성과 리포트 작성</p>
-                    
-                    <p><strong>2. 차일디 브랜드 캠페인 성과 관리 및 운영 (월 0.5 M/M)</strong></p>
-                    <p>• 네이버 브랜드검색, 메타 브랜드 캠페인 기획 및 소재 제작 협업(디자인팀)</p>
-                    <p>• 주간 캠페인 성과 분석(CTR, CVR, CPC) 및 A/B 테스트를 통한 소재 최적화</p>
-                    <p>• 실시간 입찰 전략 조정 및 타겟 오디언스 세그먼트 관리</p>
-                    <p>• 참고 대시보드: https://analytics.childy.com/campaign-dashboard</p>
-                    
-                    <p><strong>3. 네이버 광고 운영 (SA/DA/쇼핑) (월 0.4 M/M)</strong></p>
-                    <p>• 네이버 검색광고(SA) 키워드 발굴, 입찰가 조정, 품질지수 관리</p>
-                    <p>• 네이버 디스플레이광고(DA) 소재 교체 및 타겟팅 최적화(주 2회)</p>
-                    <p>• 네이버 쇼핑 광고 상품 등록 및 성과 개선, 월간 매출 기여도 분석</p>
-                    
-                    <p><strong>4. 메타 광고 운영 및 최적화 (월 0.3 M/M)</strong></p>
-                    <p>• Facebook/Instagram 광고 캠페인 세팅, 픽셀 이벤트 추적 및 전환 최적화</p>
-                    <p>• 오디언스 네트워크 확장 및 리타겟팅 캠페인 운영</p>
-                    <p>• 주간 광고 소재 성과 분석 및 크리에이티브 개선 제안</p>
-                    
-                    <p><strong>5. 데이터 분석 및 리포팅 (월 0.2 M/M)</strong></p>
-                    <p>• Google Analytics, 네이버 애널리틱스 데이터 추출 및 인사이트 도출</p>
-                    <p>• 월간 마케팅 성과 리포트 작성(매출 기여도, CAC, LTV 분석)</p>
-                    <p>• 경쟁사 벤치마킹 및 시장 트렌드 분석 자료 정리</p>
-                    
-                    <p class="text-[11px] text-on-surface-variant mt-4 pt-3 border-t border-purple-100">
-                        <strong>글자수:</strong> 약 850자 | <strong>총 리소스:</strong> 1.7 M/M | 구체적인 업무 내용과 소요 시간을 M/M 단위로 명시
-                    </p>
+
+                <div class="mb-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[13px] font-black text-white bg-primary px-3 py-1 rounded">현재 (As-Is)</span>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-2">
+                        <p><strong>1. 마케팅 믹스 전략 수립 및 예산 관리 (월 0.3 M/M)</strong></p>
+                        <p>• 월간 마케팅 예산 배분 계획 수립 및 채널별 ROI 분석을 통한 최적 예산 분배</p>
+                        <p>• 네이버 SA/DA, 메타, 구글 애즈 등 주요 매체별 예산 집행 및 성과 모니터링</p>
+                        <p>• 주간 예산 소진율 및 CPA, ROAS 지표 추적, 월간 마케팅 성과 리포트 작성</p>
+                        <p class="mt-3"><strong>2. 브랜드 캠페인 성과 관리 및 운영 (월 0.5 M/M)</strong></p>
+                        <p>• 네이버 브랜드검색, 메타 브랜드 캠페인 기획 및 소재 제작 협업</p>
+                        <p>• 주간 캠페인 성과 분석(CTR, CVR, CPC) 및 A/B 테스트를 통한 소재 최적화</p>
+                        <p>• 실시간 입찰 전략 조정 및 타겟 오디언스 세그먼트 관리</p>
+                        <p class="mt-3"><strong>3. 네이버 광고 운영 (SA/DA/쇼핑) (월 0.4 M/M)</strong></p>
+                        <p>• 네이버 검색광고 키워드 발굴, 입찰가 조정, 품질지수 관리</p>
+                        <p>• 네이버 디스플레이광고 소재 교체 및 타겟팅 최적화(주 2회)</p>
+                        <p>• 네이버 쇼핑 광고 상품 등록 및 성과 개선</p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[13px] font-black text-white bg-purple-600 px-3 py-1 rounded">미래 (To-Be)</span>
+                    </div>
+                    <div class="bg-purple-50/50 rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-2">
+                        <p><strong>1. AI 기반 광고 자동화 시스템 구축 리드</strong></p>
+                        <p>• AI 소재 생성 및 자동 최적화 파이프라인 설계, 크리에이티브 자동화 도입</p>
+                        <p>• 예측 모델 기반 예산 자동 배분 시스템 기획 및 도입 주도</p>
+                        <p class="mt-3"><strong>2. 그로스 마케팅 전략가로의 확장</strong></p>
+                        <p>• 퍼포먼스 영역을 넘어 CRM, 리텐션 마케팅까지 포괄하는 풀퍼널 전략 수립</p>
+                        <p>• 데이터 사이언스팀과 협업하여 고객 LTV 예측 모델 기반 마케팅 의사결정 체계 구축</p>
+                        <p class="mt-3"><strong>3. 글로벌 마케팅 역량 확보</strong></p>
+                        <p>• 해외 시장(중국, 동남아) 진출 시 현지 매체 운영 및 로컬라이징 전략 수립</p>
+                        <p>• 글로벌 광고 플랫폼(TikTok Ads, WeChat 등) 운영 역량 확보</p>
+                    </div>
                 </div>
             </div>
         </div>

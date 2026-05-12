@@ -22,6 +22,8 @@ const STATE = {
     feedbackPeriod: '2026-Q2',
     feedbackView: 'dashboard',
     feedbackDashPeriod: '2026-Q2',
+    feedbackTeamFilter: 'all',
+    feedbackDashTeamFilter: 'all',
     assessmentData: [],
     
     // Modal State
@@ -2618,7 +2620,12 @@ function renderFeedback(container) {
         hasUnreviewedGoals = memberGoals.some(g => !existingFeedback.find(a => a.goal_id == g.id));
     }
 
-    let memberOptions = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m => 
+    const selectedTeam = STATE.feedbackTeamFilter || 'all';
+    let teamOptionsHtml = `<option value="all" ${selectedTeam === 'all' ? 'selected' : ''}>전체 팀</option>` + 
+        STATE.teams.map(t => `<option value="${t.name}" ${selectedTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+
+    const filteredMembers = selectedTeam === 'all' ? STATE.members : STATE.members.filter(m => m.team === selectedTeam);
+    let memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m => 
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
     ).join('');
 
@@ -2681,6 +2688,9 @@ function renderFeedback(container) {
                     <select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         ${periodOptionsHtml}
                     </select>
+                    <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                        ${teamOptionsHtml}
+                    </select>
                     <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
@@ -2735,8 +2745,13 @@ function renderFeedbackDashboard(container) {
         `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`
     ).join('');
 
+    const selectedDashTeam = STATE.feedbackDashTeamFilter || 'all';
+    let dashTeamOptionsHtml = `<option value="all" ${selectedDashTeam === 'all' ? 'selected' : ''}>전체 팀</option>` + 
+        STATE.teams.map(t => `<option value="${t.name}" ${selectedDashTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+
     // Build member rows
-    const sortedMembers = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    const allMembers = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    const sortedMembers = selectedDashTeam === 'all' ? allMembers : allMembers.filter(m => m.team === selectedDashTeam);
     
     let rowsHtml = sortedMembers.map((m, i) => {
         const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
@@ -2806,9 +2821,14 @@ function renderFeedbackDashboard(container) {
 
     container.innerHTML = `
         <div class="mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm w-auto">
-                ${periodOptionsHtml}
-            </select>
+            <div class="flex items-center gap-3">
+                <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                    ${periodOptionsHtml}
+                </select>
+                <select onchange="STATE.feedbackDashTeamFilter = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                    ${dashTeamOptionsHtml}
+                </select>
+            </div>
             <button onclick="STATE.feedbackView = 'input'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 피드백 작성

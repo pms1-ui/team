@@ -20,7 +20,7 @@ function renderDashboardMobile(container, users) {
                         <div class="font-bold text-on-surface text-[13px]">${g.text}</div>
                     </div>
                     <div class="space-y-3">
-                        <div class="text-[11px] text-on-surface-variant font-bold">Key Results</div>
+                        ${g.periodType !== 'yearly' ? `<div class="text-[11px] text-on-surface-variant font-bold">Key Results</div>
                         ${g.keyResults.map(kr => `
                             <div class="bg-surface-container rounded-lg p-3">
                                 <div class="text-[12px] font-medium text-on-surface mb-2">${kr.text}</div>
@@ -31,7 +31,7 @@ function renderDashboardMobile(container, users) {
                                     <span class="text-primary font-black text-[12px] min-w-[35px] text-right">${kr.progress}%</span>
                                 </div>
                             </div>
-                        `).join('')}
+                        `).join('')}` : '<div class="text-[11px] text-on-surface-variant italic">연간 목표는 KR을 표시하지 않습니다.</div>'}
                     </div>
                 </div>
             `;
@@ -67,7 +67,7 @@ function renderGoalsSetMobile(drafts) {
                 
                 <div class="mb-3">
                     <div class="text-[11px] text-on-surface-variant font-bold mb-2">Key Results</div>
-                    <div class="space-y-2">
+                    ${g.periodType === 'yearly' ? '<div class="text-[11px] text-on-surface-variant italic">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="space-y-2">
                         ${g.keyResults.map((kr, kri) => `
                             <div class="flex items-center gap-2">
                                 <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary" placeholder="KR ${kri+1}">
@@ -75,7 +75,7 @@ function renderGoalsSetMobile(drafts) {
                             </div>
                         `).join('')}
                         ${isEditable ? `<button onclick="addKR('${g.id}')" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
-                    </div>
+                    </div>`}
                 </div>
                 
                 ${isRejected ? `
@@ -122,7 +122,7 @@ function renderGoalsManageMobile(items) {
                 
                 <div class="mb-3">
                     <div class="text-[11px] text-on-surface-variant font-bold mb-2">Key Results</div>
-                    <div class="space-y-3">
+                    ${g.periodType === 'yearly' ? '<div class="text-[11px] text-on-surface-variant italic">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="space-y-3">
                         ${krsToRender.map(kr => `
                             <div class="bg-surface-container rounded-lg p-3">
                                 <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60">
@@ -133,7 +133,7 @@ function renderGoalsManageMobile(items) {
                             </div>
                         `).join('')}
                         ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[11px] flex items-center gap-1 py-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> KR 추가</button>` : ''}
-                    </div>
+                    </div>`}
                 </div>
                 
                 ${isPending ? `

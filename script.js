@@ -4,24 +4,24 @@ const STATE = {
     currentView: 'dashboard',
     
     // Tab states
-    dashboardTab: 'quarterly',
+    dashboardTab: 'yearly',
     dashboardPeriodValue: '',
     
-    goalsSetTab: 'quarterly',
+    goalsSetTab: 'yearly',
     goalsSetPeriodValue: '',
     
-    goalsManageTab: 'quarterly',
+    goalsManageTab: 'yearly',
     goalsManagePeriodValue: '',
     
-    requestsTab: 'quarterly',
+    requestsTab: 'yearly',
     requestsPeriodValue: '',
     
     // Feedback State
     feedbackSelectedMember: '',
     feedbackData: {},
-    feedbackPeriod: '2026-Q2',
+    feedbackPeriod: '2026',
     feedbackView: 'dashboard',
-    feedbackDashPeriod: '2026-Q2',
+    feedbackDashPeriod: '2026',
     feedbackTeamFilter: 'all',
     feedbackDashTeamFilter: 'all',
     assessmentData: [],
@@ -289,10 +289,10 @@ function getDefaultPeriodValue(type) {
 }
 
 function initDates() {
-    STATE.dashboardPeriodValue = getDefaultPeriodValue('quarterly');
-    STATE.goalsSetPeriodValue = getDefaultPeriodValue('quarterly');
-    STATE.goalsManagePeriodValue = getDefaultPeriodValue('quarterly');
-    STATE.requestsPeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.dashboardPeriodValue = getDefaultPeriodValue('yearly');
+    STATE.goalsSetPeriodValue = getDefaultPeriodValue('yearly');
+    STATE.goalsManagePeriodValue = getDefaultPeriodValue('yearly');
+    STATE.requestsPeriodValue = getDefaultPeriodValue('yearly');
 }
 initDates();
 
@@ -1262,8 +1262,8 @@ function renderDashboard(container) {
     const isMobile = window.innerWidth < 1024;
     
     let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
-    h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
     h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
     h += '</div>';
     h += '<div class="mb-4 w-full flex items-center justify-between gap-3">';
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
@@ -1307,6 +1307,7 @@ function renderDashboard(container) {
                 h += '</div></div></div></div>';
                 
                 h += '<div id="okr-content-' + g.id + '" class="px-6 py-5 hidden"><div class="space-y-4">';
+                if (g.periodType !== 'yearly') {
                 g.keyResults.forEach(kr => {
                     const krColor = kr.progress === 100 ? 'bg-success' : kr.progress >= 50 ? 'bg-primary' : 'bg-gray-400';
                     const checkmark = kr.progress === 100 ? '<svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '';
@@ -1320,6 +1321,9 @@ function renderDashboard(container) {
                     h += '<span class="text-primary font-black text-[13px]">' + kr.progress + '%</span>' + checkmark;
                     h += '</div></div></div></div>';
                 });
+                } else {
+                    h += '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>';
+                }
                 h += '</div></div></div>';
             });
             
@@ -1403,7 +1407,7 @@ function renderGoalsSet(container) {
                     <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm resize-none">${g.text}</textarea>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[40%] align-top">
-                    <div class="flex flex-col gap-3">
+                    ${g.periodType === 'yearly' ? '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="flex flex-col gap-3">
                         ${g.keyResults.map((kr, kri) => `
                             <div class="flex group items-center gap-2">
                                 <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm transition-all">
@@ -1411,7 +1415,7 @@ function renderGoalsSet(container) {
                             </div>
                         `).join('')}
                         ${isEditable ? `<button onclick="addKR('${g.id}')" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors mt-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
-                    </div>
+                    </div>`}
                 </td>
                 <td class="py-5 px-6 text-center align-middle w-28">
                     ${opHtml}
@@ -1422,8 +1426,8 @@ function renderGoalsSet(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex justify-between items-start">
@@ -1475,7 +1479,7 @@ function renderGoalsManage(container) {
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
                     </td>
                     <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
-                        <div class="flex flex-col gap-4">
+                        ${g.periodType === 'yearly' ? '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
                                 <div class="flex group items-center gap-2 h-[44px]">
                                     <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true)" ${isPending?'disabled':''} class="h-full w-full bg-white border border-blue-100 rounded-lg px-3 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all">
@@ -1483,10 +1487,10 @@ function renderGoalsManage(container) {
                                 </div>
                             `).join('')}
                             ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
-                        </div>
+                        </div>`}
                     </td>
                     <td class="py-6 px-4 w-[25%] border-r border-blue-50/30 align-top">
-                        <div class="flex flex-col gap-4">
+                        ${g.periodType === 'yearly' ? '' : `<div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => {
                                 return `
                                     <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
@@ -1495,7 +1499,7 @@ function renderGoalsManage(container) {
                                     </div>
                                 `;
                             }).join('')}
-                        </div>
+                        </div>`}
                     </td>
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
@@ -1517,8 +1521,8 @@ function renderGoalsManage(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -1732,8 +1736,8 @@ function renderRequests(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2458,8 +2462,8 @@ renderGoalsSet = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-start gap-3">
@@ -2490,8 +2494,8 @@ renderGoalsManage = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('goals_manage', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2531,8 +2535,8 @@ renderRequests = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
             <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2592,12 +2596,14 @@ function renderFeedback(container) {
     }
 
     const periodOptions = [
+        { value: '2026', label: '2026년' },
+        { value: '2027', label: '2027년' },
         { value: '2026-Q2', label: '2026년 2분기' },
         { value: '2026-Q3', label: '2026년 3분기' },
         { value: '2026-Q4', label: '2026년 4분기' }
     ];
 
-    const selectedPeriod = STATE.feedbackPeriod || '2026-Q2';
+    const selectedPeriod = STATE.feedbackPeriod || '2026';
     const selectedMemberId = STATE.feedbackSelectedMember || '';
     const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
 
@@ -2737,11 +2743,13 @@ function renderFeedback(container) {
 
 function renderFeedbackDashboard(container) {
     const periodOptions = [
+        { value: '2026', label: '2026년' },
+        { value: '2027', label: '2027년' },
         { value: '2026-Q2', label: '2026년 2분기' },
         { value: '2026-Q3', label: '2026년 3분기' },
         { value: '2026-Q4', label: '2026년 4분기' }
     ];
-    const selectedPeriod = STATE.feedbackDashPeriod || '2026-Q2';
+    const selectedPeriod = STATE.feedbackDashPeriod || '2026';
     const assessments = STATE.assessmentData || [];
 
     let periodOptionsHtml = periodOptions.map(p => 

@@ -1211,6 +1211,12 @@ function renderCurrentView() {
         titleContainer.appendChild(btn);
     }
     
+    // Handle guide view title
+    if (STATE.currentView === 'guide') {
+        title.innerText = 'OKR 설명서';
+        window.history.pushState({ view: 'guide' }, '', '/okr-guide');
+    }
+    
     if (STATE.currentView === 'dashboard') renderDashboard(content);
     else if (STATE.currentView === 'goals_set') renderGoalsSet(content);
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
@@ -3192,7 +3198,7 @@ function renderGuide(container) {
                     <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
-                    <h3 class="font-display text-xl font-bold text-on-surface">기간별 OKR 운영 가이드</h3>
+                    <h3 class="font-display text-xl font-bold text-on-surface">기간별 OKR 가이드</h3>
                 </div>
 
                 <div class="space-y-6">
@@ -3204,29 +3210,17 @@ function renderGuide(container) {
                             </div>
                             <h4 class="font-bold text-on-surface text-lg">분기별 OKR</h4>
                         </div>
-                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                        <div class="grid lg:grid-cols-2 gap-4">
                             <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">분기 시작 2주 전</p>
                                 <p class="text-[12px] text-on-surface-variant mt-1">다음 분기 전략 수립</p>
                             </div>
                             <div class="bg-surface-container rounded-lg p-4">
-                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
-                                <p class="text-[13px] text-on-surface font-medium">월 1회 (매월 말)</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">월간 진척 점검</p>
-                            </div>
-                            <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">분기 마지막 주</p>
                                 <p class="text-[12px] text-on-surface-variant mt-1">분기 성과 리뷰</p>
                             </div>
-                        </div>
-                        <div class="bg-primary/5 rounded-lg p-4">
-                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
-                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
-                                전략적 프로젝트와 중기 목표에 적합합니다. 도전적인 목표를 설정하고, 
-                                월별 체크인을 통해 진행 상황을 모니터링하세요.
-                            </p>
                         </div>
                     </div>
 
@@ -3238,29 +3232,17 @@ function renderGuide(container) {
                             </div>
                             <h4 class="font-bold text-on-surface text-lg">연간 OKR</h4>
                         </div>
-                        <div class="grid lg:grid-cols-3 gap-4 mb-4">
+                        <div class="grid lg:grid-cols-2 gap-4">
                             <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">📝 작성 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">전년도 12월</p>
                                 <p class="text-[12px] text-on-surface-variant mt-1">연간 비전 및 전략 수립</p>
                             </div>
                             <div class="bg-surface-container rounded-lg p-4">
-                                <p class="text-[11px] font-bold text-on-surface-variant mb-2">🔄 체크인 주기</p>
-                                <p class="text-[13px] text-on-surface font-medium">분기 1회</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">분기별 진척 점검</p>
-                            </div>
-                            <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">12월 마지막 주</p>
                                 <p class="text-[12px] text-on-surface-variant mt-1">연간 성과 종합 평가</p>
                             </div>
-                        </div>
-                        <div class="bg-purple-50/50 rounded-lg p-4">
-                            <p class="text-[12px] font-bold text-on-surface mb-2">💡 운영 팁</p>
-                            <p class="text-[13px] text-on-surface-variant leading-relaxed">
-                                조직의 비전과 장기 전략에 연결된 목표를 설정하세요. 야심차고 도전적인 목표를 세우되, 
-                                분기별 체크인을 통해 방향성을 유지하고 필요시 조정합니다.
-                            </p>
                         </div>
                     </div>
                 </div>

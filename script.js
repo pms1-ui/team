@@ -414,7 +414,7 @@ window.setPeriod = function(view, val) {
 
 window.openDivisionGoalModal = function() {
     const content = `
-        <div class="max-h-[75vh] overflow-y-auto custom-scroll space-y-6">
+        <div class="max-h-[60vh] overflow-y-auto custom-scroll space-y-5">
             <!-- 핵심 과제 요약 -->
             <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-6 border border-primary/10">
                 <h3 class="text-[16px] font-black text-on-surface mb-2">2026년 운영본부 핵심 과제</h3>

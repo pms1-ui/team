@@ -3180,32 +3180,48 @@ window.updateCharCount = function(textareaId, counterId) {
 // Show job description example
 window.showJobExample = function() {
     const exampleContent = `
-        <div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">
-            <div class="bg-blue-50/50 rounded-xl p-5 border border-blue-100">
-                <h4 class="font-bold text-on-surface text-[15px] mb-3 flex items-center gap-2">
+        <div class="space-y-5 max-h-[70vh] overflow-y-auto custom-scroll">
+            <div class="bg-gradient-to-br from-primary/5 to-blue-50/50 rounded-xl p-5 border border-primary/10">
+                <h4 class="font-bold text-on-surface text-[15px] mb-2">직무기술 작성 가이드</h4>
+                <p class="text-[14px] text-on-surface-variant leading-relaxed">본인이 보유한 전문 역량과 실제 수행 가능한 업무의 범위를 구체적으로 작성해 주세요. 사용 가능한 툴과 숙련도를 포함하여 기술해 주시기 바랍니다.</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 border border-blue-100">
+                <h4 class="font-bold text-on-surface text-[15px] mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                     </svg>
                     백엔드 개발자 직무기술 예시
                 </h4>
-                <div class="bg-white rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-3">
-                    <p class="font-bold text-primary">[ 핵심 기술 스택 ]</p>
-                    <p>• <strong>백엔드 개발:</strong> Node.js(Express, NestJS), Python(FastAPI, Django), Java(Spring Boot) 기반 RESTful API 및 GraphQL 서버 설계 및 구축 가능</p>
-                    <p>• <strong>데이터베이스:</strong> PostgreSQL, MySQL, MongoDB 등 관계형 및 NoSQL 데이터베이스 설계, 쿼리 최적화, 인덱싱 전략 수립 실무 경험 보유</p>
-                    <p>• <strong>AWS 인프라:</strong> EC2, RDS, S3, Lambda, CloudFront, Route53, ECS/EKS 등 AWS 서비스를 활용한 클라우드 인프라 설계 및 운영 가능. Terraform을 통한 IaC(Infrastructure as Code) 구현 경험</p>
-                    
-                    <p class="font-bold text-primary mt-4">[ 수행 가능 업무 범위 ]</p>
-                    <p>• 마이크로서비스 아키텍처 설계 및 구현, Docker/Kubernetes 기반 컨테이너 오케스트레이션</p>
-                    <p>• CI/CD 파이프라인 구축(GitHub Actions, Jenkins), 무중단 배포 전략 수립 및 실행</p>
-                    <p>• 서버 모니터링 및 로깅 시스템 구축(CloudWatch, Datadog, ELK Stack)</p>
-                    <p>• 보안 강화(JWT 인증, OAuth 2.0, API Rate Limiting, SQL Injection 방어)</p>
-                    <p>• 성능 최적화(캐싱 전략, 쿼리 튜닝, 로드 밸런싱, CDN 활용)</p>
-                    <p>• React, Vue.js를 활용한 풀스택 개발 가능, 프론트엔드와의 원활한 협업 및 API 문서화(Swagger, Postman)</p>
-                    
-                    <p class="text-[11px] text-on-surface-variant mt-4 pt-3 border-t border-blue-100">
-                        <strong>글자수:</strong> 약 820자 | 실무 수준의 기술 스택과 구체적인 업무 범위를 명시하여 작성
-                    </p>
+
+                <div class="mb-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[13px] font-black text-white bg-primary px-3 py-1 rounded">핵심 기술 스택</span>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-2">
+                        <p>• <strong>백엔드 개발:</strong> Node.js(Express, NestJS), Python(FastAPI, Django), Java(Spring Boot) 기반 RESTful API 및 GraphQL 서버 설계 및 구축 가능</p>
+                        <p>• <strong>데이터베이스:</strong> PostgreSQL, MySQL, MongoDB 등 관계형 및 NoSQL 데이터베이스 설계, 쿼리 최적화, 인덱싱 전략 수립 실무 경험 보유</p>
+                        <p>• <strong>AWS 인프라:</strong> EC2, RDS, S3, Lambda, CloudFront, Route53, ECS/EKS 등 AWS 서비스를 활용한 클라우드 인프라 설계 및 운영 가능. Terraform을 통한 IaC(Infrastructure as Code) 구현 경험</p>
+                    </div>
                 </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[13px] font-black text-white bg-success px-3 py-1 rounded">수행 가능 업무 범위</span>
+                    </div>
+                    <div class="bg-success/5 rounded-lg p-4 text-[13px] text-on-surface leading-relaxed space-y-2">
+                        <p>• 마이크로서비스 아키텍처 설계 및 구현, Docker/Kubernetes 기반 컨테이너 오케스트레이션</p>
+                        <p>• CI/CD 파이프라인 구축(GitHub Actions, Jenkins), 무중단 배포 전략 수립 및 실행</p>
+                        <p>• 서버 모니터링 및 로깅 시스템 구축(CloudWatch, Datadog, ELK Stack)</p>
+                        <p>• 보안 강화(JWT 인증, OAuth 2.0, API Rate Limiting, SQL Injection 방어)</p>
+                        <p>• 성능 최적화(캐싱 전략, 쿼리 튜닝, 로드 밸런싱, CDN 활용)</p>
+                        <p>• React, Vue.js를 활용한 풀스택 개발 가능, 프론트엔드와의 원활한 협업 및 API 문서화(Swagger, Postman)</p>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-on-surface-variant mt-4 pt-3 border-t border-blue-100">
+                    <strong>글자수:</strong> 약 820자 | 실무 수준의 기술 스택과 구체적인 업무 범위를 명시하여 작성
+                </p>
             </div>
         </div>
     `;

@@ -2808,16 +2808,21 @@ function renderFeedback(container) {
                     <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mt-3 lg:mt-0">
                         ${hasUnreviewedGoals ? `
                             <div class="flex items-center gap-2">
-                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">Score</label>
-                                <input type="number" id="feedback-score" min="1" max="100" step="1" value="50" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
-                                <span class="text-[12px] text-on-surface-variant">/ 100</span>
+                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">평가</label>
+                                <select id="feedback-score" class="bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary outline-none focus:border-primary shadow-sm">
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Very good">Very good</option>
+                                    <option value="Good" selected>Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
                             </div>
                             <button onclick="submitFeedback()" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 제출
                             </button>
                         ` : `
-                            <span class="text-[13px] font-bold text-on-surface-variant">Score: ${existingFeedback[0]?.score || '-'} / 100</span>
+                            <span class="text-[13px] font-bold text-on-surface-variant">평가: ${existingFeedback[0]?.score || '-'}</span>
                             <button disabled class="flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
@@ -2867,22 +2872,20 @@ function renderFeedbackDashboard(container) {
             return reviewer && reviewer.position === '본부장';
         });
 
-        const tlScoreRaw = teamLeaderAssessments.length > 0 
-            ? Math.round(parseFloat(teamLeaderAssessments[0].score) || 0)
+        const tlScoreText = teamLeaderAssessments.length > 0 
+            ? (teamLeaderAssessments[0].score || null)
             : null;
-        const dirScoreRaw = directorAssessments.length > 0 
-            ? Math.round(parseFloat(directorAssessments[0].score) || 0)
+        const dirScoreText = directorAssessments.length > 0 
+            ? (directorAssessments[0].score || null)
             : null;
-        
-        // Clamp to 1-100
-        const tlScore = tlScoreRaw !== null ? Math.max(1, Math.min(100, tlScoreRaw)) : null;
-        const dirScore = dirScoreRaw !== null ? Math.max(1, Math.min(100, dirScoreRaw)) : null;
 
-        function getTierColor(score) {
-            if (score >= 81) return 'text-blue-600 bg-blue-100';
-            if (score >= 51) return 'text-green-600 bg-green-100';
-            if (score >= 31) return 'text-yellow-600 bg-yellow-100';
-            return 'text-red-600 bg-red-100';
+        function getGradeColor(grade) {
+            if (grade === 'Excellent') return 'text-blue-600 bg-blue-100';
+            if (grade === 'Very good') return 'text-green-600 bg-green-100';
+            if (grade === 'Good') return 'text-yellow-600 bg-yellow-100';
+            if (grade === 'Fair') return 'text-purple-600 bg-purple-100';
+            if (grade === 'Poor') return 'text-red-600 bg-red-100';
+            return 'text-on-surface-variant bg-surface-container';
         }
 
         const tlFeedbackHtml = teamLeaderAssessments.length > 0 
@@ -2908,13 +2911,13 @@ function renderFeedbackDashboard(container) {
                     ${tlFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    ${tlScore !== null ? `<span class="text-[14px] font-black ${getTierColor(tlScore)} px-2.5 py-1 rounded-lg">${tlScore}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
+                    ${tlScoreText ? `<span class="text-[12px] font-black ${getGradeColor(tlScoreText)} px-2.5 py-1 rounded-lg">${tlScoreText}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
                 <td class="py-4 px-4 text-center">
                     ${dirFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    ${dirScore !== null ? `<span class="text-[14px] font-black ${getTierColor(dirScore)} px-2.5 py-1 rounded-lg">${dirScore}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
+                    ${dirScoreText ? `<span class="text-[12px] font-black ${getGradeColor(dirScoreText)} px-2.5 py-1 rounded-lg">${dirScoreText}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
             </tr>
         `;
@@ -2931,11 +2934,9 @@ function renderFeedbackDashboard(container) {
             const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
             return reviewer && reviewer.position === '본부장';
         });
-        const tlScoreM = teamLeaderAssessments.length > 0 ? Math.round(parseFloat(teamLeaderAssessments[0].score) || 0) : null;
-        const dirScoreM = directorAssessments.length > 0 ? Math.round(parseFloat(directorAssessments[0].score) || 0) : null;
-        const tlClampM = tlScoreM !== null ? Math.max(1, Math.min(100, tlScoreM)) : null;
-        const dirClampM = dirScoreM !== null ? Math.max(1, Math.min(100, dirScoreM)) : null;
-        function getColorM(s) { if(s>=81) return 'text-blue-600 bg-blue-100'; if(s>=51) return 'text-green-600 bg-green-100'; if(s>=31) return 'text-yellow-600 bg-yellow-100'; return 'text-red-600 bg-red-100'; }
+        const tlGrade = teamLeaderAssessments.length > 0 ? (teamLeaderAssessments[0].score || null) : null;
+        const dirGrade = directorAssessments.length > 0 ? (directorAssessments[0].score || null) : null;
+        function getGradeColorM(g) { if(g==='Excellent') return 'text-blue-600 bg-blue-100'; if(g==='Very good') return 'text-green-600 bg-green-100'; if(g==='Good') return 'text-yellow-600 bg-yellow-100'; if(g==='Fair') return 'text-purple-600 bg-purple-100'; if(g==='Poor') return 'text-red-600 bg-red-100'; return 'text-on-surface-variant bg-surface-container'; }
 
         return `
             <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-4 mb-3">
@@ -2954,8 +2955,8 @@ function renderFeedbackDashboard(container) {
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
-                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">B-Score</p>
-                        ${tlClampM !== null ? `<span class="text-[13px] font-black ${getColorM(tlClampM)} px-2 py-0.5 rounded">${tlClampM}</span>` : `<span class="text-[13px] text-on-surface-variant">-</span>`}
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">B Level</p>
+                        ${tlGrade ? `<span class="text-[11px] font-black ${getGradeColorM(tlGrade)} px-2 py-0.5 rounded">${tlGrade}</span>` : `<span class="text-[11px] text-on-surface-variant">-</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">본부장 피드백</p>
@@ -2964,8 +2965,8 @@ function renderFeedbackDashboard(container) {
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
-                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">C-Score</p>
-                        ${dirClampM !== null ? `<span class="text-[13px] font-black ${getColorM(dirClampM)} px-2 py-0.5 rounded">${dirClampM}</span>` : `<span class="text-[13px] text-on-surface-variant">-</span>`}
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">C Level</p>
+                        ${dirGrade ? `<span class="text-[11px] font-black ${getGradeColorM(dirGrade)} px-2 py-0.5 rounded">${dirGrade}</span>` : `<span class="text-[11px] text-on-surface-variant">-</span>`}
                     </div>
                 </div>
             </div>
@@ -2995,9 +2996,9 @@ function renderFeedbackDashboard(container) {
                         <th class="py-4 px-4 text-center w-12">No.</th>
                         <th class="py-4 px-5">구성원</th>
                         <th class="py-4 px-4 text-center">팀장 피드백</th>
-                        <th class="py-4 px-4 text-center">B-Score</th>
+                        <th class="py-4 px-4 text-center">B Level</th>
                         <th class="py-4 px-4 text-center">본부장 피드백</th>
-                        <th class="py-4 px-4 text-center">C-Score</th>
+                        <th class="py-4 px-4 text-center">C Level</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -3070,10 +3071,11 @@ window.submitFeedback = async function() {
     }
 
     const scoreInput = document.getElementById('feedback-score');
-    const score = scoreInput ? parseFloat(scoreInput.value) : 0;
+    const score = scoreInput ? scoreInput.value : '';
     
-    if (score < 1 || score > 100 || !Number.isInteger(score)) {
-        alert('Score를 1 ~ 100 사이 정수로 입력해 주세요.');
+    const validScores = ['Excellent', 'Very good', 'Good', 'Fair', 'Poor'];
+    if (!validScores.includes(score)) {
+        alert('평가 등급을 선택해 주세요.');
         return;
     }
 

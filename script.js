@@ -2837,7 +2837,7 @@ function renderFeedbackDashboard(container) {
                 피드백 작성
             </button>
         </div>
-        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-4xl overflow-hidden">
             <table class="w-full text-left table-auto">
                 <thead class="bg-surface-container">
                     <tr class="text-[13px] text-on-surface-variant font-extrabold border-b border-blue-50">

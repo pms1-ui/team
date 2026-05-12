@@ -2692,16 +2692,16 @@ function renderFeedback(container) {
                     <div class="flex items-center gap-4">
                         ${!isSubmitted ? `
                             <div class="flex items-center gap-2">
-                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">종합 점수</label>
-                                <input type="number" id="feedback-score" min="0.1" max="5.0" step="0.1" value="3.0" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
-                                <span class="text-[12px] text-on-surface-variant">/ 5.0</span>
+                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">Tier 점수</label>
+                                <input type="number" id="feedback-score" min="1" max="10" step="1" value="5" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
+                                <span class="text-[12px] text-on-surface-variant">/ 10</span>
                             </div>
                             <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 제출
                             </button>
                         ` : `
-                            <span class="text-[13px] font-bold text-on-surface-variant">점수: ${existingFeedback[0]?.score || '-'} / 5.0</span>
+                            <span class="text-[13px] font-bold text-on-surface-variant">Tier: ${existingFeedback[0]?.score || '-'} / 10</span>
                             <button disabled class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
@@ -2745,13 +2745,24 @@ function renderFeedbackDashboard(container) {
             return reviewer && reviewer.position === '본부장';
         });
 
-        const tlScore = teamLeaderAssessments.length > 0 
-            ? (teamLeaderAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / teamLeaderAssessments.length).toFixed(1)
-            : '-';
-        const dirScore = directorAssessments.length > 0 
-            ? (directorAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / directorAssessments.length).toFixed(1)
-            : '-';
+        const tlScoreRaw = teamLeaderAssessments.length > 0 
+            ? Math.round(teamLeaderAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / teamLeaderAssessments.length)
+            : null;
+        const dirScoreRaw = directorAssessments.length > 0 
+            ? Math.round(directorAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / directorAssessments.length)
+            : null;
         
+        // Clamp to 1-10
+        const tlScore = tlScoreRaw !== null ? Math.max(1, Math.min(10, tlScoreRaw)) : null;
+        const dirScore = dirScoreRaw !== null ? Math.max(1, Math.min(10, dirScoreRaw)) : null;
+
+        function getTierColor(score) {
+            if (score >= 9) return 'text-blue-600 bg-blue-100';
+            if (score >= 6) return 'text-green-600 bg-green-100';
+            if (score >= 4) return 'text-yellow-600 bg-yellow-100';
+            return 'text-red-600 bg-red-100';
+        }
+
         const tlFeedbackHtml = teamLeaderAssessments.length > 0 
             ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[12px] font-bold text-primary hover:text-primary-dim bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
             : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
@@ -2775,13 +2786,13 @@ function renderFeedbackDashboard(container) {
                     ${tlFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    <span class="text-[14px] font-bold ${tlScore !== '-' ? 'text-primary' : 'text-on-surface-variant'}">${tlScore}</span>
+                    ${tlScore !== null ? `<span class="text-[14px] font-black ${getTierColor(tlScore)} px-2.5 py-1 rounded-lg">${tlScore}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
                 <td class="py-4 px-4 text-center">
                     ${dirFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    <span class="text-[14px] font-bold ${dirScore !== '-' ? 'text-purple-600' : 'text-on-surface-variant'}">${dirScore}</span>
+                    ${dirScore !== null ? `<span class="text-[14px] font-black ${getTierColor(dirScore)} px-2.5 py-1 rounded-lg">${dirScore}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
             </tr>
         `;
@@ -2804,9 +2815,9 @@ function renderFeedbackDashboard(container) {
                         <th class="py-4 px-4 text-center w-12">No.</th>
                         <th class="py-4 px-5">구성원</th>
                         <th class="py-4 px-4 text-center">팀장 피드백</th>
-                        <th class="py-4 px-4 text-center">팀장 점수</th>
+                        <th class="py-4 px-4 text-center">B-Tier</th>
                         <th class="py-4 px-4 text-center">본부장 피드백</th>
-                        <th class="py-4 px-4 text-center">본부장 점수</th>
+                        <th class="py-4 px-4 text-center">C-Tier</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -2877,8 +2888,8 @@ window.submitFeedback = async function() {
     const scoreInput = document.getElementById('feedback-score');
     const score = scoreInput ? parseFloat(scoreInput.value) : 0;
     
-    if (score <= 0 || score > 5) {
-        alert('종합 점수를 0.1 ~ 5.0 사이로 입력해 주세요.');
+    if (score < 1 || score > 10 || !Number.isInteger(score)) {
+        alert('Tier 점수를 1 ~ 10 사이 정수로 입력해 주세요.');
         return;
     }
 

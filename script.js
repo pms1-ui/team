@@ -2889,10 +2889,10 @@ function renderFeedbackDashboard(container) {
         }
 
         const tlFeedbackHtml = teamLeaderAssessments.length > 0 
-            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[12px] font-bold text-green-600 hover:text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
             : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
         const dirFeedbackHtml = directorAssessments.length > 0 
-            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[12px] font-bold text-green-600 hover:text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
             : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
 
         return `
@@ -2951,7 +2951,7 @@ function renderFeedbackDashboard(container) {
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">팀장 피드백</p>
                         ${teamLeaderAssessments.length > 0 
-                            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>`
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
@@ -2961,7 +2961,7 @@ function renderFeedbackDashboard(container) {
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">본부장 피드백</p>
                         ${directorAssessments.length > 0 
-                            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>`
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">

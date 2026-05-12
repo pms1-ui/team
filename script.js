@@ -551,13 +551,23 @@ window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
 window.updateKRProgress = function(okrId, krId, val) {
     const goal = STATE.allGoals.find(g => g.id == okrId); // Use == for type coercion
     if(goal) {
-        ensureTempStructures(goal); // Ensure temp structures exist
-        if(goal.tempKeyResults) {
-            const kr = goal.tempKeyResults.find(k => k.id === krId);
+        if (goal.status === '작성중') {
+            // For draft goals, update keyResults directly
+            const kr = goal.keyResults.find(k => k.id === krId);
             if(kr) {
                 kr.progress = parseInt(val);
                 const el = document.getElementById(`kr-prog-val-${krId}`);
                 if(el) el.innerText = val + '%';
+            }
+        } else {
+            ensureTempStructures(goal);
+            if(goal.tempKeyResults) {
+                const kr = goal.tempKeyResults.find(k => k.id === krId);
+                if(kr) {
+                    kr.progress = parseInt(val);
+                    const el = document.getElementById(`kr-prog-val-${krId}`);
+                    if(el) el.innerText = val + '%';
+                }
             }
         }
     }
@@ -856,6 +866,10 @@ window.submitModifyRequest = function(id) {
             // Serialize tempKeyResults to JSON and save to temp_kr field
             if (goal.tempKeyResults) {
                 updateData.temp_kr = JSON.stringify(goal.tempKeyResults);
+                // For yearly goals, also save progress to the progress field
+                if (goal.periodType === 'yearly' && goal.tempKeyResults[0]) {
+                    updateData.progress = goal.tempKeyResults[0].progress;
+                }
             }
             
             await GoalsAPI.update(id, updateData);
@@ -1513,8 +1527,8 @@ function renderGoalsManage(container) {
                     ${g.periodType !== 'yearly' ? `<td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
                         <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
-                                <div class="flex group items-center gap-2">
-                                    <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
+                                <div class="flex group items-center gap-2 min-h-[44px]">
+                                    <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px'; document.getElementById('kr-prog-row-${kr.id}').style.height=this.style.height;" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
                                     ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                                 </div>
                             `).join('')}
@@ -1525,7 +1539,7 @@ function renderGoalsManage(container) {
                         <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => {
                                 return `
-                                    <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
+                                    <div id="kr-prog-row-${kr.id}" class="flex items-center justify-between px-4 min-h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
                                         <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
                                         <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${kr.progress}%</span>
                                     </div>

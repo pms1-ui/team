@@ -319,7 +319,7 @@ const MENU_ITEMS = [
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
-    { id: 'feedback', label: '평가', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' },
+    { id: 'feedback', label: '평가', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/feedback' },
     { id: 'ai_poll', label: '설문조사', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
 ];
 
@@ -1180,7 +1180,7 @@ function updateNavigation() {
         btn.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${item.icon}</svg> ${item.label} ${badgeHtml}`;
         btn.onclick = () => {
             if (isRestricted) {
-                openModal('접근 제한', '<div class="text-center py-4"><div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg></div><p class="text-[15px] font-bold text-on-surface mb-2">팀장 또는 본부장만 접근 가능합니다</p><p class="text-[13px] text-on-surface-variant">해당 메뉴는 관리자 권한이 필요합니다.</p></div>', null, false);
+                openModal('접근 제한', '<div class="text-center py-4"><div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg></div><p class="text-[15px] font-bold text-on-surface mb-2">접근 권한이 없습니다</p><p class="text-[13px] text-on-surface-variant">해당 메뉴는 관리자 권한이 필요합니다.</p></div>', null, false);
                 return;
             }
             navigateTo(item.id);
@@ -4138,29 +4138,8 @@ async function initLoginPage() {
             }
         }
         
-        // Load divisions for dropdown - get unique divisions from teams table
-        let divisions = [];
-        try {
-            const divData = await DivisionsAPI.list();
-            if (divData && divData.length > 0) {
-                divisions = divData;
-            }
-        } catch (e) {
-            console.warn('DivisionsAPI failed, trying teams table:', e);
-        }
-        
-        // Fallback: extract unique divisions from teams table
-        if (divisions.length === 0) {
-            try {
-                const teams = await TeamsAPI.list();
-                const divSet = new Set();
-                teams.forEach(t => { if (t.division) divSet.add(t.division); });
-                divisions = [...divSet].map(name => ({ name }));
-            } catch (e2) {
-                console.warn('TeamsAPI also failed:', e2);
-            }
-        }
-        
+        // Load divisions for dropdown
+        const divisions = await DivisionsAPI.list();
         console.log('Loaded divisions for login:', divisions);
         
         const divisionSelect = document.getElementById('login-division');

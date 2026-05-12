@@ -3033,13 +3033,24 @@ async function loadAssessmentData() {
 window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
     try {
         const assessments = JSON.parse(decodeURIComponent(encodedData));
+        
+        function getGradeStyle(grade) {
+            if (grade === 'Excellent') return 'text-blue-600 bg-blue-100';
+            if (grade === 'Very good') return 'text-green-600 bg-green-100';
+            if (grade === 'Good') return 'text-yellow-600 bg-yellow-100';
+            if (grade === 'Fair') return 'text-purple-600 bg-purple-100';
+            if (grade === 'Poor') return 'text-red-600 bg-red-100';
+            return 'text-primary bg-primary/10';
+        }
+        
         let content = `<div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">`;
         assessments.forEach(a => {
+            const gradeClass = getGradeStyle(a.score);
             content += `
                 <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-[13px] font-bold text-on-surface">${a.goal_text || 'OKR'}</p>
-                        <span class="text-[12px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">${a.score || '-'}</span>
+                        <span class="text-[12px] font-black ${gradeClass} px-2.5 py-1 rounded-lg">${a.score || '-'}</span>
                     </div>
                     <p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${a.feedback || '피드백 없음'}</p>
                     <p class="text-[11px] text-on-surface-variant mt-3">작성자: ${a.reviewer_name || '-'} | ${a.created_at ? new Date(a.created_at).toLocaleDateString('ko-KR') : '-'}</p>

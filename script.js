@@ -1269,10 +1269,12 @@ function renderDashboard(container) {
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
     h += '</select>';
+    if (STATE.dashboardTab !== 'yearly') {
     h += '<div class="flex items-center gap-2">';
     h += '<button onclick="toggleAllDashboardOKRs(true)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 열기</button>';
     h += '<button onclick="toggleAllDashboardOKRs(false)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 닫기</button>';
     h += '</div>';
+    }
     h += '</div>';
 
     if(Object.keys(users).length === 0) {
@@ -1288,9 +1290,23 @@ function renderDashboard(container) {
             h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span></div>';
             
             uGoals.forEach(g => {
-                const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length);
+                const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / (g.keyResults.length || 1));
                 const progressColor = avgProgress === 100 ? 'bg-success' : avgProgress >= 50 ? 'bg-primary' : 'bg-gray-400';
                 
+                if (STATE.dashboardTab === 'yearly') {
+                    // Yearly: simple card with progress bar, no toggle
+                    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden mb-4">';
+                    h += '<div class="px-6 py-5">';
+                    h += '<div class="flex items-center justify-between mb-3">';
+                    h += '<h3 class="font-bold text-on-surface text-[15px] leading-relaxed break-keep flex-1">' + g.text + '</h3>';
+                    h += '<span class="text-primary font-black text-[16px] ml-4 shrink-0">' + avgProgress + '%</span>';
+                    h += '</div>';
+                    h += '<div class="w-full bg-surface-container-low h-2.5 rounded-full overflow-hidden shadow-inner">';
+                    h += '<div class="' + progressColor + ' h-full transition-all rounded-full" style="width: ' + avgProgress + '%"></div>';
+                    h += '</div>';
+                    h += '</div></div>';
+                } else {
+                // Quarterly: collapsible structure with KRs
                 h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden mb-4">';
                 h += '<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-blue-50 cursor-pointer hover:bg-primary/10 transition-colors" onclick="toggleDashboardOKR(' + g.id + ')">';
                 h += '<div class="flex items-center justify-between">';
@@ -1325,6 +1341,7 @@ function renderDashboard(container) {
                     h += '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>';
                 }
                 h += '</div></div></div>';
+                } // end else (quarterly)
             });
             
             h += '</div>';
@@ -1461,7 +1478,7 @@ function renderGoalsManage(container) {
     
     let rowsHtml = '';
     if(items.length === 0) {
-        rowsHtml = `<tr><td colspan="${STATE.goalsManageTab === 'yearly' ? '3' : '5'}" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">등록된 목표가 없습니다. '새 OKR 추가' 버튼을 눌러 목표를 추가하세요.</td></tr>`;
+        rowsHtml = `<tr><td colspan="${STATE.goalsManageTab === 'yearly' ? '4' : '5'}" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">등록된 목표가 없습니다. '새 OKR 추가' 버튼을 눌러 목표를 추가하세요.</td></tr>`;
     } else {
         rowsHtml = items.map((g, i) => {
             const isPending = g.status.includes('대기중');
@@ -1475,7 +1492,7 @@ function renderGoalsManage(container) {
             let mainRow = `
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
                     <td class="py-6 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12 align-top">${i+1}</td>
-                    <td class="py-6 px-6 ${g.periodType === 'yearly' ? 'w-[60%]' : 'w-[25%]'} border-r border-blue-50/30 align-top">
+                    <td class="py-6 px-6 ${g.periodType === 'yearly' ? 'w-[45%]' : 'w-[25%]'} border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
                     </td>
                     ${g.periodType !== 'yearly' ? `<td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
@@ -1500,7 +1517,12 @@ function renderGoalsManage(container) {
                                 `;
                             }).join('')}
                         </div>
-                    </td>` : ''}
+                    </td>` : `<td class="py-6 px-4 border-r border-blue-50/30 align-top">
+                        <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
+                            <input type="range" min="0" max="100" value="${g.keyResults[0]?.progress || 0}" oninput="updateKRProgress('${g.id}', '${g.keyResults[0]?.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
+                            <span id="kr-prog-val-${g.keyResults[0]?.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${g.keyResults[0]?.progress || 0}%</span>
+                        </div>
+                    </td>`}
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
                             <span class="text-[13px] font-black ${g.status === '작성중' ? 'text-on-surface-variant' : isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${g.status === '작성중' ? '작성중' : isRejected ? '거부됨' : g.status}</span>
@@ -1543,7 +1565,7 @@ function renderGoalsManage(container) {
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Objective</th>
                         ${STATE.goalsManageTab !== 'yearly' ? `<th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>` : ''}
+                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>` : `<th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률</th>`}
                         <th class="py-4 px-4 text-center">상태</th>
                     </tr>
                 </thead>
@@ -1791,7 +1813,7 @@ function createDiffContent(g) {
             </div>
             
             <!-- Key Results Section -->
-            <div>
+            ${g.periodType !== 'yearly' ? `<div>
                 <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">Key Results</div>
                 <div class="bg-white border border-blue-100 rounded-lg overflow-hidden">
                     <table class="w-full text-[12px]">
@@ -1804,8 +1826,9 @@ function createDiffContent(g) {
                             </tr>
                         </thead>
                         <tbody>
-    `;
+    ` : ''}`;
 
+    if (g.periodType !== 'yearly') {
     const krsToRender = g.tempKeyResults || g.keyResults;
     
     krsToRender.forEach((kr, i) => {
@@ -1875,7 +1898,10 @@ function createDiffContent(g) {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </div>`;
+    } // end if not yearly
+
+    diff += `
         </div>
     `;
     return diff.replace(/"/g, '&quot;').replace(/\n/g, '');

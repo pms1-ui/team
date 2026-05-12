@@ -108,9 +108,9 @@ async function loadDataFromBaserow() {
             console.error('Error loading members:', error);
             console.warn('Using fallback members data');
             STATE.members = [
-                { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+                { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '팀장', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
                 { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-                { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+                { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '팀장', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
                 { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
             ];
         }
@@ -249,9 +249,9 @@ async function loadDataFromBaserow() {
             { id: 4, name: '마케팅팀' }
         ];
         STATE.members = [
-            { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '리더', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
+            { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '팀장', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
             { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-            { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '리더', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
+            { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '팀장', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
             { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
         ];
         STATE.rnrData = [];
@@ -1937,7 +1937,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         STATE.user = {
             id: member.user_id,
             name: member.name,
-            role: member.position === '리더' ? 'admin' : 'user',
+            role: (member.position === '팀장' || member.position === '본부장') ? 'admin' : 'user',
             division: member.division,
             team: member.team,
             memberId: member.id
@@ -2112,7 +2112,7 @@ window.saveAllMembers = async function() {
                 // Check if current user's position was updated
                 if (member.user_id === STATE.user.id && member._modified.position) {
                     currentUserUpdated = true;
-                    STATE.user.role = member.position === '리더' ? 'admin' : 'user';
+                    STATE.user.role = (member.position === '팀장' || member.position === '본부장') ? 'admin' : 'user';
                     
                     // Update localStorage session
                     const session = JSON.parse(localStorage.getItem('okr_session') || '{}');
@@ -2341,7 +2341,8 @@ function renderMembers(container) {
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
-                        <option value="리더" ${member.position === '리더' ? 'selected' : ''}>리더</option>
+                        <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
+                        <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
                         <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
                     </select>
                 </td>
@@ -2733,17 +2734,31 @@ function renderFeedbackDashboard(container) {
     
     let rowsHtml = sortedMembers.map((m, i) => {
         const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
-        const avgScore = memberAssessments.length > 0 
-            ? (memberAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / memberAssessments.length).toFixed(1)
+        
+        // Separate by reviewer position
+        const teamLeaderAssessments = memberAssessments.filter(a => {
+            const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
+            return reviewer && reviewer.position === '팀장';
+        });
+        const directorAssessments = memberAssessments.filter(a => {
+            const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
+            return reviewer && reviewer.position === '본부장';
+        });
+
+        const tlScore = teamLeaderAssessments.length > 0 
+            ? (teamLeaderAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / teamLeaderAssessments.length).toFixed(1)
             : '-';
-        const feedbackCount = memberAssessments.length;
-        const statusClass = feedbackCount > 0 ? 'text-success' : 'text-on-surface-variant';
-        const statusText = feedbackCount > 0 ? '완료' : '미완료';
+        const dirScore = directorAssessments.length > 0 
+            ? (directorAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / directorAssessments.length).toFixed(1)
+            : '-';
+        
+        const tlFeedback = teamLeaderAssessments.length > 0 ? '완료' : '미완료';
+        const dirFeedback = directorAssessments.length > 0 ? '완료' : '미완료';
 
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
                 <td class="py-4 px-4 text-center text-[14px] font-bold text-on-surface-variant">${i + 1}</td>
-                <td class="py-4 px-6">
+                <td class="py-4 px-5">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">${m.name.charAt(0)}</div>
                         <div>
@@ -2752,13 +2767,17 @@ function renderFeedbackDashboard(container) {
                         </div>
                     </div>
                 </td>
-                <td class="py-4 px-6 text-center">
-                    <span class="text-[14px] font-bold ${avgScore !== '-' ? 'text-primary' : 'text-on-surface-variant'}">${avgScore}</span>
-                    <span class="text-[11px] text-on-surface-variant"> / 5.0</span>
+                <td class="py-4 px-4 text-center">
+                    <span class="text-[12px] font-bold ${tlFeedback === '완료' ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container'} px-2 py-1 rounded-full">${tlFeedback}</span>
                 </td>
-                <td class="py-4 px-6 text-center text-[13px] font-bold text-on-surface-variant">${feedbackCount}건</td>
-                <td class="py-4 px-6 text-center">
-                    <span class="text-[12px] font-bold ${statusClass} px-2 py-1 rounded-full ${feedbackCount > 0 ? 'bg-success/10' : 'bg-surface-container'}">${statusText}</span>
+                <td class="py-4 px-4 text-center">
+                    <span class="text-[14px] font-bold ${tlScore !== '-' ? 'text-primary' : 'text-on-surface-variant'}">${tlScore}</span>
+                </td>
+                <td class="py-4 px-4 text-center">
+                    <span class="text-[12px] font-bold ${dirFeedback === '완료' ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container'} px-2 py-1 rounded-full">${dirFeedback}</span>
+                </td>
+                <td class="py-4 px-4 text-center">
+                    <span class="text-[14px] font-bold ${dirScore !== '-' ? 'text-purple-600' : 'text-on-surface-variant'}">${dirScore}</span>
                 </td>
             </tr>
         `;
@@ -2779,10 +2798,11 @@ function renderFeedbackDashboard(container) {
                 <thead class="bg-surface-container">
                     <tr class="text-[13px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center w-12">No.</th>
-                        <th class="py-4 px-6">구성원</th>
-                        <th class="py-4 px-6 text-center">평균 점수</th>
-                        <th class="py-4 px-6 text-center">피드백 수</th>
-                        <th class="py-4 px-6 text-center">상태</th>
+                        <th class="py-4 px-5">구성원</th>
+                        <th class="py-4 px-4 text-center">팀장 피드백</th>
+                        <th class="py-4 px-4 text-center">팀장 점수</th>
+                        <th class="py-4 px-4 text-center">본부장 피드백</th>
+                        <th class="py-4 px-4 text-center">본부장 점수</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -2859,6 +2879,7 @@ window.submitFeedback = async function() {
             await AssessmentAPI.create({
                 reviewer_id: STATE.user.id,
                 reviewer_name: STATE.user.name,
+                reviewer_position: STATE.user.position || STATE.members.find(m => m.user_id === STATE.user.id)?.position || '',
                 target_id: selectedMemberId,
                 target_name: selectedMember.name,
                 goal_id: item.goalId,
@@ -3414,7 +3435,7 @@ function renderRnR(container) {
         h += '<svg class="w-5 h-5 text-error flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
         h += '<div class="flex-1">';
         h += '<h4 class="font-bold text-error text-[14px] mb-2">요청이 거부되었습니다. 내용을 수정하여 다시 제출해 주세요.</h4>';
-        h += '<p class="text-[13px] text-on-surface-variant font-bold mb-1">리더 코멘트 :</p>';
+        h += '<p class="text-[13px] text-on-surface-variant font-bold mb-1">관리자 코멘트 :</p>';
         h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">' + myRnR.reject_comment + '</p>';
         h += '</div>';
         h += '</div>';

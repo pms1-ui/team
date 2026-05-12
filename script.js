@@ -532,10 +532,15 @@ window.updateOKRTitle = function(id, val) {
 window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
     const goal = STATE.allGoals.find(g => g.id == okrId); // Use == for type coercion
     if(goal) {
-        if(isTempObj) {
+        if(isTempObj && goal.status !== '작성중') {
             ensureTempStructures(goal); // Ensure temp structures exist
-            const kr = goal.tempKeyResults.find(k => k.id === krId);
-            if(kr) kr.text = val;
+            if (goal.tempKeyResults) {
+                const kr = goal.tempKeyResults.find(k => k.id === krId);
+                if(kr) kr.text = val;
+            } else {
+                const kr = goal.keyResults.find(k => k.id === krId);
+                if(kr) kr.text = val;
+            }
         } else {
             const kr = goal.keyResults.find(k => k.id === krId);
             if(kr) kr.text = val;
@@ -561,9 +566,13 @@ window.updateKRProgress = function(okrId, krId, val) {
 window.addKR = function(okrId, isTempObj = false) {
     const goal = STATE.allGoals.find(g => g.id == okrId);
     if(goal) {
-        if(isTempObj) {
+        if(isTempObj && goal.status !== '작성중') {
             ensureTempStructures(goal);
-            goal.tempKeyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+            if (goal.tempKeyResults) {
+                goal.tempKeyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+            } else {
+                goal.keyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
+            }
         } else {
             goal.keyResults.push({ id: 'kr-' + Date.now() + Math.random().toString(36), text: '', progress: 0 });
         }
@@ -1233,6 +1242,14 @@ function renderCurrentView() {
         const modal = document.getElementById('app-modal');
         if(modal) modal.remove();
     }
+    
+    // Auto-resize all textareas after render
+    setTimeout(() => {
+        document.querySelectorAll('textarea[oninput*="scrollHeight"]').forEach(ta => {
+            ta.style.height = 'auto';
+            ta.style.height = ta.scrollHeight + 'px';
+        });
+    }, 0);
 }
 
 function generatePeriodOptions(tab, selectedValue) {
@@ -3656,8 +3673,8 @@ function renderRnR(container) {
     h += '</div>';
     h += '</div>';
     
-    // 관리자만 볼 수 있는 구성원 직무기술 & R&R 확인 섹션
-    if (STATE.user.role === 'admin') {
+    // 모든 사용자가 볼 수 있는 구성원 직무기술 & R&R 확인 섹션
+    if (STATE.rnrData.length > 0) {
         h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
         h += '<div class="flex items-center justify-between mb-6">';
         h += '<div class="flex items-center gap-3">';
@@ -3670,14 +3687,14 @@ function renderRnR(container) {
         h += '</div>';
         
         h += '<div class="space-y-4">';
-        STATE.rnrData.forEach(rnr => {
-            h += '<div class="bg-surface-container rounded-xl p-5 border border-blue-100">';
-            h += '<div class="flex items-start justify-between mb-4">';
+        STATE.rnrData.forEach((rnr, idx) => {
+            h += '<div class="bg-surface-container rounded-xl border border-blue-100 overflow-hidden">';
+            h += '<div class="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'rnr-detail-' + idx + '\').classList.toggle(\'hidden\')">';
             h += '<div class="flex items-center gap-3">';
-            h += '<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">' + rnr.name.charAt(0) + '</div>';
+            h += '<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[14px]">' + rnr.name.charAt(0) + '</div>';
             h += '<div>';
-            h += '<h4 class="font-bold text-on-surface text-[15px]">' + rnr.name + '</h4>';
-            h += '<p class="text-[12px] text-on-surface-variant">' + rnr.team + ' · ' + rnr.position + '</p>';
+            h += '<h4 class="font-bold text-on-surface text-[14px]">' + rnr.name + '</h4>';
+            h += '<p class="text-[11px] text-on-surface-variant">' + rnr.team + ' · ' + rnr.position + '</p>';
             h += '</div>';
             h += '</div>';
             h += '<div class="flex items-center gap-2">';
@@ -3688,8 +3705,10 @@ function renderRnR(container) {
             } else {
                 h += '<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[11px] font-bold rounded-full">작성중</span>';
             }
+            h += '<svg class="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
             h += '</div>';
             h += '</div>';
+            h += '<div id="rnr-detail-' + idx + '" class="hidden px-4 pb-4">';
             
             if (rnr.job) {
                 h += '<div class="mb-3">';
@@ -3704,6 +3723,7 @@ function renderRnR(container) {
             h += '<label class="block text-[11px] font-bold text-on-surface-variant mb-1">R&R</label>';
             h += '<div class="bg-white rounded-lg p-3 border border-blue-50">';
             h += '<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap break-all">' + (rnr.rnr || rnr.content || '작성된 R&R이 없습니다.') + '</p>';
+            h += '</div>';
             h += '</div>';
             h += '</div>';
             h += '</div>';

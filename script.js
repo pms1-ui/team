@@ -595,8 +595,8 @@ window.addOKR = function(timestamp_salt = 0) {
     STATE.allGoals.push({
         id: newId,
         userId: STATE.user.id,
-        periodType: STATE.goalsSetTab,
-        periodValue: STATE.goalsSetPeriodValue,
+        periodType: STATE.goalsManageTab,
+        periodValue: STATE.goalsManagePeriodValue,
         text: '',
         keyResults: [{ id: 'kr-' + Date.now() + timestamp_salt, text: '', progress: 0 }],
         status: '작성중',

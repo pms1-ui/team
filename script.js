@@ -2754,10 +2754,10 @@ function renderFeedbackDashboard(container) {
         });
 
         const tlScoreRaw = teamLeaderAssessments.length > 0 
-            ? Math.round(teamLeaderAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / teamLeaderAssessments.length)
+            ? Math.round(parseFloat(teamLeaderAssessments[0].score) || 0)
             : null;
         const dirScoreRaw = directorAssessments.length > 0 
-            ? Math.round(directorAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / directorAssessments.length)
+            ? Math.round(parseFloat(directorAssessments[0].score) || 0)
             : null;
         
         // Clamp to 1-100

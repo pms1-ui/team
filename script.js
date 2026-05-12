@@ -19,6 +19,10 @@ const STATE = {
     // Feedback State
     feedbackSelectedMember: '',
     feedbackData: {},
+    feedbackPeriod: '2026-Q2',
+    feedbackView: 'dashboard',
+    feedbackDashPeriod: '2026-Q2',
+    assessmentData: [],
     
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
@@ -1190,6 +1194,21 @@ function renderCurrentView() {
     const menuItem = MENU_ITEMS.find(m => m.id === STATE.currentView);
     title.innerText = menuItem ? menuItem.label : '대시보드';
     
+    // Add dashboard button for feedback view
+    const titleContainer = title.parentElement;
+    const existingBtn = document.getElementById('feedback-dash-btn');
+    if (existingBtn) existingBtn.remove();
+    if (STATE.currentView === 'feedback') {
+        const btn = document.createElement('button');
+        btn.id = 'feedback-dash-btn';
+        btn.className = STATE.feedbackView === 'dashboard' 
+            ? 'ml-3 px-3 py-1.5 bg-primary text-white text-[12px] font-bold rounded-lg shadow-sm'
+            : 'ml-3 px-3 py-1.5 bg-white border border-blue-100 text-primary text-[12px] font-bold rounded-lg hover:bg-blue-50 shadow-sm';
+        btn.textContent = '평가 대시보드';
+        btn.onclick = function() { STATE.feedbackView = STATE.feedbackView === 'dashboard' ? 'input' : 'dashboard'; renderCurrentView(); };
+        titleContainer.appendChild(btn);
+    }
+    
     if (STATE.currentView === 'dashboard') renderDashboard(content);
     else if (STATE.currentView === 'goals_set') renderGoalsSet(content);
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
@@ -1891,6 +1910,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     try {
         // Load data from Baserow first
         await loadDataFromBaserow();
+        await loadAssessmentData();
         
         // Find member in loaded data (including master account)
         const member = STATE.members.find(m => m.user_id === id && m.division === division);
@@ -2559,27 +2579,45 @@ renderMembers = function(container) {
 
 // --- Feedback View ---
 function renderFeedback(container) {
-    // Get all goals that are approved (합의 완료) for feedback
-    const allApprovedGoals = STATE.allGoals.filter(g => g.status === '합의 완료');
-    
-    // Get unique members who have approved goals
-    const membersWithGoals = [];
-    const seenUsers = new Set();
-    allApprovedGoals.forEach(g => {
-        if (!seenUsers.has(g.userId)) {
-            seenUsers.add(g.userId);
-            const member = STATE.members.find(m => m.user_id === g.userId);
-            if (member) membersWithGoals.push(member);
-        }
-    });
+    // Show dashboard or input view
+    if (STATE.feedbackView === 'dashboard') {
+        renderFeedbackDashboard(container);
+        return;
+    }
 
-    // Selected member state
+    const periodOptions = [
+        { value: '2026-Q2', label: '2026년 2분기' },
+        { value: '2026-Q3', label: '2026년 3분기' },
+        { value: '2026-Q4', label: '2026년 4분기' },
+        { value: '2026', label: '2026년 종합' }
+    ];
+
+    const selectedPeriod = STATE.feedbackPeriod || '2026-Q2';
     const selectedMemberId = STATE.feedbackSelectedMember || '';
     const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
-    const memberGoals = selectedMemberId ? allApprovedGoals.filter(g => g.userId === selectedMemberId) : [];
+
+    // Filter goals by period
+    let memberGoals = [];
+    if (selectedMemberId) {
+        if (selectedPeriod === '2026') {
+            memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'yearly' && g.periodValue === '2026');
+        } else {
+            memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'quarterly' && g.periodValue === selectedPeriod);
+        }
+    }
+
+    // Check if feedback already submitted for this member+period
+    const existingFeedback = STATE.assessmentData ? STATE.assessmentData.filter(a => 
+        a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
+    ) : [];
+    const isSubmitted = existingFeedback.length > 0;
 
     let memberOptions = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m => 
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
+    ).join('');
+
+    let periodOptionsHtml = periodOptions.map(p => 
+        `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`
     ).join('');
 
     let goalsHtml = '';
@@ -2588,16 +2626,13 @@ function renderFeedback(container) {
             const avgProgress = g.keyResults.length > 0 
                 ? Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length) 
                 : 0;
-            const periodLabel = g.periodType === 'quarterly' 
-                ? `${g.periodValue.split('-')[0]}년 ${g.periodValue.split('-')[1]}분기`
-                : `${g.periodValue}년`;
+            const existingForGoal = existingFeedback.find(a => a.goal_id == g.id);
 
             return `
                 <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-6 mb-4">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[11px] font-bold text-white bg-primary px-2 py-0.5 rounded">${periodLabel}</span>
                                 <span class="text-[11px] font-bold text-on-surface-variant">진척률 ${avgProgress}%</span>
                             </div>
                             <h4 class="text-[15px] font-bold text-on-surface">${g.text}</h4>
@@ -2620,30 +2655,25 @@ function renderFeedback(container) {
                     </div>
                     <div class="border-t border-blue-50 pt-4">
                         <label class="block text-[12px] font-bold text-on-surface-variant mb-2">피드백 작성</label>
-                        <textarea id="feedback-${g.id}" rows="3" class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${STATE.feedbackData && STATE.feedbackData[g.id] || ''}</textarea>
+                        <textarea id="feedback-${g.id}" rows="3" ${isSubmitted ? 'disabled' : ''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed disabled:bg-surface-container-low" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${existingForGoal ? existingForGoal.feedback : (STATE.feedbackData && STATE.feedbackData[g.id] || '')}</textarea>
                     </div>
                 </div>
             `;
         }).join('');
     } else if (selectedMemberId && memberGoals.length === 0) {
-        goalsHtml = `
-            <div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">
-                해당 구성원의 합의 완료된 OKR이 없습니다.
-            </div>
-        `;
+        goalsHtml = `<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">해당 기간에 합의 완료된 OKR이 없습니다.</div>`;
     } else {
-        goalsHtml = `
-            <div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">
-                구성원을 선택하면 해당 구성원의 OKR이 표시됩니다.
-            </div>
-        `;
+        goalsHtml = `<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">구성원을 선택하면 해당 구성원의 OKR이 표시됩니다.</div>`;
     }
 
     container.innerHTML = `
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm transition-all">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                        ${periodOptionsHtml}
+                    </select>
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
@@ -2659,15 +2689,23 @@ function renderFeedback(container) {
                 </div>
                 ${selectedMemberId && memberGoals.length > 0 ? `
                     <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">종합 점수</label>
-                            <input type="number" id="feedback-score" min="0.1" max="5.0" step="0.1" value="3.0" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
-                            <span class="text-[12px] text-on-surface-variant">/ 5.0</span>
-                        </div>
-                        <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            피드백 제출
-                        </button>
+                        ${!isSubmitted ? `
+                            <div class="flex items-center gap-2">
+                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">종합 점수</label>
+                                <input type="number" id="feedback-score" min="0.1" max="5.0" step="0.1" value="3.0" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
+                                <span class="text-[12px] text-on-surface-variant">/ 5.0</span>
+                            </div>
+                            <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                피드백 제출
+                            </button>
+                        ` : `
+                            <span class="text-[13px] font-bold text-on-surface-variant">점수: ${existingFeedback[0]?.score || '-'} / 5.0</span>
+                            <button disabled class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                피드백 완료
+                            </button>
+                        `}
                     </div>
                 ` : ''}
             </div>
@@ -2676,21 +2714,119 @@ function renderFeedback(container) {
     `;
 }
 
+function renderFeedbackDashboard(container) {
+    const periodOptions = [
+        { value: '2026-Q2', label: '2026년 2분기' },
+        { value: '2026-Q3', label: '2026년 3분기' },
+        { value: '2026-Q4', label: '2026년 4분기' },
+        { value: '2026', label: '2026년 종합' }
+    ];
+    const selectedPeriod = STATE.feedbackDashPeriod || '2026-Q2';
+    const assessments = STATE.assessmentData || [];
+
+    let periodOptionsHtml = periodOptions.map(p => 
+        `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`
+    ).join('');
+
+    // Build member rows
+    const sortedMembers = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    
+    let rowsHtml = sortedMembers.map((m, i) => {
+        const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
+        const avgScore = memberAssessments.length > 0 
+            ? (memberAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / memberAssessments.length).toFixed(1)
+            : '-';
+        const feedbackCount = memberAssessments.length;
+        const statusClass = feedbackCount > 0 ? 'text-success' : 'text-on-surface-variant';
+        const statusText = feedbackCount > 0 ? '완료' : '미완료';
+
+        return `
+            <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
+                <td class="py-4 px-4 text-center text-[14px] font-bold text-on-surface-variant">${i + 1}</td>
+                <td class="py-4 px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">${m.name.charAt(0)}</div>
+                        <div>
+                            <p class="text-[14px] font-bold text-on-surface">${m.name}</p>
+                            <p class="text-[11px] text-on-surface-variant">${m.team} · ${m.position}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-4 px-6 text-center">
+                    <span class="text-[14px] font-bold ${avgScore !== '-' ? 'text-primary' : 'text-on-surface-variant'}">${avgScore}</span>
+                    <span class="text-[11px] text-on-surface-variant"> / 5.0</span>
+                </td>
+                <td class="py-4 px-6 text-center text-[13px] font-bold text-on-surface-variant">${feedbackCount}건</td>
+                <td class="py-4 px-6 text-center">
+                    <span class="text-[12px] font-bold ${statusClass} px-2 py-1 rounded-full ${feedbackCount > 0 ? 'bg-success/10' : 'bg-surface-container'}">${statusText}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm w-auto">
+                ${periodOptionsHtml}
+            </select>
+            <button onclick="STATE.feedbackView = 'input'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                피드백 작성
+            </button>
+        </div>
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
+            <table class="w-full text-left table-auto">
+                <thead class="bg-surface-container">
+                    <tr class="text-[13px] text-on-surface-variant font-extrabold border-b border-blue-50">
+                        <th class="py-4 px-4 text-center w-12">No.</th>
+                        <th class="py-4 px-6">구성원</th>
+                        <th class="py-4 px-6 text-center">평균 점수</th>
+                        <th class="py-4 px-6 text-center">피드백 수</th>
+                        <th class="py-4 px-6 text-center">상태</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `;
+}
+
 // Feedback state initialization
 if (!STATE.feedbackSelectedMember) STATE.feedbackSelectedMember = '';
 if (!STATE.feedbackData) STATE.feedbackData = {};
+if (!STATE.feedbackPeriod) STATE.feedbackPeriod = '2026-Q2';
+if (!STATE.feedbackView) STATE.feedbackView = 'dashboard';
+if (!STATE.feedbackDashPeriod) STATE.feedbackDashPeriod = '2026-Q2';
+if (!STATE.assessmentData) STATE.assessmentData = [];
+
+// Load assessment data
+async function loadAssessmentData() {
+    try {
+        const data = await AssessmentAPI.list();
+        STATE.assessmentData = data;
+    } catch (e) {
+        console.warn('Failed to load assessment data:', e);
+        STATE.assessmentData = [];
+    }
+}
 
 window.submitFeedback = async function() {
     const selectedMemberId = STATE.feedbackSelectedMember;
-    const memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료');
+    const selectedPeriod = STATE.feedbackPeriod || '2026-Q2';
     const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
+    
+    let memberGoals = [];
+    if (selectedPeriod === '2026') {
+        memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'yearly' && g.periodValue === '2026');
+    } else {
+        memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'quarterly' && g.periodValue === selectedPeriod);
+    }
     
     if (!selectedMember) {
         alert('구성원을 선택해 주세요.');
         return;
     }
 
-    // Get score
     const scoreInput = document.getElementById('feedback-score');
     const score = scoreInput ? parseFloat(scoreInput.value) : 0;
     
@@ -2737,6 +2873,7 @@ window.submitFeedback = async function() {
         
         alert('피드백이 제출되었습니다.');
         STATE.feedbackData = {};
+        await loadAssessmentData();
         renderCurrentView();
     } catch (error) {
         console.error('Error submitting feedback:', error);
@@ -3843,6 +3980,7 @@ async function initLoginPage() {
                     
                     // Load data from Baserow
                     await loadDataFromBaserow();
+                    await loadAssessmentData();
                     
                     // Update UI
                     document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);

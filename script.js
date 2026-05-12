@@ -3427,9 +3427,9 @@ function renderGuide(container) {
                         <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
                             <h4 class="text-[14px] font-bold text-on-surface mb-3">평가 구조</h4>
                             <ul class="space-y-2 text-[13px] text-on-surface-variant">
-                                <li class="flex items-start gap-2"><span class="text-green-600 font-bold">B</span><span><strong>B-Score (팀장 평가):</strong> 팀장이 팀원의 OKR 달성도와 업무 기여도를 종합 평가합니다.</span></li>
-                                <li class="flex items-start gap-2"><span class="text-purple-600 font-bold">C</span><span><strong>C-Score (본부장 평가):</strong> 본부장이 조직 전체 관점에서 구성원의 성과와 성장 가능성을 평가합니다.</span></li>
-                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>Score는 1~100점 정수로 부여됩니다.</li>
+                                <li class="flex items-start gap-2"><span class="text-green-600 font-bold">B</span><span><strong>B Level 피드백 (팀장 평가):</strong> 팀장이 팀원의 OKR 달성도와 업무 기여도를 종합 평가합니다.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-purple-600 font-bold">C</span><span><strong>C Level 피드백 (본부장 평가):</strong> 본부장이 조직 전체 관점에서 구성원의 성과와 성장 가능성을 평가합니다.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 결과는 5단계로 부여됩니다.</li>
                             </ul>
                         </div>
                     </div>

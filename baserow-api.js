@@ -250,3 +250,41 @@ const PollAPI = {
         });
     }
 };
+
+// Assessment (Feedback) API
+const AssessmentAPI = {
+    async list() {
+        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/?user_field_names=true&size=200`);
+        return data.results;
+    },
+    
+    async listByTarget(targetId) {
+        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/?user_field_names=true&filter__target_id__equal=${targetId}&size=200`);
+        return data.results;
+    },
+    
+    async listByReviewer(reviewerId) {
+        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/?user_field_names=true&filter__reviewer_id__equal=${reviewerId}&size=200`);
+        return data.results;
+    },
+    
+    async create(assessment) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(assessment)
+        });
+    },
+    
+    async update(id, assessment) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(assessment)
+        });
+    },
+    
+    async delete(id) {
+        return await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.assessment}/${id}/`, {
+            method: 'DELETE'
+        });
+    }
+};

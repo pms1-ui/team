@@ -15,12 +15,14 @@
         "create_row_table_1943",
         "create_row_table_1944",
         "create_row_table_1945",
+        "create_row_table_1981",
         "update_row_table_1940",
         "update_row_table_1941",
         "update_row_table_1942",
         "update_row_table_1943",
         "update_row_table_1944",
-        "update_row_table_1945"
+        "update_row_table_1945",
+        "update_row_table_1981"
       ]
     }
   }

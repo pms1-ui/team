@@ -2658,10 +2658,17 @@ function renderFeedback(container) {
                     ` : ''}
                 </div>
                 ${selectedMemberId && memberGoals.length > 0 ? `
-                    <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        피드백 제출
-                    </button>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">종합 점수</label>
+                            <input type="number" id="feedback-score" min="0.1" max="5.0" step="0.1" value="3.0" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
+                            <span class="text-[12px] text-on-surface-variant">/ 5.0</span>
+                        </div>
+                        <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            피드백 제출
+                        </button>
+                    </div>
                 ` : ''}
             </div>
         </div>
@@ -2673,26 +2680,68 @@ function renderFeedback(container) {
 if (!STATE.feedbackSelectedMember) STATE.feedbackSelectedMember = '';
 if (!STATE.feedbackData) STATE.feedbackData = {};
 
-window.submitFeedback = function() {
+window.submitFeedback = async function() {
     const selectedMemberId = STATE.feedbackSelectedMember;
     const memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료');
+    const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
     
-    let hasContent = false;
+    if (!selectedMember) {
+        alert('구성원을 선택해 주세요.');
+        return;
+    }
+
+    // Get score
+    const scoreInput = document.getElementById('feedback-score');
+    const score = scoreInput ? parseFloat(scoreInput.value) : 0;
+    
+    if (score <= 0 || score > 5) {
+        alert('종합 점수를 0.1 ~ 5.0 사이로 입력해 주세요.');
+        return;
+    }
+
+    let feedbackItems = [];
     memberGoals.forEach(g => {
         const textarea = document.getElementById('feedback-' + g.id);
         if (textarea && textarea.value.trim()) {
-            STATE.feedbackData[g.id] = textarea.value.trim();
-            hasContent = true;
+            feedbackItems.push({
+                goalId: g.id,
+                goalText: g.text,
+                periodType: g.periodType,
+                periodValue: g.periodValue,
+                feedback: textarea.value.trim()
+            });
         }
     });
     
-    if (!hasContent) {
-        alert('피드백 내용을 입력해 주세요.');
+    if (feedbackItems.length === 0) {
+        alert('최소 하나의 OKR에 대해 피드백을 작성해 주세요.');
         return;
     }
     
-    alert('피드백이 제출되었습니다.');
-    renderCurrentView();
+    try {
+        for (const item of feedbackItems) {
+            await AssessmentAPI.create({
+                reviewer_id: STATE.user.id,
+                reviewer_name: STATE.user.name,
+                target_id: selectedMemberId,
+                target_name: selectedMember.name,
+                goal_id: item.goalId,
+                goal_text: item.goalText,
+                period_type: item.periodType,
+                period_value: item.periodValue,
+                feedback: item.feedback,
+                score: score,
+                created_at: new Date().toISOString()
+            });
+        }
+        
+        alert('피드백이 제출되었습니다.');
+        STATE.feedbackData = {};
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        alert('피드백 제출 중 오류가 발생했습니다.\n' + error.message);
+    }
 };
 
 // --- OKR Guide View ---

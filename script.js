@@ -4138,8 +4138,29 @@ async function initLoginPage() {
             }
         }
         
-        // Load divisions for dropdown
-        const divisions = await DivisionsAPI.list();
+        // Load divisions for dropdown - get unique divisions from teams table
+        let divisions = [];
+        try {
+            const divData = await DivisionsAPI.list();
+            if (divData && divData.length > 0) {
+                divisions = divData;
+            }
+        } catch (e) {
+            console.warn('DivisionsAPI failed, trying teams table:', e);
+        }
+        
+        // Fallback: extract unique divisions from teams table
+        if (divisions.length === 0) {
+            try {
+                const teams = await TeamsAPI.list();
+                const divSet = new Set();
+                teams.forEach(t => { if (t.division) divSet.add(t.division); });
+                divisions = [...divSet].map(name => ({ name }));
+            } catch (e2) {
+                console.warn('TeamsAPI also failed:', e2);
+            }
+        }
+        
         console.log('Loaded divisions for login:', divisions);
         
         const divisionSelect = document.getElementById('login-division');

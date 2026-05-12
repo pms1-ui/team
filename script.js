@@ -2589,8 +2589,7 @@ function renderFeedback(container) {
     const periodOptions = [
         { value: '2026-Q2', label: '2026년 2분기' },
         { value: '2026-Q3', label: '2026년 3분기' },
-        { value: '2026-Q4', label: '2026년 4분기' },
-        { value: '2026', label: '2026년 종합' }
+        { value: '2026-Q4', label: '2026년 4분기' }
     ];
 
     const selectedPeriod = STATE.feedbackPeriod || '2026-Q2';
@@ -2727,8 +2726,7 @@ function renderFeedbackDashboard(container) {
     const periodOptions = [
         { value: '2026-Q2', label: '2026년 2분기' },
         { value: '2026-Q3', label: '2026년 3분기' },
-        { value: '2026-Q4', label: '2026년 4분기' },
-        { value: '2026', label: '2026년 종합' }
+        { value: '2026-Q4', label: '2026년 4분기' }
     ];
     const selectedPeriod = STATE.feedbackDashPeriod || '2026-Q2';
     const assessments = STATE.assessmentData || [];

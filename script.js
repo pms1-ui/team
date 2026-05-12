@@ -559,7 +559,7 @@ window.updateKRProgress = function(okrId, krId, val) {
 };
 
 window.addKR = function(okrId, isTempObj = false) {
-    const goal = STATE.allGoals.find(g => g.id === okrId);
+    const goal = STATE.allGoals.find(g => g.id == okrId);
     if(goal) {
         if(isTempObj) {
             ensureTempStructures(goal);
@@ -572,7 +572,7 @@ window.addKR = function(okrId, isTempObj = false) {
 };
 
 window.removeKR = function(okrId, krId, isTempObj = false) {
-    const goal = STATE.allGoals.find(g => g.id === okrId);
+    const goal = STATE.allGoals.find(g => g.id == okrId);
     if(goal) {
         if(isTempObj) {
             ensureTempStructures(goal);

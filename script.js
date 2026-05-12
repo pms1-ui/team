@@ -1388,15 +1388,9 @@ function renderGoalsSet(container) {
     }).join('');
 
     container.innerHTML = `
-        <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <div class="flex items-center gap-8">
-                <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-                <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
-            </div>
-            <a href="https://www.youtube.com/watch?v=eK4TjLyNmrM" target="_blank" class="flex items-center gap-1.5 pb-3 text-[13px] font-bold text-red-500 hover:text-red-600 transition-all">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                OKR 기본 가이드
-            </a>
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex justify-between items-start">
@@ -2432,15 +2426,9 @@ renderGoalsSet = function(container) {
     const isMobile = window.innerWidth < 1024;
     
     let h = `
-        <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <div class="flex items-center gap-4 lg:gap-8">
-                <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-                <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
-            </div>
-            <a href="https://www.youtube.com/watch?v=eK4TjLyNmrM" target="_blank" class="flex items-center gap-1 pb-3 text-[12px] lg:text-[13px] font-bold text-red-500 hover:text-red-600 transition-all whitespace-nowrap">
-                <svg class="w-4 h-4 lg:w-5 lg:h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                OKR 가이드
-            </a>
+        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-start gap-3">

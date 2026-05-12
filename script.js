@@ -2348,7 +2348,7 @@ function renderMembers(container) {
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[11%]">
                     <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
                 </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[9%]">
+                <td class="py-5 px-6 border-r border-blue-50/30 w-[12%]">
                     <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
                         <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
                         <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
@@ -2395,8 +2395,8 @@ function renderMembers(container) {
                 </button>
             </div>
         </div>
-        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
-            <table class="w-full text-left table-auto">
+        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-x-auto">
+            <table class="w-full text-left table-auto min-w-[1100px]">
                 <thead class="bg-surface-container">
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>

@@ -901,7 +901,7 @@ window.approveAdminRequest = async function(id) {
             }
             
             // Update goal in Baserow
-            await GoalsAPI.update(id, {
+            const goalUpdateData = {
                 OKR: goal.text,  // Save OKR to goals table
                 status: '합의 완료',
                 temp_text: null,  // Clear temp_text
@@ -910,7 +910,14 @@ window.approveAdminRequest = async function(id) {
                 request_type: null,
                 reject_comment: null,
                 comment: goal.comment || ''
-            });
+            };
+            
+            // For yearly goals, save progress to goals table
+            if (goal.periodType === 'yearly' && goal.keyResults[0]) {
+                goalUpdateData.progress = goal.keyResults[0].progress;
+            }
+            
+            await GoalsAPI.update(id, goalUpdateData);
             
             // Update key results in Baserow - use the UPDATED goal.keyResults
             const existingKRs = await KeyResultsAPI.listByGoalId(id);
@@ -1929,6 +1936,28 @@ function createDiffContent(g) {
                 </div>
             </div>`;
     } // end if not yearly
+
+    // For yearly goals, show progress change
+    if (g.periodType === 'yearly' && g.tempKeyResults && g.tempKeyResults[0]) {
+        const newProg = g.tempKeyResults[0].progress;
+        const oldProg = g.keyResults[0]?.progress || 0;
+        if (newProg !== oldProg) {
+            diff += `
+            <div class="mt-4">
+                <div class="text-[12px] font-bold text-on-surface-variant mb-2 px-1">진척률</div>
+                <div class="p-4 bg-surface-container rounded-lg border border-blue-100">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[13px] line-through opacity-50">${oldProg}%</span>
+                        <span class="text-on-surface-variant">→</span>
+                        <span class="text-[15px] font-black text-primary">${newProg}%</span>
+                    </div>
+                    <div class="mt-2 w-full bg-blue-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-primary h-full rounded-full" style="width: ${newProg}%"></div>
+                    </div>
+                </div>
+            </div>`;
+        }
+    }
 
     diff += `
         </div>

@@ -1207,7 +1207,7 @@ function renderCurrentView() {
         btn.className = STATE.feedbackView === 'dashboard' 
             ? 'ml-3 px-3 py-1.5 bg-primary text-white text-[12px] font-bold rounded-lg shadow-sm'
             : 'ml-3 px-3 py-1.5 bg-white border border-blue-100 text-primary text-[12px] font-bold rounded-lg hover:bg-blue-50 shadow-sm';
-        btn.textContent = '평가 대시보드';
+        btn.textContent = '피드백 대시보드';
         btn.onclick = function() { STATE.feedbackView = STATE.feedbackView === 'dashboard' ? 'input' : 'dashboard'; renderCurrentView(); };
         titleContainer.appendChild(btn);
     }

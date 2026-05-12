@@ -2612,6 +2612,12 @@ function renderFeedback(container) {
         a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
     ) : [];
     const isSubmitted = existingFeedback.length > 0;
+    
+    // Check for unreviewed goals
+    let hasUnreviewedGoals = false;
+    if (selectedMemberId && memberGoals.length > 0) {
+        hasUnreviewedGoals = memberGoals.some(g => !existingFeedback.find(a => a.goal_id == g.id));
+    }
 
     let memberOptions = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m => 
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
@@ -2628,13 +2634,15 @@ function renderFeedback(container) {
                 ? Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length) 
                 : 0;
             const existingForGoal = existingFeedback.find(a => a.goal_id == g.id);
+            const isGoalReviewed = !!existingForGoal;
 
             return `
-                <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-6 mb-4">
+                <div class="bg-white rounded-xl border ${isGoalReviewed ? 'border-green-100' : 'border-blue-50'} shadow-sm p-6 mb-4">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="text-[11px] font-bold text-on-surface-variant">진척률 ${avgProgress}%</span>
+                                ${isGoalReviewed ? '<span class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded">피드백 완료</span>' : '<span class="text-[11px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">피드백 필요</span>'}
                             </div>
                             <h4 class="text-[15px] font-bold text-on-surface">${g.text}</h4>
                         </div>
@@ -2655,8 +2663,8 @@ function renderFeedback(container) {
                         `).join('')}
                     </div>
                     <div class="border-t border-blue-50 pt-4">
-                        <label class="block text-[12px] font-bold text-on-surface-variant mb-2">피드백 작성</label>
-                        <textarea id="feedback-${g.id}" rows="3" ${isSubmitted ? 'disabled' : ''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed disabled:bg-surface-container-low" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${existingForGoal ? existingForGoal.feedback : (STATE.feedbackData && STATE.feedbackData[g.id] || '')}</textarea>
+                        <label class="block text-[12px] font-bold text-on-surface-variant mb-2">${isGoalReviewed ? '작성된 피드백' : '피드백 작성'}</label>
+                        <textarea id="feedback-${g.id}" rows="3" ${isGoalReviewed ? 'disabled' : ''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed disabled:bg-surface-container-low" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${existingForGoal ? existingForGoal.feedback : (STATE.feedbackData && STATE.feedbackData[g.id] || '')}</textarea>
                     </div>
                 </div>
             `;
@@ -2690,7 +2698,7 @@ function renderFeedback(container) {
                 </div>
                 ${selectedMemberId && memberGoals.length > 0 ? `
                     <div class="flex items-center gap-4">
-                        ${!isSubmitted ? `
+                        ${hasUnreviewedGoals ? `
                             <div class="flex items-center gap-2">
                                 <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">Score</label>
                                 <input type="number" id="feedback-score" min="1" max="100" step="1" value="50" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
@@ -2894,7 +2902,15 @@ window.submitFeedback = async function() {
     }
 
     let feedbackItems = [];
+    const existingAssessments = STATE.assessmentData ? STATE.assessmentData.filter(a => 
+        a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
+    ) : [];
+    
     memberGoals.forEach(g => {
+        // Only submit for goals that don't already have feedback
+        const alreadyReviewed = existingAssessments.find(a => a.goal_id == g.id);
+        if (alreadyReviewed) return;
+        
         const textarea = document.getElementById('feedback-' + g.id);
         if (textarea && textarea.value.trim()) {
             feedbackItems.push({
@@ -2908,7 +2924,7 @@ window.submitFeedback = async function() {
     });
     
     if (feedbackItems.length === 0) {
-        alert('최소 하나의 OKR에 대해 피드백을 작성해 주세요.');
+        alert('피드백이 작성되지 않은 OKR에 대해 피드백을 입력해 주세요.');
         return;
     }
     

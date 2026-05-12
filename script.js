@@ -2687,14 +2687,14 @@ function renderFeedback(container) {
     container.innerHTML = `
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                <div class="flex items-center gap-3 flex-wrap">
-                    <select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 flex-wrap">
+                    <select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         ${periodOptionsHtml}
                     </select>
-                    <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                    <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         ${teamOptionsHtml}
                     </select>
-                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
@@ -2709,20 +2709,20 @@ function renderFeedback(container) {
                     ` : ''}
                 </div>
                 ${selectedMemberId && memberGoals.length > 0 ? `
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mt-3 lg:mt-0">
                         ${hasUnreviewedGoals ? `
                             <div class="flex items-center gap-2">
                                 <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">Score</label>
                                 <input type="number" id="feedback-score" min="1" max="100" step="1" value="50" class="w-20 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary text-center outline-none focus:border-primary shadow-sm">
                                 <span class="text-[12px] text-on-surface-variant">/ 100</span>
                             </div>
-                            <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                            <button onclick="submitFeedback()" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 제출
                             </button>
                         ` : `
                             <span class="text-[13px] font-bold text-on-surface-variant">Score: ${existingFeedback[0]?.score || '-'} / 100</span>
-                            <button disabled class="flex items-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
+                            <button disabled class="flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
                             </button>
@@ -2822,22 +2822,75 @@ function renderFeedbackDashboard(container) {
         `;
     }).join('');
 
+    // Mobile card view
+    let mobileCardsHtml = sortedMembers.map((m, i) => {
+        const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
+        const teamLeaderAssessments = memberAssessments.filter(a => {
+            const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
+            return reviewer && reviewer.position === '팀장';
+        });
+        const directorAssessments = memberAssessments.filter(a => {
+            const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
+            return reviewer && reviewer.position === '본부장';
+        });
+        const tlScoreM = teamLeaderAssessments.length > 0 ? Math.round(parseFloat(teamLeaderAssessments[0].score) || 0) : null;
+        const dirScoreM = directorAssessments.length > 0 ? Math.round(parseFloat(directorAssessments[0].score) || 0) : null;
+        const tlClampM = tlScoreM !== null ? Math.max(1, Math.min(100, tlScoreM)) : null;
+        const dirClampM = dirScoreM !== null ? Math.max(1, Math.min(100, dirScoreM)) : null;
+        function getColorM(s) { if(s>=81) return 'text-blue-600 bg-blue-100'; if(s>=51) return 'text-green-600 bg-green-100'; if(s>=31) return 'text-yellow-600 bg-yellow-100'; return 'text-red-600 bg-red-100'; }
+
+        return `
+            <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-4 mb-3">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">${m.name.charAt(0)}</div>
+                    <div>
+                        <p class="text-[14px] font-bold text-on-surface">${m.name}</p>
+                        <p class="text-[11px] text-on-surface-variant">${m.team} · ${m.position}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-surface-container rounded-lg p-3 text-center">
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">팀장 피드백</p>
+                        ${teamLeaderAssessments.length > 0 
+                            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${encodeURIComponent(JSON.stringify(teamLeaderAssessments))}')" class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3 text-center">
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">B-Score</p>
+                        ${tlClampM !== null ? `<span class="text-[13px] font-black ${getColorM(tlClampM)} px-2 py-0.5 rounded">${tlClampM}</span>` : `<span class="text-[13px] text-on-surface-variant">-</span>`}
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3 text-center">
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">본부장 피드백</p>
+                        ${directorAssessments.length > 0 
+                            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${encodeURIComponent(JSON.stringify(directorAssessments))}')" class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3 text-center">
+                        <p class="text-[11px] font-bold text-on-surface-variant mb-1">C-Score</p>
+                        ${dirClampM !== null ? `<span class="text-[13px] font-black ${getColorM(dirClampM)} px-2 py-0.5 rounded">${dirClampM}</span>` : `<span class="text-[13px] text-on-surface-variant">-</span>`}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
     container.innerHTML = `
         <div class="mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+                <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                     ${periodOptionsHtml}
                 </select>
-                <select onchange="STATE.feedbackDashTeamFilter = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                <select onchange="STATE.feedbackDashTeamFilter = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                     ${dashTeamOptionsHtml}
                 </select>
             </div>
-            <button onclick="STATE.feedbackView = 'input'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+            <button onclick="STATE.feedbackView = 'input'; renderCurrentView();" class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 피드백 작성
             </button>
         </div>
-        <div class="bg-white rounded-2xl border border-blue-50 shadow-sm max-w-4xl overflow-hidden">
+        <!-- Desktop table -->
+        <div class="hidden lg:block bg-white rounded-2xl border border-blue-50 shadow-sm max-w-4xl overflow-hidden">
             <table class="w-full text-left table-auto">
                 <thead class="bg-surface-container">
                     <tr class="text-[13px] text-on-surface-variant font-extrabold border-b border-blue-50">
@@ -2851,6 +2904,10 @@ function renderFeedbackDashboard(container) {
                 </thead>
                 <tbody>${rowsHtml}</tbody>
             </table>
+        </div>
+        <!-- Mobile cards -->
+        <div class="lg:hidden">
+            ${mobileCardsHtml}
         </div>
     `;
 }

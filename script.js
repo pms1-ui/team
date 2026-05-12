@@ -2906,6 +2906,9 @@ window.submitFeedback = async function() {
         a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
     ) : [];
     
+    // Generate assess_id: unique per reviewer + target + period
+    const assessId = `${STATE.user.id}_${selectedMemberId}_${selectedPeriod}`;
+    
     memberGoals.forEach(g => {
         // Only submit for goals that don't already have feedback
         const alreadyReviewed = existingAssessments.find(a => a.goal_id == g.id);
@@ -2929,8 +2932,10 @@ window.submitFeedback = async function() {
     }
     
     try {
+        // Create new feedback rows with assess_id
         for (const item of feedbackItems) {
             await AssessmentAPI.create({
+                assess_id: assessId,
                 reviewer_id: STATE.user.id,
                 reviewer_name: STATE.user.name,
                 reviewer_position: STATE.user.position || STATE.members.find(m => m.user_id === STATE.user.id)?.position || '',
@@ -2944,6 +2949,13 @@ window.submitFeedback = async function() {
                 score: score,
                 created_at: new Date().toISOString()
             });
+        }
+        
+        // Update score on all existing rows with same assess_id
+        for (const existing of existingAssessments) {
+            if (parseFloat(existing.score) !== score) {
+                await AssessmentAPI.update(existing.id, { score: score });
+            }
         }
         
         alert('피드백이 제출되었습니다.');

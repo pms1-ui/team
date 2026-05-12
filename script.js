@@ -644,7 +644,7 @@ window.submitOKRRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(!goal) return;
     if(!goal.text.trim()) { alert('OKR 목표를 입력하세요.'); return; }
-    if(goal.keyResults.some(k => !k.text.trim())) { alert('모든 Key Results 내용을 입력하세요.'); return; }
+    if(goal.periodType !== 'yearly' && goal.keyResults.some(k => !k.text.trim())) { alert('모든 Key Results 내용을 입력하세요.'); return; }
     
     try {
         let goalId = id;
@@ -1461,7 +1461,7 @@ function renderGoalsManage(container) {
     
     let rowsHtml = '';
     if(items.length === 0) {
-        rowsHtml = `<tr><td colspan="5" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">합의되거나 요청 진행 중인 목표가 없습니다.</td></tr>`;
+        rowsHtml = `<tr><td colspan="${STATE.goalsManageTab === 'yearly' ? '3' : '5'}" class="py-20 text-center text-on-surface-variant text-[13px] font-bold">등록된 목표가 없습니다. '새 OKR 추가' 버튼을 눌러 목표를 추가하세요.</td></tr>`;
     } else {
         rowsHtml = items.map((g, i) => {
             const isPending = g.status.includes('대기중');
@@ -1475,11 +1475,11 @@ function renderGoalsManage(container) {
             let mainRow = `
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors border-b border-blue-50/50">
                     <td class="py-6 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12 align-top">${i+1}</td>
-                    <td class="py-6 px-6 w-[25%] border-r border-blue-50/30 align-top">
+                    <td class="py-6 px-6 ${g.periodType === 'yearly' ? 'w-[60%]' : 'w-[25%]'} border-r border-blue-50/30 align-top">
                         <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${isPending ? 'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low resize-none">${cTitle}</textarea>
                     </td>
-                    <td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
-                        ${g.periodType === 'yearly' ? '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="flex flex-col gap-4">
+                    ${g.periodType !== 'yearly' ? `<td class="py-6 px-6 w-[35%] border-r border-blue-50/30 align-top">
+                        <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => `
                                 <div class="flex group items-center gap-2">
                                     <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface focus:border-primary outline-none shadow-sm disabled:bg-surface-container-low transition-all resize-none overflow-hidden">${kr.text}</textarea>
@@ -1487,10 +1487,10 @@ function renderGoalsManage(container) {
                                 </div>
                             `).join('')}
                             ${!isPending ? `<button onclick="addKR('${g.id}', true)" class="text-primary font-bold text-[12px] flex items-center gap-1 hover:bg-primary/5 py-1 px-2 rounded-md w-max transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> 추가</button>` : ''}
-                        </div>`}
+                        </div>
                     </td>
                     <td class="py-6 px-4 w-[25%] border-r border-blue-50/30 align-top">
-                        ${g.periodType === 'yearly' ? '' : `<div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-4">
                             ${krsToRender.map(kr => {
                                 return `
                                     <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
@@ -1499,8 +1499,8 @@ function renderGoalsManage(container) {
                                     </div>
                                 `;
                             }).join('')}
-                        </div>`}
-                    </td>
+                        </div>
+                    </td>` : ''}
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
                             <span class="text-[13px] font-black ${g.status === '작성중' ? 'text-on-surface-variant' : isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${g.status === '작성중' ? '작성중' : isRejected ? '거부됨' : g.status}</span>
@@ -1542,8 +1542,8 @@ function renderGoalsManage(container) {
                     <tr class="text-[14px] text-on-surface-variant font-extrabold border-b border-blue-50">
                         <th class="py-4 px-4 text-center border-r border-blue-50/30">No.</th>
                         <th class="py-4 px-6 border-r border-blue-50/30">Objective</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
-                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>
+                        ${STATE.goalsManageTab !== 'yearly' ? `<th class="py-4 px-6 border-r border-blue-50/30">Key Results</th>
+                        <th class="py-4 px-6 border-r border-blue-50/30 text-center">진척률 조정</th>` : ''}
                         <th class="py-4 px-4 text-center">상태</th>
                     </tr>
                 </thead>

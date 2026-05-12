@@ -1354,8 +1354,6 @@ function renderDashboard(container) {
                     h += '<span class="text-primary font-black text-[13px]">' + kr.progress + '%</span>' + checkmark;
                     h += '</div></div></div></div>';
                 });
-                } else {
-                    h += '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>';
                 }
                 h += '</div></div></div>';
                 } // end else (quarterly)
@@ -1441,7 +1439,7 @@ function renderGoalsSet(container) {
                     <textarea rows="3" oninput="updateOKRTitle('${g.id}', this.value)" ${!isEditable?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm resize-none">${g.text}</textarea>
                 </td>
                 <td class="py-5 px-6 border-r border-blue-50/30 w-[40%] align-top">
-                    ${g.periodType === 'yearly' ? '<div class="text-[13px] text-on-surface-variant italic py-2">연간 목표는 KR을 표시하지 않습니다.</div>' : `<div class="flex flex-col gap-3">
+                    ${g.periodType === 'yearly' ? '' : `<div class="flex flex-col gap-3">
                         ${g.keyResults.map((kr, kri) => `
                             <div class="flex group items-center gap-2">
                                 <input type="text" value="${kr.text}" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value)" ${!isEditable?'disabled':''} class="flex-1 bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary disabled:bg-surface-container-low shadow-sm transition-all">

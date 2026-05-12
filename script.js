@@ -1264,11 +1264,20 @@ function renderCurrentView() {
         if(modal) modal.remove();
     }
     
-    // Auto-resize all textareas after render
+    // Auto-resize all textareas after render and sync progress row heights
     setTimeout(() => {
         document.querySelectorAll('textarea[oninput*="scrollHeight"]').forEach(ta => {
             ta.style.height = 'auto';
             ta.style.height = ta.scrollHeight + 'px';
+            // Sync corresponding progress row height
+            const oninput = ta.getAttribute('oninput') || '';
+            const match = oninput.match(/kr-prog-row-([\w-]+)/);
+            if (match) {
+                const progRow = document.getElementById('kr-prog-row-' + match[1]);
+                if (progRow) {
+                    progRow.style.height = ta.style.height;
+                }
+            }
         });
     }, 0);
 }

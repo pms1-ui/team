@@ -16,6 +16,10 @@ const STATE = {
     requestsTab: 'quarterly',
     requestsPeriodValue: '',
     
+    // Feedback State
+    feedbackSelectedMember: '',
+    feedbackData: {},
+    
     // Modal State
     modalData: null, // { title: '', content: '', onConfirm: null, isWide: false }
     
@@ -304,11 +308,12 @@ function ensureTempStructures(goal) {
 // --- Menu Configuration ---
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
-    { id: 'goals_manage', label: '내 목표 관리', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
+    { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
     { id: 'goals_set', label: '목표 설정 및 합의', icon: '<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-set' },
+    { id: 'feedback', label: '평가', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
-    { id: 'members', label: '구성원 관리', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
+    { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     { id: 'ai_poll', label: '설문조사', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
 ];
 
@@ -1192,6 +1197,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'members') renderMembers(content);
     else if (STATE.currentView === 'rnr') renderRnR(content);
     else if (STATE.currentView === 'guide') renderGuide(content);
+    else if (STATE.currentView === 'feedback') renderFeedback(content);
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     
     if (STATE.modalData) renderModal(document.body);
@@ -2550,6 +2556,144 @@ renderMembers = function(container) {
     container.innerHTML = h;
 };
 
+
+// --- Feedback View ---
+function renderFeedback(container) {
+    // Get all goals that are approved (합의 완료) for feedback
+    const allApprovedGoals = STATE.allGoals.filter(g => g.status === '합의 완료');
+    
+    // Get unique members who have approved goals
+    const membersWithGoals = [];
+    const seenUsers = new Set();
+    allApprovedGoals.forEach(g => {
+        if (!seenUsers.has(g.userId)) {
+            seenUsers.add(g.userId);
+            const member = STATE.members.find(m => m.user_id === g.userId);
+            if (member) membersWithGoals.push(member);
+        }
+    });
+
+    // Selected member state
+    const selectedMemberId = STATE.feedbackSelectedMember || '';
+    const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
+    const memberGoals = selectedMemberId ? allApprovedGoals.filter(g => g.userId === selectedMemberId) : [];
+
+    let memberOptions = STATE.members.map(m => 
+        `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
+    ).join('');
+
+    let goalsHtml = '';
+    if (selectedMemberId && memberGoals.length > 0) {
+        goalsHtml = memberGoals.map((g, i) => {
+            const avgProgress = g.keyResults.length > 0 
+                ? Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length) 
+                : 0;
+            const periodLabel = g.periodType === 'quarterly' 
+                ? `${g.periodValue.split('-')[0]}년 ${g.periodValue.split('-')[1]}분기`
+                : `${g.periodValue}년`;
+
+            return `
+                <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-6 mb-4">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[11px] font-bold text-white bg-primary px-2 py-0.5 rounded">${periodLabel}</span>
+                                <span class="text-[11px] font-bold text-on-surface-variant">진척률 ${avgProgress}%</span>
+                            </div>
+                            <h4 class="text-[15px] font-bold text-on-surface">${g.text}</h4>
+                        </div>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        ${g.keyResults.map(kr => `
+                            <div class="flex items-center gap-3 bg-surface-container rounded-lg px-4 py-2.5">
+                                <div class="flex-1">
+                                    <p class="text-[13px] text-on-surface font-medium">${kr.text}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-20 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-primary rounded-full" style="width: ${kr.progress}%"></div>
+                                    </div>
+                                    <span class="text-[12px] font-bold text-primary w-8 text-right">${kr.progress}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="border-t border-blue-50 pt-4">
+                        <label class="block text-[12px] font-bold text-on-surface-variant mb-2">피드백 작성</label>
+                        <textarea id="feedback-${g.id}" rows="3" class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${STATE.feedbackData && STATE.feedbackData[g.id] || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else if (selectedMemberId && memberGoals.length === 0) {
+        goalsHtml = `
+            <div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">
+                해당 구성원의 합의 완료된 OKR이 없습니다.
+            </div>
+        `;
+    } else {
+        goalsHtml = `
+            <div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">
+                구성원을 선택하면 해당 구성원의 OKR이 표시됩니다.
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="mb-6">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm transition-all">
+                        <option value="">구성원 선택</option>
+                        ${memberOptions}
+                    </select>
+                    ${selectedMember ? `
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[13px]">${selectedMember.name.charAt(0)}</div>
+                            <div>
+                                <p class="text-[13px] font-bold text-on-surface">${selectedMember.name}</p>
+                                <p class="text-[11px] text-on-surface-variant">${selectedMember.team} · ${selectedMember.position}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                ${selectedMemberId && memberGoals.length > 0 ? `
+                    <button onclick="submitFeedback()" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        피드백 제출
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+        ${goalsHtml}
+    `;
+}
+
+// Feedback state initialization
+if (!STATE.feedbackSelectedMember) STATE.feedbackSelectedMember = '';
+if (!STATE.feedbackData) STATE.feedbackData = {};
+
+window.submitFeedback = function() {
+    const selectedMemberId = STATE.feedbackSelectedMember;
+    const memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료');
+    
+    let hasContent = false;
+    memberGoals.forEach(g => {
+        const textarea = document.getElementById('feedback-' + g.id);
+        if (textarea && textarea.value.trim()) {
+            STATE.feedbackData[g.id] = textarea.value.trim();
+            hasContent = true;
+        }
+    });
+    
+    if (!hasContent) {
+        alert('피드백 내용을 입력해 주세요.');
+        return;
+    }
+    
+    alert('피드백이 제출되었습니다.');
+    renderCurrentView();
+};
 
 // --- OKR Guide View ---
 function renderGuide(container) {

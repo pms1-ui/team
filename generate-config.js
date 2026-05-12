@@ -12,7 +12,8 @@ const BASEROW_CONFIG = {
         goals: ${process.env.TABLE_GOALS || 1943},
         keyResults: ${process.env.TABLE_KEY_RESULTS || 1944},
         rnr: ${process.env.TABLE_RNR || 1945},
-        poll: ${process.env.TABLE_POLL || 1955}
+        poll: ${process.env.TABLE_POLL || 1955},
+        assessment: ${process.env.TABLE_ASSESSMENT || 1981}
     }
 };
 `;

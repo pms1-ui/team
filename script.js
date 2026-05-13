@@ -1255,6 +1255,17 @@ function renderCurrentView() {
         window.history.pushState({ view: 'guide' }, '', '/okr-guide');
     }
     
+    // Add dashboard info text
+    const existingInfo = document.getElementById('dashboard-info-text');
+    if (existingInfo) existingInfo.remove();
+    if (STATE.currentView === 'dashboard') {
+        const info = document.createElement('span');
+        info.id = 'dashboard-info-text';
+        info.className = 'ml-3 text-[12px] text-on-surface-variant font-medium';
+        info.textContent = "상태값이 '합의'인 목표만 노출됩니다";
+        titleContainer.appendChild(info);
+    }
+    
     if (STATE.currentView === 'dashboard') renderDashboard(content);
     else if (STATE.currentView === 'goals_set') renderGoalsSet(content);
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
@@ -1300,11 +1311,6 @@ function renderDashboard(container) {
     const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status === '합의 완료');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
-    if(STATE.user.role !== 'admin') {
-        const filtered = {};
-        if(users[STATE.user.id]) filtered[STATE.user.id] = users[STATE.user.id];
-        users = filtered;
-    }
 
     const isMobile = window.innerWidth < 1024;
     

@@ -4313,6 +4313,7 @@ async function initLoginPage() {
         }
         
         // Load divisions for dropdown
+        document.getElementById('login-view').classList.remove('hidden');
         const divisions = await DivisionsAPI.list();
         console.log('Loaded divisions for login:', divisions);
         

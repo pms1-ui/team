@@ -5,7 +5,7 @@ function renderDashboardMobile(container, users) {
     let cardsHtml = '';
     
     for(let uid in users) {
-        const name = USER_NAMES[uid] || uid;
+        const name = getUserName(uid);
         const uGoals = users[uid];
         
         uGoals.forEach(g => {
@@ -283,7 +283,7 @@ function renderRequestsMobile(combinedList) {
             `;
         } else {
             const g = item.data;
-            const assignee = USER_NAMES[g.userId] || g.userId;
+            const assignee = getUserName(g.userId);
             const period = getPeriodLabel(g.periodType, g.periodValue);
             let types = (g.requestType || '신규 수립').split(',');
             

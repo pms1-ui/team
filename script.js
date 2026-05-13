@@ -59,6 +59,13 @@ const USER_NAMES = {
     'member4': '최효율'
 };
 
+// Get user display name from members data
+function getUserName(userId) {
+    const member = STATE.members.find(m => m.user_id === userId);
+    if (member) return member.name;
+    return USER_NAMES[userId] || userId;
+}
+
 // Format date to Korean format (YYYY-MM-DD HH:mm)
 function formatRequestDate(isoString) {
     if (!isoString) return '-';
@@ -1323,7 +1330,7 @@ function renderDashboard(container) {
         h += renderDashboardMobile(container, users);
     } else {
         for(let uid in users) {
-            const name = USER_NAMES[uid] || uid;
+            const name = getUserName(uid);
             const uGoals = users[uid];
             h += '<div class="mb-10"><div class="flex items-center gap-3 mb-4 ml-2">';
             h += '<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">' + name.charAt(0) + '</div>';
@@ -1746,7 +1753,7 @@ function renderRequests(container) {
                 `;
             } else {
                 const g = item.data;
-                const assignee = USER_NAMES[g.userId] || g.userId;
+                const assignee = getUserName(g.userId);
                 const period = getPeriodLabel(g.periodType, g.periodValue);
                 
                 let types = (g.requestType || '신규 수립').split(',');

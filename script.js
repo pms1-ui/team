@@ -1297,7 +1297,7 @@ function generatePeriodOptions(tab, selectedValue) {
 
 // Rendering Views
 function renderDashboard(container) {
-    const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status !== '작성중' && g.status !== '거부');
+    const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status === '합의 완료');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
     if(STATE.user.role !== 'admin') {
@@ -1316,12 +1316,10 @@ function renderDashboard(container) {
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
     h += '</select>';
-    if (STATE.dashboardTab !== 'yearly') {
     h += '<div class="flex items-center gap-2">';
     h += '<button onclick="toggleAllDashboardOKRs(true)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 열기</button>';
     h += '<button onclick="toggleAllDashboardOKRs(false)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 닫기</button>';
     h += '</div>';
-    }
     h += '</div>';
 
     if(Object.keys(users).length === 0) {
@@ -1332,9 +1330,17 @@ function renderDashboard(container) {
         for(let uid in users) {
             const name = getUserName(uid);
             const uGoals = users[uid];
-            h += '<div class="mb-10"><div class="flex items-center gap-3 mb-4 ml-2">';
+            const userIdx = Object.keys(users).indexOf(uid);
+            
+            // User-level toggle (closed by default)
+            h += '<div class="mb-4">';
+            h += '<div class="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-blue-50 shadow-sm cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'user-goals-' + userIdx + '\').classList.toggle(\'hidden\'); this.querySelector(\'svg\').classList.toggle(\'-rotate-90\')">';
+            h += '<svg class="w-4 h-4 text-primary transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
             h += '<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">' + name.charAt(0) + '</div>';
-            h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span></div>';
+            h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span>';
+            h += '<span class="text-[12px] text-on-surface-variant ml-auto">' + uGoals.length + '개 목표</span>';
+            h += '</div>';
+            h += '<div id="user-goals-' + userIdx + '" class="hidden mt-3 pl-4">';
             
             uGoals.forEach(g => {
                 const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / (g.keyResults.length || 1));
@@ -1353,12 +1359,12 @@ function renderDashboard(container) {
                     h += '</div>';
                     h += '</div></div>';
                 } else {
-                // Quarterly: collapsible structure with KRs
+                // Quarterly: collapsible structure with KRs (2nd level toggle)
                 h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden mb-4">';
                 h += '<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-blue-50 cursor-pointer hover:bg-primary/10 transition-colors" onclick="toggleDashboardOKR(' + g.id + ')">';
                 h += '<div class="flex items-center justify-between">';
                 h += '<div class="flex items-center gap-3 flex-1">';
-                h += '<svg id="toggle-icon-' + g.id + '" class="w-5 h-5 text-primary transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+                h += '<svg id="toggle-icon-' + g.id + '" class="w-5 h-5 text-primary transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
                 h += '<h3 class="font-bold text-on-surface text-[15px] leading-relaxed break-keep flex-1">' + g.text + '</h3>';
                 h += '</div>';
                 h += '<div class="flex items-center gap-3 ml-4">';
@@ -1389,7 +1395,7 @@ function renderDashboard(container) {
                 } // end else (quarterly)
             });
             
-            h += '</div>';
+            h += '</div></div>';
         }
     }
     container.innerHTML = h;
@@ -1400,11 +1406,19 @@ window.toggleDashboardOKR = function(okrId) {
     const icon = document.getElementById('toggle-icon-' + okrId);
     if (content && icon) {
         content.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
+        icon.classList.toggle('-rotate-90');
     }
 };
 
 window.toggleAllDashboardOKRs = function(open) {
+    // Toggle user-level sections
+    const allUserGoals = document.querySelectorAll('[id^="user-goals-"]');
+    allUserGoals.forEach(section => {
+        if (open) section.classList.remove('hidden');
+        else section.classList.add('hidden');
+    });
+    
+    // Toggle OKR-level sections (KR details)
     const allContents = document.querySelectorAll('[id^="okr-content-"]');
     const allIcons = document.querySelectorAll('[id^="toggle-icon-"]');
     
@@ -1418,8 +1432,11 @@ window.toggleAllDashboardOKRs = function(open) {
     
     allIcons.forEach(icon => {
         if (open) {
-            icon.classList.add('rotate-180');
+            icon.classList.remove('-rotate-90');
+            icon.classList.add('rotate-0');
         } else {
+            icon.classList.add('-rotate-90');
+            icon.classList.remove('rotate-0');
             icon.classList.remove('rotate-180');
         }
     });

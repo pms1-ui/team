@@ -4,7 +4,8 @@
 function renderDashboardMobile(container, users) {
     let cardsHtml = '';
     
-    for(let uid in users) {
+    const sortedUids = Object.keys(users).sort((a, b) => getUserName(a).localeCompare(getUserName(b), 'ko'));
+    for(const uid of sortedUids) {
         const name = getUserName(uid);
         const uGoals = users[uid];
         

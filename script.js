@@ -1311,6 +1311,12 @@ function renderDashboard(container) {
     const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status === '합의 완료');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
+    // Sort user keys by name (가나다순)
+    const sortedUserIds = Object.keys(users).sort((a, b) => {
+        const nameA = getUserName(a);
+        const nameB = getUserName(b);
+        return nameA.localeCompare(nameB, 'ko');
+    });
 
     const isMobile = window.innerWidth < 1024;
     
@@ -1333,7 +1339,7 @@ function renderDashboard(container) {
     } else if(isMobile) {
         h += renderDashboardMobile(container, users);
     } else {
-        for(let uid in users) {
+        for(const uid of sortedUserIds) {
             const name = getUserName(uid);
             const uGoals = users[uid];
             const userIdx = Object.keys(users).indexOf(uid);

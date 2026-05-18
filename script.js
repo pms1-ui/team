@@ -721,7 +721,7 @@ window.submitOKRRequest = async function(id) {
             const existingKRs = await KeyResultsAPI.listByGoalId(goalId);
             
             for (const kr of goal.keyResults) {
-                const existingKR = existingKRs.find(k => k.kr_id === kr.id);
+                const existingKR = existingKRs.find(k => k.kr_id == kr.id);
                 if (existingKR) {
                     await KeyResultsAPI.update(existingKR.id, {
                         OKR: goal.text,
@@ -741,7 +741,7 @@ window.submitOKRRequest = async function(id) {
             
             // Delete removed KRs
             for (const existingKR of existingKRs) {
-                if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
+                if (!goal.keyResults.find(k => k.id == existingKR.kr_id)) {
                     await KeyResultsAPI.delete(existingKR.id);
                 }
             }
@@ -931,7 +931,7 @@ window.approveAdminRequest = async function(id) {
             
             // Update or create each KR
             for (const kr of goal.keyResults) {
-                const existingKR = existingKRs.find(k => k.kr_id === kr.id);
+                const existingKR = existingKRs.find(k => k.kr_id == kr.id);
                 if (existingKR) {
                     // Update existing KR
                     await KeyResultsAPI.update(existingKR.id, {
@@ -953,7 +953,7 @@ window.approveAdminRequest = async function(id) {
             
             // Delete removed KRs
             for (const existingKR of existingKRs) {
-                if (!goal.keyResults.find(k => k.id === existingKR.kr_id)) {
+                if (!goal.keyResults.find(k => k.id == existingKR.kr_id)) {
                     await KeyResultsAPI.delete(existingKR.id);
                 }
             }
@@ -1899,7 +1899,7 @@ function createDiffContent(g) {
     const krsToRender = g.tempKeyResults || g.keyResults;
     
     krsToRender.forEach((kr, i) => {
-        const oldKr = g.keyResults.find(k => k.id === kr.id);
+        const oldKr = g.keyResults.find(k => k.id == kr.id);
         const isNew = !oldKr;
         
         let hasTextDiff = false;
@@ -1946,7 +1946,7 @@ function createDiffContent(g) {
     // Check for deleted items
     if(g.tempKeyResults) {
         g.keyResults.forEach(oldKr => {
-            if(!g.tempKeyResults.find(k => k.id === oldKr.id)) {
+            if(!g.tempKeyResults.find(k => k.id == oldKr.id)) {
                 diff += `
                     <tr class="border-b border-blue-50 bg-surface-container-low">
                         <td class="py-2 px-3 text-center font-bold text-on-surface-variant">-</td>

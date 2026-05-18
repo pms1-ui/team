@@ -542,14 +542,14 @@ window.updateKRTitle = function(okrId, krId, val, isTempObj = false) {
         if(isTempObj && goal.status !== '작성중') {
             ensureTempStructures(goal); // Ensure temp structures exist
             if (goal.tempKeyResults) {
-                const kr = goal.tempKeyResults.find(k => k.id === krId);
+                const kr = goal.tempKeyResults.find(k => k.id == krId);
                 if(kr) kr.text = val;
             } else {
-                const kr = goal.keyResults.find(k => k.id === krId);
+                const kr = goal.keyResults.find(k => k.id == krId);
                 if(kr) kr.text = val;
             }
         } else {
-            const kr = goal.keyResults.find(k => k.id === krId);
+            const kr = goal.keyResults.find(k => k.id == krId);
             if(kr) kr.text = val;
         }
     }
@@ -560,7 +560,7 @@ window.updateKRProgress = function(okrId, krId, val) {
     if(goal) {
         if (goal.status === '작성중') {
             // For draft goals, update keyResults directly
-            const kr = goal.keyResults.find(k => k.id === krId);
+            const kr = goal.keyResults.find(k => k.id == krId);
             if(kr) {
                 kr.progress = parseInt(val);
                 const el = document.getElementById(`kr-prog-val-${krId}`);
@@ -569,7 +569,7 @@ window.updateKRProgress = function(okrId, krId, val) {
         } else {
             ensureTempStructures(goal);
             if(goal.tempKeyResults) {
-                const kr = goal.tempKeyResults.find(k => k.id === krId);
+                const kr = goal.tempKeyResults.find(k => k.id == krId);
                 if(kr) {
                     kr.progress = parseInt(val);
                     const el = document.getElementById(`kr-prog-val-${krId}`);
@@ -603,7 +603,7 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
         if(isTempObj) {
             ensureTempStructures(goal);
             if(goal.tempKeyResults.length > 1) {
-                goal.tempKeyResults = goal.tempKeyResults.filter(k => k.id !== krId);
+                goal.tempKeyResults = goal.tempKeyResults.filter(k => k.id != krId);
             }
         } else {
             if(goal.keyResults.length > 1) {
@@ -833,7 +833,7 @@ window.submitModifyRequest = function(id) {
     if(oldKRs.length !== newKRs.length) hasKrAddRem = true;
     
     newKRs.forEach(nKr => {
-        const oKr = oldKRs.find(k => k.id === nKr.id);
+        const oKr = oldKRs.find(k => k.id == nKr.id);
         if(!oKr) {
             hasKrAddRem = true;
         } else {

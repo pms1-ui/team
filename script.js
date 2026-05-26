@@ -15,6 +15,7 @@ const STATE = {
     
     requestsTab: 'yearly',
     requestsPeriodValue: '',
+    requestsFilter: 'pending', // 'pending' | 'approved' | 'rejected'
     
     // Feedback State
     feedbackSelectedMember: '',
@@ -416,6 +417,11 @@ window.setPeriod = function(view, val) {
     if(view === 'goals_set') STATE.goalsSetPeriodValue = val;
     if(view === 'goals_manage') STATE.goalsManagePeriodValue = val;
     if(view === 'requests') STATE.requestsPeriodValue = val;
+    renderCurrentView();
+};
+
+window.setRequestsFilter = function(val) {
+    STATE.requestsFilter = val;
     renderCurrentView();
 };
 
@@ -1647,10 +1653,27 @@ function renderRequests(container) {
     const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
     
     // Combine OKR and R&R requests
-    const combinedList = [
+    let combinedList = [
         ...okrList.map(g => ({ type: 'okr', data: g })),
         ...rnrList.map(r => ({ type: 'rnr', data: r }))
     ];
+    
+    // Apply status filter
+    const filter = STATE.requestsFilter || 'pending';
+    combinedList = combinedList.filter(item => {
+        if (item.type === 'okr') {
+            const g = item.data;
+            if (filter === 'pending') return !g.isProcessed && g.status !== '거부';
+            if (filter === 'approved') return g.isProcessed && g.status !== '거부';
+            if (filter === 'rejected') return g.status === '거부';
+        } else {
+            const r = item.data;
+            if (filter === 'pending') return r.status !== '합의 완료' && r.status !== '거부';
+            if (filter === 'approved') return r.status === '합의 완료';
+            if (filter === 'rejected') return r.status === '거부';
+        }
+        return true;
+    });
     
     // Sort by processed status
     combinedList.sort((a, b) => {
@@ -1831,9 +1854,16 @@ function renderRequests(container) {
     }
 
     container.innerHTML = `
-        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
-            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+        <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full">
+            <div class="flex items-center gap-8">
+                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+                <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            </div>
+            <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
+                <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>
+                <option value="approved" ${STATE.requestsFilter === 'approved' ? 'selected' : ''}>승인된 항목</option>
+                <option value="rejected" ${STATE.requestsFilter === 'rejected' ? 'selected' : ''}>거부된 항목</option>
+            </select>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2645,10 +2675,27 @@ renderRequests = function(container) {
     const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
     
     // Combine OKR and R&R requests
-    const combinedList = [
+    let combinedList = [
         ...okrList.map(g => ({ type: 'okr', data: g })),
         ...rnrList.map(r => ({ type: 'rnr', data: r }))
     ];
+    
+    // Apply status filter
+    const filter = STATE.requestsFilter || 'pending';
+    combinedList = combinedList.filter(item => {
+        if (item.type === 'okr') {
+            const g = item.data;
+            if (filter === 'pending') return !g.isProcessed && g.status !== '거부';
+            if (filter === 'approved') return g.isProcessed && g.status !== '거부';
+            if (filter === 'rejected') return g.status === '거부';
+        } else {
+            const r = item.data;
+            if (filter === 'pending') return r.status !== '합의 완료' && r.status !== '거부';
+            if (filter === 'approved') return r.status === '합의 완료';
+            if (filter === 'rejected') return r.status === '거부';
+        }
+        return true;
+    });
     
     // Sort by processed status
     combinedList.sort((a, b) => {
@@ -2660,9 +2707,16 @@ renderRequests = function(container) {
     const isMobile = window.innerWidth < 1024;
     
     let h = `
-        <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
-            <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+        <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
+            <div class="flex items-center gap-4 lg:gap-8">
+                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+                <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            </div>
+            <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
+                <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>
+                <option value="approved" ${STATE.requestsFilter === 'approved' ? 'selected' : ''}>승인된 항목</option>
+                <option value="rejected" ${STATE.requestsFilter === 'rejected' ? 'selected' : ''}>거부된 항목</option>
+            </select>
         </div>
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">

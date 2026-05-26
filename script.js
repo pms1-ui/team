@@ -1649,8 +1649,8 @@ function renderGoalsManage(container) {
 }
 
 function renderRequests(container) {
-    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
+    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true || g.status === '거부') && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
+    const rnrList = STATE.rnrData.filter(r => r.request_type !== null || r.status === '합의 완료' || r.status === '거부');
     
     // Combine OKR and R&R requests
     let combinedList = [
@@ -2671,8 +2671,8 @@ renderGoalsManage = function(container) {
 };
 
 renderRequests = function(container) {
-    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true) && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
-    const rnrList = STATE.rnrData.filter(r => r.request_type !== null);
+    const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true || g.status === '거부') && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
+    const rnrList = STATE.rnrData.filter(r => r.request_type !== null || r.status === '합의 완료' || r.status === '거부');
     
     // Combine OKR and R&R requests
     let combinedList = [

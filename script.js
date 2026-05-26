@@ -33,6 +33,13 @@ const STATE = {
     // Members filter state
     membersTeamFilter: 'all', // 'all' or team name
     
+    // Dashboard team filter
+    dashboardTeamFilter: 'all', // 'all' or team name
+    
+    // R&R view state
+    rnrViewMode: 'edit', // 'edit' | 'browse'
+    rnrBrowseTeamFilter: 'all', // 'all' or team name
+    
     // Divisions Data (loaded from Baserow)
     divisions: [],
     
@@ -422,6 +429,21 @@ window.setPeriod = function(view, val) {
 
 window.setRequestsFilter = function(val) {
     STATE.requestsFilter = val;
+    renderCurrentView();
+};
+
+window.setDashboardTeamFilter = function(val) {
+    STATE.dashboardTeamFilter = val;
+    renderCurrentView();
+};
+
+window.setRnrViewMode = function(mode) {
+    STATE.rnrViewMode = mode;
+    renderCurrentView();
+};
+
+window.setRnrBrowseTeamFilter = function(val) {
+    STATE.rnrBrowseTeamFilter = val;
     renderCurrentView();
 };
 
@@ -1317,6 +1339,15 @@ function renderDashboard(container) {
     const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status === '합의 완료');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
+    
+    // Apply team filter
+    if (STATE.dashboardTeamFilter !== 'all') {
+        const teamMembers = STATE.members.filter(m => m.team === STATE.dashboardTeamFilter).map(m => m.user_id);
+        Object.keys(users).forEach(uid => {
+            if (!teamMembers.includes(uid)) delete users[uid];
+        });
+    }
+    
     // Sort user keys by name (가나다순)
     const sortedUserIds = Object.keys(users).sort((a, b) => {
         const nameA = getUserName(a);
@@ -1331,9 +1362,15 @@ function renderDashboard(container) {
     h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
     h += '</div>';
     h += '<div class="mb-4 w-full flex items-center justify-between gap-3">';
+    h += '<div class="flex items-center gap-2">';
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
     h += '</select>';
+    h += '<select onchange="setDashboardTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    h += '<option value="all"' + (STATE.dashboardTeamFilter === 'all' ? ' selected' : '') + '>전체 팀</option>';
+    STATE.teams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.dashboardTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
+    h += '</select>';
+    h += '</div>';
     h += '<div class="flex items-center gap-2">';
     h += '<button onclick="toggleAllDashboardOKRs(true)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 열기</button>';
     h += '<button onclick="toggleAllDashboardOKRs(false)" class="px-4 py-1.5 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm whitespace-nowrap">모두 닫기</button>';
@@ -3724,6 +3761,12 @@ function renderGuide(container) {
 
 // --- R&R View ---
 function renderRnR(container) {
+    // If browse mode, render the browse view
+    if (STATE.rnrViewMode === 'browse') {
+        renderRnRBrowse(container);
+        return;
+    }
+    
     // Get member info from STATE.members
     const memberInfo = STATE.members.find(m => m.name === STATE.user.name) || { name: STATE.user.name, team: '', position: '' };
     const myRnR = STATE.rnrData.find(r => r.user_id === STATE.user.id);
@@ -3736,6 +3779,15 @@ function renderRnR(container) {
     const isRejected = myRnR && myRnR.reject_comment;
     
     let h = '<div class="max-w-4xl mx-auto">';
+    
+    // 페이지 헤더 with 구성원 JD/R&R 확인 버튼
+    h += '<div class="flex items-center justify-between mb-6">';
+    h += '<div></div>';
+    h += '<button onclick="setRnrViewMode(\'browse\')" class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">';
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
+    h += '구성원 JD / R&R 확인하기';
+    h += '</button>';
+    h += '</div>';
     
     // 내 직무기술 & R&R 작성 섹션
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8 mb-6">';
@@ -3812,28 +3864,55 @@ function renderRnR(container) {
     h += '</div>';
     h += '</div>';
     
-    // 모든 사용자가 볼 수 있는 구성원 직무기술 & R&R 확인 섹션
-    if (STATE.rnrData.length > 0) {
-        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
-        h += '<div class="flex items-center justify-between mb-6">';
-        h += '<div class="flex items-center gap-3">';
-        h += '<div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">';
-        h += '<svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
-        h += '</div>';
-        h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 입력 정보 확인</h3>';
-        h += '</div>';
-        h += '<div class="text-[14px] font-bold text-on-surface-variant">총 <span class="text-primary font-black mx-1">' + STATE.rnrData.length + '</span>명</div>';
-        h += '</div>';
-        
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+// R&R Browse View - 구성원 JD / R&R 확인하기
+function renderRnRBrowse(container) {
+    // Filter by team
+    const filteredRnR = STATE.rnrBrowseTeamFilter === 'all'
+        ? STATE.rnrData
+        : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter);
+    
+    let h = '<div class="max-w-4xl mx-auto">';
+    
+    // 헤더 with 돌아가기 버튼
+    h += '<div class="flex items-center justify-between mb-6">';
+    h += '<button onclick="setRnrViewMode(\'edit\')" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-blue-100 text-on-surface font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">';
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>';
+    h += '내 JD / R&R 작성으로 돌아가기';
+    h += '</button>';
+    h += '<select onchange="setRnrBrowseTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
+    h += '<option value="all"' + (STATE.rnrBrowseTeamFilter === 'all' ? ' selected' : '') + '>전체 팀</option>';
+    STATE.teams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.rnrBrowseTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
+    h += '</select>';
+    h += '</div>';
+    
+    // 구성원 목록
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+    h += '<div class="flex items-center justify-between mb-6">';
+    h += '<div class="flex items-center gap-3">';
+    h += '<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">';
+    h += '<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
+    h += '</div>';
+    h += '<h3 class="font-display text-xl font-bold text-on-surface">구성원 JD / R&R 확인</h3>';
+    h += '</div>';
+    h += '<div class="text-[14px] font-bold text-on-surface-variant">총 <span class="text-primary font-black mx-1">' + filteredRnR.length + '</span>명</div>';
+    h += '</div>';
+    
+    if (filteredRnR.length === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px] text-center p-4">해당 팀에 등록된 JD / R&R 데이터가 없습니다.</div>';
+    } else {
         h += '<div class="space-y-4">';
-        STATE.rnrData.forEach((rnr, idx) => {
+        filteredRnR.forEach((rnr, idx) => {
             h += '<div class="bg-surface-container rounded-xl border border-blue-100 overflow-hidden">';
-            h += '<div class="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'rnr-detail-' + idx + '\').classList.toggle(\'hidden\')">';
+            h += '<div class="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'rnr-browse-' + idx + '\').classList.toggle(\'hidden\')">';
             h += '<div class="flex items-center gap-3">';
             h += '<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[14px]">' + rnr.name.charAt(0) + '</div>';
             h += '<div>';
             h += '<h4 class="font-bold text-on-surface text-[14px]">' + rnr.name + '</h4>';
-            h += '<p class="text-[11px] text-on-surface-variant">' + rnr.team + ' · ' + rnr.position + '</p>';
+            h += '<p class="text-[11px] text-on-surface-variant">' + (rnr.team || '') + ' · ' + (rnr.position || '') + '</p>';
             h += '</div>';
             h += '</div>';
             h += '<div class="flex items-center gap-2">';
@@ -3847,7 +3926,7 @@ function renderRnR(container) {
             h += '<svg class="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
             h += '</div>';
             h += '</div>';
-            h += '<div id="rnr-detail-' + idx + '" class="hidden px-4 pb-4">';
+            h += '<div id="rnr-browse-' + idx + '" class="hidden px-4 pb-4">';
             
             if (rnr.job) {
                 h += '<div class="mb-3">';
@@ -3868,9 +3947,9 @@ function renderRnR(container) {
             h += '</div>';
         });
         h += '</div>';
-        h += '</div>';
     }
     
+    h += '</div>';
     h += '</div>';
     container.innerHTML = h;
 }

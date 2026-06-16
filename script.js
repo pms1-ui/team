@@ -3824,177 +3824,188 @@ function renderGuide(container) {
 
 // --- Weekly Report View ---
 
-// 주차 목록 생성: 2026년 7월 1주차 ~ 현재로부터 다음주 마지막 주차
+// 주차 계산: 월요일 시작, 주차 소속은 그 주 월요일 기준 월
+// 시작: 2026년 6월 4주차 (2026-06-22), 현재일 기준 3개월 후까지 자동 생성
 function generateWeeklyPeriods() {
     const periods = [];
-    // 시작: 2026년 7월 1주차 (2026-07-07 주 기준)
-    const start = new Date('2026-07-07'); // 7월 첫 월요일 기준
-    start.setDate(start.getDate() - start.getDay() + 1); // 해당 주 월요일
-
-    // 현재 날짜 + 2주 후 일요일까지
+    const startMonday = new Date(2026, 5, 22); // 2026-06-22
     const now = new Date();
-    const endRef = new Date(now);
-    endRef.setDate(endRef.getDate() + 14);
-    // endRef를 해당 주 일요일로 맞춤
-    endRef.setDate(endRef.getDate() + (7 - endRef.getDay()) % 7);
-
-    let cursor = new Date(start);
+    const endRef = new Date(now.getFullYear(), now.getMonth() + 4, 0);
+    let cursor = new Date(startMonday);
     while (cursor <= endRef) {
         const year = cursor.getFullYear();
         const month = cursor.getMonth() + 1;
-        // 해당 월의 몇 번째 주인지 계산
-        const firstDayOfMonth = new Date(year, month - 1, 1);
-        const firstMonday = new Date(firstDayOfMonth);
-        const dayOfWeek = firstDayOfMonth.getDay();
-        // 첫 번째 월요일 찾기
-        firstMonday.setDate(firstDayOfMonth.getDate() + (dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek));
-        const weekNum = Math.floor((cursor - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-
+        const firstOfMonth = new Date(year, month - 1, 1);
+        const dow = firstOfMonth.getDay();
+        const firstMonday = new Date(firstOfMonth);
+        if (dow === 0) firstMonday.setDate(firstOfMonth.getDate() + 1);
+        else if (dow !== 1) firstMonday.setDate(firstOfMonth.getDate() + (8 - dow));
+        const weekNum = Math.round((cursor - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        const friday = new Date(cursor);
+        friday.setDate(cursor.getDate() + 4);
+        const fmt = d => `${d.getMonth() + 1}/${d.getDate()}`;
         periods.push({
             key: `${year}-${month}-${weekNum}`,
-            year: String(year),
-            month: String(month),
-            week: String(weekNum),
+            year: String(year), month: String(month), week: String(weekNum),
             label: `${year}년 ${month}월 ${weekNum}주차`,
-            monthLabel: `${year}년 ${month}월`
+            dateRange: `${fmt(cursor)} ~ ${fmt(friday)}`,
+            monthLabel: `${year}년 ${month}월`,
+            mondayDate: new Date(cursor)
         });
-
         cursor.setDate(cursor.getDate() + 7);
     }
     return periods;
 }
 
-// 현재 주차 key 반환
-function getCurrentWeekKey(periods) {
-    const now = new Date();
-    // 이번 주 월요일 기준
+function getTodayWeekKey(periods) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const dow = now.getDay();
     const monday = new Date(now);
-    monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
-    monday.setHours(0, 0, 0, 0);
-
-    // periods 중 가장 가까운 주차 찾기
-    for (let i = periods.length - 1; i >= 0; i--) {
-        if (periods[i].key <= getCurrentPeriodKey(monday)) return periods[i].key;
+    monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    for (const p of periods) {
+        const pm = p.mondayDate;
+        if (pm.getFullYear()===monday.getFullYear() && pm.getMonth()===monday.getMonth() && pm.getDate()===monday.getDate()) return p.key;
     }
-    return periods[0] ? periods[0].key : '';
-}
-
-function getCurrentPeriodKey(date) {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const firstDayOfMonth = new Date(year, month - 1, 1);
-    const dayOfWeek = firstDayOfMonth.getDay();
-    const firstMonday = new Date(firstDayOfMonth);
-    firstMonday.setDate(firstDayOfMonth.getDate() + (dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek));
-    const weekNum = Math.floor((date - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-    return `${year}-${month}-${weekNum}`;
+    const past = [...periods].filter(p => p.mondayDate <= monday);
+    return past.length ? past[past.length-1].key : (periods[0] ? periods[0].key : '');
 }
 
 function renderWeeklyReport(container) {
-    const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
     const periods = generateWeeklyPeriods();
-
-    // 선택된 주차가 없으면 현재 주차로 초기화
+    const viewMode = STATE.weeklyReportViewMode || 'my';
     if (!STATE.weeklyReportSelectedWeek || !periods.find(p => p.key === STATE.weeklyReportSelectedWeek)) {
-        const now = new Date();
-        const key = getCurrentPeriodKey(now);
-        const found = periods.find(p => p.key === key);
-        STATE.weeklyReportSelectedWeek = found ? found.key : (periods[0] ? periods[0].key : '');
+        STATE.weeklyReportSelectedWeek = getTodayWeekKey(periods);
     }
-
     const selectedPeriod = periods.find(p => p.key === STATE.weeklyReportSelectedWeek) || periods[0];
-
-    // 현재 주차의 내 보고서 찾기
-    const myReport = STATE.weeklyReports.find(r =>
-        r.user_id === STATE.user.id &&
-        r.year === (selectedPeriod ? selectedPeriod.year : '') &&
-        r.month === (selectedPeriod ? selectedPeriod.month : '') &&
-        r.week === (selectedPeriod ? selectedPeriod.week : '')
-    );
-
-    const content = myReport ? (myReport.content || '') : '';
-
-    // 월별로 그룹핑
     const months = [...new Set(periods.map(p => p.monthLabel))];
 
-    let h = '<div class="max-w-2xl mx-auto">';
-
-    // 주차 선택 영역
-    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-6">';
-    h += '<div class="flex items-center gap-3 mb-4">';
-    h += '<div class="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>';
-    h += '<span class="font-bold text-on-surface text-[15px]">주차 선택</span>';
+    let h = '<div class="max-w-3xl mx-auto">';
+    h += '<div class="flex items-center gap-3 mb-6">';
+    h += `<button onclick="setWeeklyReportViewMode('my')" class="flex items-center gap-2 px-4 py-2.5 font-bold text-[13px] rounded-lg transition-all ${viewMode==='my' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-blue-100 text-on-surface hover:bg-blue-50'}">`;
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>내 업무보고 작성</button>';
+    h += `<button onclick="setWeeklyReportViewMode('all')" class="flex items-center gap-2 px-4 py-2.5 font-bold text-[13px] rounded-lg transition-all ${viewMode==='all' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-blue-100 text-on-surface hover:bg-blue-50'}">`;
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>구성원 전체 현황</button>';
     h += '</div>';
-    h += '<div class="flex items-center gap-3 flex-wrap">';
 
-    // 월 선택
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-6 flex items-center gap-3 flex-wrap">';
+    h += '<svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
     h += '<select onchange="setWeeklyReportMonth(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
     months.forEach(ml => {
-        const sel = selectedPeriod && selectedPeriod.monthLabel === ml ? 'selected' : '';
-        h += `<option value="${ml}" ${sel}>${ml}</option>`;
+        h += `<option value="${ml}" ${selectedPeriod && selectedPeriod.monthLabel===ml ? 'selected' : ''}>${ml}</option>`;
     });
     h += '</select>';
-
-    // 주차 선택 (선택된 월에 해당하는 주차만)
-    const monthPeriods = selectedPeriod ? periods.filter(p => p.monthLabel === selectedPeriod.monthLabel) : [];
+    const monthPeriods = selectedPeriod ? periods.filter(p => p.monthLabel===selectedPeriod.monthLabel) : [];
     h += '<select onchange="setWeeklyReportWeek(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
     monthPeriods.forEach(p => {
-        const sel = p.key === STATE.weeklyReportSelectedWeek ? 'selected' : '';
-        h += `<option value="${p.key}" ${sel}>${p.week}주차</option>`;
+        h += `<option value="${p.key}" ${p.key===STATE.weeklyReportSelectedWeek ? 'selected' : ''}>${p.week}주차 (${p.dateRange})</option>`;
     });
     h += '</select>';
-
     if (selectedPeriod) {
         h += `<span class="text-[13px] text-primary font-black">${selectedPeriod.label}</span>`;
+        h += `<span class="text-[12px] text-on-surface-variant">${selectedPeriod.dateRange}</span>`;
     }
     h += '</div>';
+    h += viewMode==='my' ? renderWeeklyReportMyView(selectedPeriod) : renderWeeklyReportAllView(selectedPeriod);
     h += '</div>';
-
-    // 작성 카드
-    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
-
-    // 작성자 정보 (수정 불가)
-    h += '<div class="grid grid-cols-3 gap-4 mb-6">';
-    [['이름', member.name || STATE.user.name || ''], ['팀', member.team || ''], ['직책', member.position || '']].forEach(([label, val]) => {
-        h += '<div>';
-        h += `<label class="block text-[12px] font-bold text-on-surface-variant mb-1.5">${label}</label>`;
-        h += `<input type="text" value="${val}" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface cursor-not-allowed">`;
-        h += '</div>';
-    });
-    h += '</div>';
-
-    // 업무보고 입력
-    h += '<div class="mb-4">';
-    h += `<div class="flex items-center justify-between mb-2">`;
-    h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label : ''} 업무보고</label>`;
-    if (myReport && myReport.updated_at) {
-        const updatedDate = new Date(myReport.updated_at);
-        const formatted = updatedDate.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
-        h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${formatted}</span>`;
-    }
-    h += '</div>';
-    h += `<textarea id="weekly-report-content" rows="16" placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 이슈 해결 방법, 다음 주 계획 등" class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
-    h += '</div>';
-
-    // 저장 버튼
-    h += '<div class="flex justify-end">';
-    h += `<button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
-    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-    h += '저장';
-    h += '</button>';
-    h += '</div>';
-
-    h += '</div>';
-    h += '</div>';
-
     container.innerHTML = h;
 }
 
+function renderWeeklyReportMyView(selectedPeriod) {
+    const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+    const myReport = selectedPeriod ? STATE.weeklyReports.find(r =>
+        r.user_id===STATE.user.id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week
+    ) : null;
+    const content = myReport ? (myReport.content || '') : '';
+    let h = '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+    h += '<div class="grid grid-cols-3 gap-4 mb-6">';
+    [['이름', member.name || STATE.user.name || ''], ['팀', member.team || ''], ['직책', member.position || '']].forEach(([label, val]) => {
+        h += `<div><label class="block text-[12px] font-bold text-on-surface-variant mb-1.5">${label}</label>`;
+        h += `<input type="text" value="${val}" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface cursor-not-allowed"></div>`;
+    });
+    h += '</div>';
+    h += '<div class="mb-5"><div class="flex items-center justify-between mb-2">';
+    h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label+' 업무보고' : '업무보고'}</label>`;
+    if (myReport && myReport.updated_at) {
+        const fmt = new Date(myReport.updated_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+        h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${fmt}</span>`;
+    }
+    h += '</div>';
+    h += `<textarea id="weekly-report-content" rows="16" placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
+    h += '</div>';
+    h += `<div class="flex justify-end"><button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button></div></div>';
+    return h;
+}
+
+function renderWeeklyReportAllView(selectedPeriod) {
+    const targetMembers = STATE.members.filter(m =>
+        m.division==='운영본부' && m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO'
+    ).sort((a,b) => a.name.localeCompare(b.name,'ko'));
+
+    let h = '<div class="space-y-3">';
+    if (!selectedPeriod || targetMembers.length===0) {
+        return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';
+    }
+    const submittedCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
+        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.content && r.content.trim()!==''
+    )).length;
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-2 flex items-center gap-6">';
+    h += '<div class="text-[13px] font-bold text-on-surface-variant">제출 현황</div>';
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-success"></div><span class="text-[13px] font-bold text-on-surface">제출완료 ${submittedCount}명</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-blue-100"></div><span class="text-[13px] font-bold text-on-surface-variant">미제출 ${targetMembers.length-submittedCount}명</span></div>`;
+    h += '</div>';
+    targetMembers.forEach((m, idx) => {
+        const report = STATE.weeklyReports.find(r =>
+            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.content && r.content.trim()!==''
+        );
+        const isMe = m.user_id===STATE.user.id;
+        const submitted = !!report;
+        h += `<div class="bg-white rounded-xl border ${submitted ? 'border-success/30' : 'border-blue-50'} shadow-sm overflow-hidden">`;
+        h += `<div class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-blue-50/40 transition-colors" onclick="document.getElementById('wr-detail-${idx}').classList.toggle('hidden')">`;
+        h += '<div class="flex items-center gap-3">';
+        if (submitted) {
+            h += '<span class="flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+        } else {
+            h += '<span class="px-2.5 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded-full">미제출</span>';
+        }
+        h += `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">${m.name.charAt(0)}</div>`;
+        h += `<div><span class="font-bold text-on-surface text-[14px]">${m.name}</span>`;
+        if (isMe) h += '<span class="ml-2 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">나</span>';
+        h += `<p class="text-[11px] text-on-surface-variant">${m.team||''} · ${m.position||''}</p></div></div>`;
+        h += '<div class="flex items-center gap-3">';
+        if (submitted && report.updated_at) {
+            const fmt = new Date(report.updated_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+            h += `<span class="text-[11px] text-on-surface-variant/60 hidden lg:block">${fmt}</span>`;
+        }
+        if (isMe) {
+            h += `<button onclick="event.stopPropagation();setWeeklyReportViewMode('my')" class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white font-bold text-[12px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
+            h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>작성하기</button>';
+        }
+        h += '<svg class="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+        h += '</div></div>';
+        h += `<div id="wr-detail-${idx}" class="hidden border-t border-blue-50 px-5 py-4 bg-surface-container/30">`;
+        if (submitted && report.content) {
+            h += `<pre class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap font-sans break-all">${report.content}</pre>`;
+        } else {
+            h += '<p class="text-[13px] text-on-surface-variant/60 font-medium">아직 작성된 업무보고가 없습니다.</p>';
+        }
+        h += '</div></div>';
+    });
+    h += '</div>';
+    return h;
+}
+
+window.setWeeklyReportViewMode = function(mode) {
+    STATE.weeklyReportViewMode = mode;
+    renderCurrentView();
+};
+
 window.setWeeklyReportMonth = function(monthLabel) {
     const periods = generateWeeklyPeriods();
-    const monthPeriods = periods.filter(p => p.monthLabel === monthLabel);
+    const monthPeriods = periods.filter(p => p.monthLabel===monthLabel);
     if (monthPeriods.length > 0) {
-        STATE.weeklyReportSelectedWeek = monthPeriods[0].key;
+        const already = monthPeriods.find(p => p.key===STATE.weeklyReportSelectedWeek);
+        if (!already) STATE.weeklyReportSelectedWeek = monthPeriods[0].key;
     }
     renderCurrentView();
 };
@@ -4008,58 +4019,37 @@ window.saveWeeklyReport = async function(periodKey) {
     const textarea = document.getElementById('weekly-report-content');
     if (!textarea) return;
     const content = textarea.value.trim();
-
     const periods = generateWeeklyPeriods();
-    const period = periods.find(p => p.key === periodKey);
+    const period = periods.find(p => p.key===periodKey);
     if (!period) return;
-
-    const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+    const member = STATE.members.find(m => m.user_id===STATE.user.id) || {};
     const now = new Date().toISOString();
-
     const existingReport = STATE.weeklyReports.find(r =>
-        r.user_id === STATE.user.id &&
-        r.year === period.year &&
-        r.month === period.month &&
-        r.week === period.week
+        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month && r.week===period.week
     );
-
     const btn = document.querySelector('[onclick*="saveWeeklyReport"]');
-    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-
+    if (btn) { btn.disabled=true; btn.textContent='저장 중...'; }
     try {
         if (existingReport) {
-            const updated = await WeeklyReportAPI.update(existingReport.id, {
-                content: content,
-                updated_at: now
-            });
-            const idx = STATE.weeklyReports.findIndex(r => r.id === existingReport.id);
-            if (idx !== -1) STATE.weeklyReports[idx] = { ...existingReport, content, updated_at: now };
+            await WeeklyReportAPI.update(existingReport.id, {content, updated_at: now});
+            const idx = STATE.weeklyReports.findIndex(r => r.id===existingReport.id);
+            if (idx !== -1) STATE.weeklyReports[idx] = {...existingReport, content, updated_at: now};
         } else {
-            const reportId = 'wr-' + Date.now();
             const created = await WeeklyReportAPI.create({
-                report_id: reportId,
-                user_id: STATE.user.id,
-                user_name: member.name || STATE.user.name || '',
-                team: member.team || '',
-                position: member.position || '',
-                year: period.year,
-                month: period.month,
-                week: period.week,
-                period_label: period.label,
-                content: content,
-                created_at: now,
-                updated_at: now
+                report_id: 'wr-'+Date.now(), user_id: STATE.user.id,
+                user_name: member.name||STATE.user.name||'', team: member.team||'', position: member.position||'',
+                year: period.year, month: period.month, week: period.week,
+                period_label: period.label, content, created_at: now, updated_at: now
             });
-            STATE.weeklyReports.push({ ...created, content, updated_at: now });
+            STATE.weeklyReports.push({...created, content, updated_at: now});
         }
         renderCurrentView();
     } catch (error) {
         console.error('Error saving weekly report:', error);
         alert('저장 중 오류가 발생했습니다.');
-        if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+        if (btn) { btn.disabled=false; btn.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장'; }
     }
 };
-
 
 // --- R&R View ---
 function renderRnR(container) {

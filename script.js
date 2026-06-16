@@ -304,9 +304,9 @@ function getDefaultPeriodValue(type) {
 }
 
 function initDates() {
-    STATE.dashboardPeriodValue = getDefaultPeriodValue('yearly');
-    STATE.goalsSetPeriodValue = getDefaultPeriodValue('yearly');
-    STATE.goalsManagePeriodValue = getDefaultPeriodValue('yearly');
+    STATE.dashboardPeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.goalsSetPeriodValue = getDefaultPeriodValue('quarterly');
+    STATE.goalsManagePeriodValue = getDefaultPeriodValue('quarterly');
     STATE.requestsPeriodValue = getDefaultPeriodValue('yearly');
 }
 initDates();
@@ -1389,7 +1389,7 @@ function renderDashboard(container) {
         const totalColor = totalAvg === 100 ? '#22c55e' : totalAvg >= 50 ? 'currentColor' : '#9ca3af';
         const totalDash = totalAvg * 1.76;
 
-        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-6">';
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-10">';
         h += '<div class="flex items-center justify-between">';
         h += '<div>';
         h += '<div class="text-[13px] font-bold text-on-surface-variant mb-1">총 평균 진척률</div>';
@@ -3916,10 +3916,14 @@ function renderRnR(container) {
 
 // R&R Browse View - 구성원 JD / R&R 확인하기
 function renderRnRBrowse(container) {
-    // Filter by team
-    const filteredRnR = STATE.rnrBrowseTeamFilter === 'all'
+    // 숨김 처리할 구성원 (베이스로우 데이터는 보존)
+    const HIDDEN_MEMBERS = ['이다영', '이보란'];
+    
+    // Filter by team and exclude hidden members
+    const filteredRnR = (STATE.rnrBrowseTeamFilter === 'all'
         ? STATE.rnrData
-        : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter);
+        : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter))
+        .filter(r => !HIDDEN_MEMBERS.includes(r.name));
     
     let h = '<div class="max-w-4xl mx-auto">';
     

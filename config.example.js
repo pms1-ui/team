@@ -10,6 +10,7 @@ const BASEROW_CONFIG = {
         goals: 1943,
         keyResults: 1944,
         rnr: 1945,
-        poll: 1955
-    }
+        poll: 1955,
+        assessment: 1981,
+        weeklyReport: 2080
 };

@@ -288,3 +288,36 @@ const AssessmentAPI = {
         });
     }
 };
+
+// Weekly Report API (table id: 2080)
+const WeeklyReportAPI = {
+    async list() {
+        const data = await baserowFetch(`/database/rows/table/2080/?user_field_names=true&size=500`);
+        return data.results;
+    },
+
+    async listByUserId(userId) {
+        const data = await baserowFetch(`/database/rows/table/2080/?user_field_names=true&filter__user_id__equal=${encodeURIComponent(userId)}&size=200`);
+        return data.results;
+    },
+
+    async create(report) {
+        return await baserowFetch(`/database/rows/table/2080/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(report)
+        });
+    },
+
+    async update(id, report) {
+        return await baserowFetch(`/database/rows/table/2080/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(report)
+        });
+    },
+
+    async delete(id) {
+        return await baserowFetch(`/database/rows/table/2080/${id}/`, {
+            method: 'DELETE'
+        });
+    }
+};

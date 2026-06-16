@@ -52,6 +52,11 @@ const STATE = {
     // R&R Data (loaded from Baserow)
     rnrData: [],
     
+    // Weekly Report Data
+    weeklyReports: [],
+    weeklyReportSelectedMonth: '',   // 'YYYY-M' 형식
+    weeklyReportSelectedWeek: '',    // 'YYYY-M-W' 형식
+    
     // All Goals Data (loaded from Baserow)
     allGoals: [],
     
@@ -250,6 +255,17 @@ async function loadDataFromBaserow() {
             rnrData: STATE.rnrData.length,
             allGoals: STATE.allGoals.length
         });
+        
+        // Load weekly reports
+        try {
+            const reports = await WeeklyReportAPI.list();
+            STATE.weeklyReports = reports;
+            console.log('Loaded weekly reports:', STATE.weeklyReports.length);
+        } catch (error) {
+            console.error('Error loading weekly reports:', error);
+            STATE.weeklyReports = [];
+        }
+        
         STATE.isLoading = false;
         
     } catch (error) {
@@ -331,6 +347,7 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
 
+    { id: 'weekly_report', label: '주간업무보고', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
@@ -1298,6 +1315,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'goals_manage') renderGoalsManage(content);
     else if (STATE.currentView === 'requests') renderRequests(content);
     else if (STATE.currentView === 'members') renderMembers(content);
+    else if (STATE.currentView === 'weekly_report') renderWeeklyReport(content);
     else if (STATE.currentView === 'rnr') renderRnR(content);
     else if (STATE.currentView === 'guide') renderGuide(content);
     else if (STATE.currentView === 'feedback') renderFeedback(content);
@@ -3803,6 +3821,245 @@ function renderGuide(container) {
     
     container.innerHTML = h;
 }
+
+
+// --- Weekly Report View ---
+
+// 주차 목록 생성: 2026년 7월 1주차 ~ 현재로부터 다음주 마지막 주차
+function generateWeeklyPeriods() {
+    const periods = [];
+    // 시작: 2026년 7월 1주차 (2026-07-07 주 기준)
+    const start = new Date('2026-07-07'); // 7월 첫 월요일 기준
+    start.setDate(start.getDate() - start.getDay() + 1); // 해당 주 월요일
+
+    // 현재 날짜 + 2주 후 일요일까지
+    const now = new Date();
+    const endRef = new Date(now);
+    endRef.setDate(endRef.getDate() + 14);
+    // endRef를 해당 주 일요일로 맞춤
+    endRef.setDate(endRef.getDate() + (7 - endRef.getDay()) % 7);
+
+    let cursor = new Date(start);
+    while (cursor <= endRef) {
+        const year = cursor.getFullYear();
+        const month = cursor.getMonth() + 1;
+        // 해당 월의 몇 번째 주인지 계산
+        const firstDayOfMonth = new Date(year, month - 1, 1);
+        const firstMonday = new Date(firstDayOfMonth);
+        const dayOfWeek = firstDayOfMonth.getDay();
+        // 첫 번째 월요일 찾기
+        firstMonday.setDate(firstDayOfMonth.getDate() + (dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek));
+        const weekNum = Math.floor((cursor - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+        periods.push({
+            key: `${year}-${month}-${weekNum}`,
+            year: String(year),
+            month: String(month),
+            week: String(weekNum),
+            label: `${year}년 ${month}월 ${weekNum}주차`,
+            monthLabel: `${year}년 ${month}월`
+        });
+
+        cursor.setDate(cursor.getDate() + 7);
+    }
+    return periods;
+}
+
+// 현재 주차 key 반환
+function getCurrentWeekKey(periods) {
+    const now = new Date();
+    // 이번 주 월요일 기준
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
+    monday.setHours(0, 0, 0, 0);
+
+    // periods 중 가장 가까운 주차 찾기
+    for (let i = periods.length - 1; i >= 0; i--) {
+        if (periods[i].key <= getCurrentPeriodKey(monday)) return periods[i].key;
+    }
+    return periods[0] ? periods[0].key : '';
+}
+
+function getCurrentPeriodKey(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const firstDayOfMonth = new Date(year, month - 1, 1);
+    const dayOfWeek = firstDayOfMonth.getDay();
+    const firstMonday = new Date(firstDayOfMonth);
+    firstMonday.setDate(firstDayOfMonth.getDate() + (dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek));
+    const weekNum = Math.floor((date - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+    return `${year}-${month}-${weekNum}`;
+}
+
+function renderWeeklyReport(container) {
+    const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+    const periods = generateWeeklyPeriods();
+
+    // 선택된 주차가 없으면 현재 주차로 초기화
+    if (!STATE.weeklyReportSelectedWeek || !periods.find(p => p.key === STATE.weeklyReportSelectedWeek)) {
+        const now = new Date();
+        const key = getCurrentPeriodKey(now);
+        const found = periods.find(p => p.key === key);
+        STATE.weeklyReportSelectedWeek = found ? found.key : (periods[0] ? periods[0].key : '');
+    }
+
+    const selectedPeriod = periods.find(p => p.key === STATE.weeklyReportSelectedWeek) || periods[0];
+
+    // 현재 주차의 내 보고서 찾기
+    const myReport = STATE.weeklyReports.find(r =>
+        r.user_id === STATE.user.id &&
+        r.year === (selectedPeriod ? selectedPeriod.year : '') &&
+        r.month === (selectedPeriod ? selectedPeriod.month : '') &&
+        r.week === (selectedPeriod ? selectedPeriod.week : '')
+    );
+
+    const content = myReport ? (myReport.content || '') : '';
+
+    // 월별로 그룹핑
+    const months = [...new Set(periods.map(p => p.monthLabel))];
+
+    let h = '<div class="max-w-2xl mx-auto">';
+
+    // 주차 선택 영역
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-6">';
+    h += '<div class="flex items-center gap-3 mb-4">';
+    h += '<div class="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>';
+    h += '<span class="font-bold text-on-surface text-[15px]">주차 선택</span>';
+    h += '</div>';
+    h += '<div class="flex items-center gap-3 flex-wrap">';
+
+    // 월 선택
+    h += '<select onchange="setWeeklyReportMonth(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
+    months.forEach(ml => {
+        const sel = selectedPeriod && selectedPeriod.monthLabel === ml ? 'selected' : '';
+        h += `<option value="${ml}" ${sel}>${ml}</option>`;
+    });
+    h += '</select>';
+
+    // 주차 선택 (선택된 월에 해당하는 주차만)
+    const monthPeriods = selectedPeriod ? periods.filter(p => p.monthLabel === selectedPeriod.monthLabel) : [];
+    h += '<select onchange="setWeeklyReportWeek(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
+    monthPeriods.forEach(p => {
+        const sel = p.key === STATE.weeklyReportSelectedWeek ? 'selected' : '';
+        h += `<option value="${p.key}" ${sel}>${p.week}주차</option>`;
+    });
+    h += '</select>';
+
+    if (selectedPeriod) {
+        h += `<span class="text-[13px] text-primary font-black">${selectedPeriod.label}</span>`;
+    }
+    h += '</div>';
+    h += '</div>';
+
+    // 작성 카드
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+
+    // 작성자 정보 (수정 불가)
+    h += '<div class="grid grid-cols-3 gap-4 mb-6">';
+    [['이름', member.name || STATE.user.name || ''], ['팀', member.team || ''], ['직책', member.position || '']].forEach(([label, val]) => {
+        h += '<div>';
+        h += `<label class="block text-[12px] font-bold text-on-surface-variant mb-1.5">${label}</label>`;
+        h += `<input type="text" value="${val}" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface cursor-not-allowed">`;
+        h += '</div>';
+    });
+    h += '</div>';
+
+    // 업무보고 입력
+    h += '<div class="mb-4">';
+    h += `<div class="flex items-center justify-between mb-2">`;
+    h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label : ''} 업무보고</label>`;
+    if (myReport && myReport.updated_at) {
+        const updatedDate = new Date(myReport.updated_at);
+        const formatted = updatedDate.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+        h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${formatted}</span>`;
+    }
+    h += '</div>';
+    h += `<textarea id="weekly-report-content" rows="16" placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 이슈 해결 방법, 다음 주 계획 등" class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
+    h += '</div>';
+
+    // 저장 버튼
+    h += '<div class="flex justify-end">';
+    h += `<button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    h += '저장';
+    h += '</button>';
+    h += '</div>';
+
+    h += '</div>';
+    h += '</div>';
+
+    container.innerHTML = h;
+}
+
+window.setWeeklyReportMonth = function(monthLabel) {
+    const periods = generateWeeklyPeriods();
+    const monthPeriods = periods.filter(p => p.monthLabel === monthLabel);
+    if (monthPeriods.length > 0) {
+        STATE.weeklyReportSelectedWeek = monthPeriods[0].key;
+    }
+    renderCurrentView();
+};
+
+window.setWeeklyReportWeek = function(key) {
+    STATE.weeklyReportSelectedWeek = key;
+    renderCurrentView();
+};
+
+window.saveWeeklyReport = async function(periodKey) {
+    const textarea = document.getElementById('weekly-report-content');
+    if (!textarea) return;
+    const content = textarea.value.trim();
+
+    const periods = generateWeeklyPeriods();
+    const period = periods.find(p => p.key === periodKey);
+    if (!period) return;
+
+    const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+    const now = new Date().toISOString();
+
+    const existingReport = STATE.weeklyReports.find(r =>
+        r.user_id === STATE.user.id &&
+        r.year === period.year &&
+        r.month === period.month &&
+        r.week === period.week
+    );
+
+    const btn = document.querySelector('[onclick*="saveWeeklyReport"]');
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+
+    try {
+        if (existingReport) {
+            const updated = await WeeklyReportAPI.update(existingReport.id, {
+                content: content,
+                updated_at: now
+            });
+            const idx = STATE.weeklyReports.findIndex(r => r.id === existingReport.id);
+            if (idx !== -1) STATE.weeklyReports[idx] = { ...existingReport, content, updated_at: now };
+        } else {
+            const reportId = 'wr-' + Date.now();
+            const created = await WeeklyReportAPI.create({
+                report_id: reportId,
+                user_id: STATE.user.id,
+                user_name: member.name || STATE.user.name || '',
+                team: member.team || '',
+                position: member.position || '',
+                year: period.year,
+                month: period.month,
+                week: period.week,
+                period_label: period.label,
+                content: content,
+                created_at: now,
+                updated_at: now
+            });
+            STATE.weeklyReports.push({ ...created, content, updated_at: now });
+        }
+        renderCurrentView();
+    } catch (error) {
+        console.error('Error saving weekly report:', error);
+        alert('저장 중 오류가 발생했습니다.');
+        if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+    }
+};
 
 
 // --- R&R View ---

@@ -3575,7 +3575,7 @@ function renderGuide(container) {
                             <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">분기 마지막 주</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">분기 성과 리뷰</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">분기 성과 회고</p>
                             </div>
                         </div>
                     </div>
@@ -3597,43 +3597,42 @@ function renderGuide(container) {
                             <div class="bg-surface-container rounded-lg p-4">
                                 <p class="text-[11px] font-bold text-on-surface-variant mb-2">✅ 리뷰 시기</p>
                                 <p class="text-[13px] text-on-surface font-medium">12월 마지막 주</p>
-                                <p class="text-[12px] text-on-surface-variant mt-1">연간 성과 종합 평가</p>
+                                <p class="text-[12px] text-on-surface-variant mt-1">연간 성과 종합 회고</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 분기별 평가 안내 -->
+            <!-- 분기별 피드백 안내 -->
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <h3 class="font-display text-xl font-bold text-on-surface">분기별 평가 안내</h3>
+                    <h3 class="font-display text-xl font-bold text-on-surface">분기별 피드백 안내</h3>
                 </div>
 
                 <div class="space-y-5">
                     <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
-                        <h4 class="text-[14px] font-bold text-on-surface mb-3">평가 목적</h4>
-                        <p class="text-[13px] text-on-surface-variant leading-relaxed">OKR은 단순한 업무 관리 도구가 아닌, 구성원의 성장과 조직의 방향성을 정렬하는 프레임워크입니다. 분기별 평가는 목표 달성 여부를 점검하는 것을 넘어, 구성원이 올바른 방향으로 성장하고 있는지 확인하고 건설적인 피드백을 통해 다음 분기의 도전을 설계하는 데 목적이 있습니다.</p>
+                        <h4 class="text-[14px] font-bold text-on-surface mb-3">피드백 목적</h4>
+                        <p class="text-[13px] text-on-surface-variant leading-relaxed">OKR은 단순한 업무 관리 도구가 아닌, 구성원의 성장과 조직의 방향성을 정렬하는 프레임워크입니다. 분기별 피드백은 목표 달성 여부를 점검하는 것을 넘어, 구성원이 올바른 방향으로 성장하고 있는지 확인하고 건설적인 피드백을 통해 다음 분기의 도전을 설계하는 데 목적이 있습니다.</p>
                     </div>
 
                     <div class="grid lg:grid-cols-2 gap-4">
                         <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
-                            <h4 class="text-[14px] font-bold text-on-surface mb-3">평가 시기 및 기간</h4>
+                            <h4 class="text-[14px] font-bold text-on-surface mb-3">피드백 시기 및 기간</h4>
                             <ul class="space-y-2 text-[13px] text-on-surface-variant">
-                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>각 분기 종료 후 2주간 평가 기간이 운영됩니다.</li>
-                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>평가 기간 내 팀장 및 본부장이 구성원별 피드백과 Score를 작성합니다.</li>
-                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>평가 결과는 연초 전사 평가의 핵심 자료로 활용됩니다.</li>
+                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>각 분기 종료 후 2주간 피드백 기간이 운영됩니다.</li>
+                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 기간 내 팀장 및 본부장이 구성원별 피드백과 Grade를 작성합니다.</li>
                             </ul>
                         </div>
                         <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
-                            <h4 class="text-[14px] font-bold text-on-surface mb-3">평가 구조</h4>
+                            <h4 class="text-[14px] font-bold text-on-surface mb-3">그레이딩 구조</h4>
                             <ul class="space-y-2 text-[13px] text-on-surface-variant">
-                                <li class="flex items-start gap-2"><span class="text-green-600 font-bold">B</span><span><strong>B Level 피드백 (팀장 평가):</strong> 팀장이 팀원의 OKR 달성도와 업무 기여도를 종합 평가합니다.</span></li>
-                                <li class="flex items-start gap-2"><span class="text-purple-600 font-bold">C</span><span><strong>C Level 피드백 (본부장 평가):</strong> 본부장이 조직 전체 관점에서 구성원의 성과와 성장 가능성을 평가합니다.</span></li>
-                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 결과는 5단계로 부여됩니다.</li>
+                                <li class="flex items-start gap-2"><span class="text-green-600 font-bold">B</span><span><strong>B Level 피드백 (팀장 회고):</strong> 팀장이 팀원의 OKR 달성도와 업무 기여도를 종합적으로 회고합니다.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-purple-600 font-bold">C</span><span><strong>C Level 피드백 (본부장 회고):</strong> 본부장이 조직 전체 관점에서 구성원의 성과와 성장 가능성을 회고합니다.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 결과는 5단계 Grade로 부여됩니다.</li>
                             </ul>
                         </div>
                     </div>
@@ -3642,9 +3641,9 @@ function renderGuide(container) {
                         <h4 class="text-[14px] font-bold text-on-surface mb-3">공개 및 열람 정책</h4>
                         <ul class="space-y-2 text-[13px] text-on-surface-variant">
                             <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span>피드백 내용은 해당 구성원에게 공개되어 성장의 방향성을 제시합니다.</li>
-                            <li class="flex items-start gap-2"><span class="text-red-500 font-bold">✗</span>Score(점수)는 구성원에게 공개되지 않습니다.</li>
-                            <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>평가 내용 전체(피드백 + Score)는 C레벨에 한해 실시간 열람이 가능합니다.</li>
-                            <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>제출된 평가 자료는 연초 전사 인사 평가의 참고 자료로 활용됩니다.</li>
+                            <li class="flex items-start gap-2"><span class="text-red-500 font-bold">✗</span>Grade(등급)는 구성원에게 공개되지 않습니다.</li>
+                            <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 내용 전체(피드백 + Grade)는 C레벨에 한해 실시간 열람이 가능합니다.</li>
+                            <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>제출된 피드백 자료는 연초 전사 인사 회고의 참고 자료로 활용될 수 있습니다.</li>
                         </ul>
                     </div>
                 </div>

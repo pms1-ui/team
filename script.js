@@ -4,13 +4,13 @@ const STATE = {
     currentView: 'dashboard',
     
     // Tab states
-    dashboardTab: 'yearly',
+    dashboardTab: 'quarterly',
     dashboardPeriodValue: '',
     
-    goalsSetTab: 'yearly',
+    goalsSetTab: 'quarterly',
     goalsSetPeriodValue: '',
     
-    goalsManageTab: 'yearly',
+    goalsManageTab: 'quarterly',
     goalsManagePeriodValue: '',
     
     requestsTab: 'yearly',
@@ -334,8 +334,7 @@ const MENU_ITEMS = [
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
-    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/feedback' },
-    { id: 'ai_poll', label: '설문조사', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/ai-poll' }
+    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/feedback' }
 ];
 
 // --- URL Routing ---
@@ -1358,8 +1357,8 @@ function renderDashboard(container) {
     const isMobile = window.innerWidth < 1024;
     
     let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
-    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
     h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
     h += '</div>';
     h += '<div class="mb-4 w-full flex items-center justify-between gap-3">';
     h += '<div class="flex items-center gap-2">';
@@ -1379,9 +1378,55 @@ function renderDashboard(container) {
 
     if(Object.keys(users).length === 0) {
         h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 lg:h-64 rounded-xl lg:rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[12px] lg:text-[13px] text-center p-4">표시할 목표 데이터가 없습니다.</div>';
-    } else if(isMobile) {
-        h += renderDashboardMobile(container, users);
     } else {
+        // --- 총 평균 진척률 카드 ---
+        const userAvgList = sortedUserIds.map(uid => {
+            const uGoals = users[uid];
+            const okrAvgs = uGoals.map(g => Math.round(g.keyResults.reduce((s, kr) => s + kr.progress, 0) / (g.keyResults.length || 1)));
+            return okrAvgs.length ? Math.round(okrAvgs.reduce((s, v) => s + v, 0) / okrAvgs.length) : 0;
+        });
+        const totalAvg = userAvgList.length ? Math.round(userAvgList.reduce((s, v) => s + v, 0) / userAvgList.length) : 0;
+        const totalColor = totalAvg === 100 ? '#22c55e' : totalAvg >= 50 ? 'currentColor' : '#9ca3af';
+        const totalDash = totalAvg * 1.76;
+
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-6">';
+        h += '<div class="flex items-center justify-between">';
+        h += '<div>';
+        h += '<div class="text-[13px] font-bold text-on-surface-variant mb-1">총 평균 진척률</div>';
+        h += '<div class="text-[12px] text-on-surface-variant/60">' + sortedUserIds.length + '명 · ' + Object.values(users).flat().length + '개 목표</div>';
+        h += '</div>';
+        h += '<div class="flex items-center gap-6">';
+        // 개인별 미니 게이지
+        sortedUserIds.forEach((uid, i) => {
+            const name = getUserName(uid);
+            const avg = userAvgList[i];
+            const c = avg === 100 ? '#22c55e' : avg >= 50 ? 'var(--color-primary, #3b82f6)' : '#9ca3af';
+            const d = avg * 1.76;
+            h += '<div class="flex flex-col items-center gap-1">';
+            h += '<div class="relative w-10 h-10">';
+            h += '<svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>';
+            h += '<circle cx="32" cy="32" r="28" stroke="' + c + '" stroke-width="6" fill="none" stroke-dasharray="' + d + ' 176" stroke-linecap="round"/></svg>';
+            h += '<div class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-on-surface">' + avg + '%</div>';
+            h += '</div>';
+            h += '<div class="text-[10px] font-bold text-on-surface-variant whitespace-nowrap">' + name + '</div>';
+            h += '</div>';
+        });
+        // 총 평균 대형 게이지
+        h += '<div class="flex flex-col items-center gap-1 ml-4 pl-4 border-l border-blue-100">';
+        h += '<div class="relative w-16 h-16">';
+        h += '<svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>';
+        h += '<circle cx="32" cy="32" r="28" stroke="' + totalColor + '" stroke-width="6" fill="none" stroke-dasharray="' + totalDash + ' 176" stroke-linecap="round" class="' + (totalAvg >= 50 && totalAvg < 100 ? 'text-primary' : '') + '"/></svg>';
+        h += '<div class="absolute inset-0 flex items-center justify-center text-[13px] font-black text-on-surface">' + totalAvg + '%</div>';
+        h += '</div>';
+        h += '<div class="text-[11px] font-black text-primary whitespace-nowrap">전체 평균</div>';
+        h += '</div>';
+        h += '</div>';
+        h += '</div>';
+        // --- 총 평균 진척률 카드 끝 ---
+
+        if(isMobile) {
+            h += renderDashboardMobile(container, users);
+        } else {
         for(const uid of sortedUserIds) {
             const name = getUserName(uid);
             const uGoals = users[uid];
@@ -1452,6 +1497,7 @@ function renderDashboard(container) {
             
             h += '</div></div>';
         }
+        } // end else (desktop)
     }
     container.innerHTML = h;
 }
@@ -1560,8 +1606,8 @@ function renderGoalsSet(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex justify-between items-start">
@@ -1657,8 +1703,8 @@ function renderGoalsManage(container) {
 
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
-            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2651,8 +2697,8 @@ renderGoalsSet = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-start gap-3">
@@ -2683,8 +2729,8 @@ renderGoalsManage = function(container) {
     
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
-            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">

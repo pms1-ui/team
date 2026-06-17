@@ -2211,7 +2211,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         STATE.user = {
             id: member.user_id,
             name: member.name,
-            role: (member.position === '팀장' || member.position === '본부장') ? 'admin' : 'user',
+            role: (member.position === '팀장' || member.position === '본부장' || member.position === '대표') ? 'admin' : 'user',
             division: member.division,
             team: member.team,
             memberId: member.id
@@ -2386,7 +2386,7 @@ window.saveAllMembers = async function() {
                 // Check if current user's position was updated
                 if (member.user_id === STATE.user.id && member._modified.position) {
                     currentUserUpdated = true;
-                    STATE.user.role = (member.position === '팀장' || member.position === '본부장') ? 'admin' : 'user';
+                    STATE.user.role = (member.position === '팀장' || member.position === '본부장' || member.position === '대표') ? 'admin' : 'user';
                     
                     // Update localStorage session
                     const session = JSON.parse(localStorage.getItem('okr_session') || '{}');
@@ -2639,6 +2639,7 @@ function renderMembers(container) {
             </td>
             <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
                 <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
+                    <option value="대표" ${member.position === '대표' ? 'selected' : ''}>대표</option>
                     <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
                     <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
                     <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
@@ -2952,11 +2953,23 @@ function renderFeedback(container) {
     }
 
     const selectedTeam = STATE.feedbackTeamFilter || 'all';
-    let teamOptionsHtml = `<option value="all" ${selectedTeam === 'all' ? 'selected' : ''}>전체 팀</option>` + 
-        STATE.teams.map(t => `<option value="${t.name}" ${selectedTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
-
-    const filteredMembers = selectedTeam === 'all' ? STATE.members : STATE.members.filter(m => m.team === selectedTeam);
-    let memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m => 
+    
+    // 팀장은 본인 팀만, 본부장/대표는 전체 팀 접근 가능
+    const myMemberInfo = STATE.members.find(m => m.user_id === STATE.user.id);
+    const myPosition = myMemberInfo?.position || STATE.user.position || '';
+    const isTeamLeader = myPosition === '팀장';
+    const myTeam = myMemberInfo?.team || STATE.user.team || '';
+    const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
+    
+    let teamOptionsHtml = '';
+    if (!isTeamLeader) {
+        teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
+            STATE.teams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+    }
+    
+    const filteredMembers = (effectiveTeam === 'all' ? STATE.members : STATE.members.filter(m => m.team === effectiveTeam))
+        .filter(m => !m.is_hidden && m.user_id !== STATE.user.id);
+    let memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
     ).join('');
 
@@ -3020,8 +3033,7 @@ function renderFeedback(container) {
                         ${periodOptionsHtml}
                     </select>
                     <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
-                        ${teamOptionsHtml}
-                    </select>
+                    ${!isTeamLeader ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>` : `<span class="text-[13px] font-bold text-on-surface-variant px-2">${myTeam}</span>`}
                     <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
@@ -3088,20 +3100,20 @@ function renderFeedbackDashboard(container) {
         STATE.teams.map(t => `<option value="${t.name}" ${selectedDashTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
 
     // Build member rows
-    const allMembers = [...STATE.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    const allMembers = [...STATE.members].filter(m => !m.is_hidden).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     const sortedMembers = selectedDashTeam === 'all' ? allMembers : allMembers.filter(m => m.team === selectedDashTeam);
     
     let rowsHtml = sortedMembers.map((m, i) => {
         const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
         
-        // Separate by reviewer position
+        // Separate by reviewer position (팀장 or 본부장/대표)
         const teamLeaderAssessments = memberAssessments.filter(a => {
             const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
             return reviewer && reviewer.position === '팀장';
         });
         const directorAssessments = memberAssessments.filter(a => {
             const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
-            return reviewer && reviewer.position === '본부장';
+            return reviewer && (reviewer.position === '본부장' || reviewer.position === '대표');
         });
 
         const tlScoreText = teamLeaderAssessments.length > 0 
@@ -3164,7 +3176,7 @@ function renderFeedbackDashboard(container) {
         });
         const directorAssessments = memberAssessments.filter(a => {
             const reviewer = STATE.members.find(mem => mem.user_id === a.reviewer_id);
-            return reviewer && reviewer.position === '본부장';
+            return reviewer && (reviewer.position === '본부장' || reviewer.position === '대표');
         });
         const tlGrade = teamLeaderAssessments.length > 0 ? (teamLeaderAssessments[0].score || null) : null;
         const dirGrade = directorAssessments.length > 0 ? (directorAssessments[0].score || null) : null;
@@ -3983,6 +3995,13 @@ function renderWeeklyReportAllView(selectedPeriod) {
         m.division==='운영본부' && m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
         (STATE.weeklyReportTeamFilter==='all' || m.team===STATE.weeklyReportTeamFilter)
     ).sort((a,b) => a.name.localeCompare(b.name,'ko'));
+
+    // 본인을 최상단으로
+    const myIdx = targetMembers.findIndex(m => m.user_id === STATE.user.id);
+    if (myIdx > 0) {
+        const me = targetMembers.splice(myIdx, 1)[0];
+        targetMembers.unshift(me);
+    }
 
     let h = '<div class="space-y-3">';
 

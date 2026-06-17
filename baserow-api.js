@@ -164,6 +164,11 @@ const GoalsAPI = {
 
 // Key Results API
 const KeyResultsAPI = {
+    async listAll() {
+        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.keyResults}/?user_field_names=true&size=200`);
+        return data.results;
+    },
+
     async listByGoalId(goalId) {
         const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.keyResults}/?user_field_names=true&filter__goal_id__equal=${goalId}&size=200`);
         return data.results;
@@ -292,7 +297,7 @@ const AssessmentAPI = {
 // Weekly Report API (table id: 2080)
 const WeeklyReportAPI = {
     async list() {
-        const data = await baserowFetch(`/database/rows/table/2080/?user_field_names=true&size=500`);
+        const data = await baserowFetch(`/database/rows/table/2080/?user_field_names=true&size=200`);
         return data.results;
     },
 

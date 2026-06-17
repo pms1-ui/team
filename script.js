@@ -97,55 +97,61 @@ function formatRequestDate(isoString) {
 }
 
 // --- Baserow Data Loading ---
+
+// --- Baserow Data Loading ---
 async function loadDataFromBaserow() {
+    console.log('Loading data from Baserow (parallel)...');
+    const t0 = Date.now();
+
     try {
-        console.log('Loading data from Baserow...');
-        
-        // Load divisions
-        try {
-            STATE.divisions = await DivisionsAPI.list();
-            console.log('Loaded divisions:', STATE.divisions.length, STATE.divisions);
-        } catch (error) {
-            console.error('Error loading divisions:', error);
-            console.warn('Using fallback divisions data');
+        // 1단계: 독립적인 테이블 전부 병렬로 한 번에 호출
+        const [
+            divisionsResult,
+            teamsResult,
+            membersResult,
+            rnrResult,
+            goalsResult,
+            allKeyResultsResult,
+            weeklyReportsResult,
+            assessmentResult
+        ] = await Promise.allSettled([
+            DivisionsAPI.list(),
+            TeamsAPI.list(),
+            MembersAPI.list(),
+            RnRAPI.list(),
+            GoalsAPI.list(),
+            KeyResultsAPI.listAll(),         // key_results 전체 1번에 가져오기
+            WeeklyReportAPI.list(),
+            AssessmentAPI.list()
+        ]);
+
+        // --- divisions ---
+        if (divisionsResult.status === 'fulfilled') {
+            STATE.divisions = divisionsResult.value;
+        } else {
+            console.error('divisions load error:', divisionsResult.reason);
             STATE.divisions = [{ id: 1, name: '운영본부' }];
         }
-        
-        // Load teams
-        try {
-            STATE.teams = await TeamsAPI.list();
-            console.log('Loaded teams:', STATE.teams.length, STATE.teams);
-        } catch (error) {
-            console.error('Error loading teams:', error);
-            console.warn('Using fallback teams data');
-            STATE.teams = [
-                { id: 1, name: 'DX팀' },
-                { id: 2, name: 'MD팀' },
-                { id: 3, name: 'CX팀' },
-                { id: 4, name: '디자인팀' },
-                { id: 5, name: '물류팀' }
-            ];
+
+        // --- teams ---
+        if (teamsResult.status === 'fulfilled') {
+            STATE.teams = teamsResult.value;
+        } else {
+            console.error('teams load error:', teamsResult.reason);
+            STATE.teams = [];
         }
-        
-        // Load members
-        try {
-            STATE.members = await MembersAPI.list();
-            console.log('Loaded members:', STATE.members.length, STATE.members);
-        } catch (error) {
-            console.error('Error loading members:', error);
-            console.warn('Using fallback members data');
-            STATE.members = [
-                { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '팀장', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
-                { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-                { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '팀장', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
-                { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
-            ];
+
+        // --- members ---
+        if (membersResult.status === 'fulfilled') {
+            STATE.members = membersResult.value;
+        } else {
+            console.error('members load error:', membersResult.reason);
+            STATE.members = [];
         }
-        
-        // Load R&R
-        try {
-            const rnrList = await RnRAPI.list();
-            STATE.rnrData = rnrList.map(rnr => ({
+
+        // --- rnr ---
+        if (rnrResult.status === 'fulfilled') {
+            STATE.rnrData = rnrResult.value.map(rnr => ({
                 id: rnr.id,
                 user_id: rnr.user_id,
                 name: rnr.name,
@@ -161,160 +167,100 @@ async function loadDataFromBaserow() {
                 reject_comment: rnr.reject_comment,
                 request_date: rnr.request_date || null
             }));
-            console.log('Loaded R&R:', STATE.rnrData.length, STATE.rnrData);
-        } catch (error) {
-            console.error('Error loading R&R:', error);
-            console.warn('Using fallback R&R data (empty)');
+        } else {
+            console.error('rnr load error:', rnrResult.reason);
             STATE.rnrData = [];
         }
-        
-        // Load goals
-        // Load goals
-        try {
-            const goals = await GoalsAPI.list();
-            console.log('Loaded goals:', goals.length, goals);
-            
-            // Load key results for each goal
-            STATE.allGoals = [];
-            for (const goal of goals) {
-                try {
-                    const keyResults = await KeyResultsAPI.listByGoalId(goal.id);
-                    console.log(`Loaded ${keyResults.length} key results for goal ${goal.id}`);
-                    
-                    // Parse temp_kr if it exists
-                    let tempKeyResults = undefined;
-                    if (goal.temp_kr) {
-                        try {
-                            tempKeyResults = JSON.parse(goal.temp_kr);
-                        } catch (e) {
-                            console.error('Error parsing temp_kr:', e);
-                        }
-                    }
-                    
-                    STATE.allGoals.push({
-                        id: goal.id,
-                        userId: goal.user_id,
-                        periodType: goal.period_type,
-                        periodValue: goal.period_value,
-                        text: goal.OKR || '',  // Use OKR field from goals table
-                        keyResults: keyResults.map(kr => ({
-                            id: kr.kr_id,
-                            text: kr.KR || '',  // Use KR field from key_results table
-                            progress: parseInt(kr.progress) || 0
-                        })),
-                        status: goal.status,
-                        requestType: goal.request_type || null,
-                        comment: goal.comment || '',
-                        isProcessed: goal.is_processed || false,
-                        tempText: goal.temp_text || undefined,
-                        tempKeyResults: tempKeyResults,
-                        reject_comment: goal.reject_comment || null,
-                        request_date: goal.request_date || null
+
+        // --- goals + key_results 매핑 (API 1회로 처리) ---
+        if (goalsResult.status === 'fulfilled') {
+            const goals = goalsResult.value;
+
+            // key_results를 goal_id → KR 배열로 그룹핑
+            const krMap = {};
+            if (allKeyResultsResult.status === 'fulfilled') {
+                for (const kr of allKeyResultsResult.value) {
+                    const gid = String(kr.goal_id);
+                    if (!krMap[gid]) krMap[gid] = [];
+                    krMap[gid].push({
+                        id: kr.kr_id,
+                        text: kr.KR || '',
+                        progress: parseInt(kr.progress) || 0
                     });
-                } catch (error) {
-                    console.error(`Error loading key results for goal ${goal.id}:`, error);
                 }
+            } else {
+                console.error('key_results load error:', allKeyResultsResult.reason);
             }
-        } catch (error) {
-            console.error('Error loading goals:', error);
-            console.warn('Using fallback goals data');
-            STATE.allGoals = [
-                { 
-                    id: 101, 
-                    userId: 'member', 
-                    periodType: 'quarterly', 
-                    periodValue: '2026-Q2', 
-                    text: '전사 UI/UX 품질 혁신', 
-                    keyResults: [
-                        { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
-                        { id: 'kr101-2', text: '사용자 피드백 만족도 4.5 이상 확보', progress: 20 }
-                    ],
-                    status: '합의 완료', 
-                    requestType: null, 
-                    comment: '', 
-                    isProcessed: true 
-                },
-                { 
-                    id: 201, 
-                    userId: 'member2', 
-                    periodType: 'quarterly', 
-                    periodValue: '2026-Q2', 
-                    text: '고객 만족도 향상 프로젝트', 
-                    keyResults: [
-                        { id: 'kr201-1', text: 'CS 응답 시간 30% 단축', progress: 55 },
-                        { id: 'kr201-2', text: '고객 만족도 점수 4.2 이상 달성', progress: 65 }
-                    ],
-                    status: '합의 완료', 
-                    requestType: null, 
-                    comment: '', 
-                    isProcessed: true 
+
+            STATE.allGoals = goals.map(goal => {
+                let tempKeyResults;
+                if (goal.temp_kr) {
+                    try { tempKeyResults = JSON.parse(goal.temp_kr); } catch (e) {}
                 }
-            ];
+                return {
+                    id: goal.id,
+                    userId: goal.user_id,
+                    periodType: goal.period_type,
+                    periodValue: goal.period_value,
+                    text: goal.OKR || '',
+                    keyResults: krMap[String(goal.id)] || [],
+                    status: goal.status,
+                    requestType: goal.request_type || null,
+                    comment: goal.comment || '',
+                    isProcessed: goal.is_processed || false,
+                    tempText: goal.temp_text || undefined,
+                    tempKeyResults,
+                    reject_comment: goal.reject_comment || null,
+                    request_date: goal.request_date || null
+                };
+            });
+        } else {
+            console.error('goals load error:', goalsResult.reason);
+            STATE.allGoals = [];
         }
-        
-        console.log('All data loaded successfully');
-        console.log('Final STATE:', {
+
+        // --- weekly reports ---
+        if (weeklyReportsResult.status === 'fulfilled') {
+            STATE.weeklyReports = weeklyReportsResult.value;
+        } else {
+            console.error('weekly reports load error:', weeklyReportsResult.reason);
+            STATE.weeklyReports = [];
+        }
+
+        // --- assessment ---
+        if (assessmentResult.status === 'fulfilled') {
+            STATE.assessmentData = assessmentResult.value;
+        } else {
+            console.error('assessment load error:', assessmentResult.reason);
+            STATE.assessmentData = [];
+        }
+
+        console.log(`All data loaded in ${Date.now() - t0}ms`, {
             divisions: STATE.divisions.length,
             teams: STATE.teams.length,
             members: STATE.members.length,
             rnrData: STATE.rnrData.length,
-            allGoals: STATE.allGoals.length
+            allGoals: STATE.allGoals.length,
+            weeklyReports: STATE.weeklyReports.length,
+            assessmentData: STATE.assessmentData.length
         });
-        
-        // Load weekly reports
-        try {
-            const reports = await WeeklyReportAPI.list();
-            STATE.weeklyReports = reports;
-            console.log('Loaded weekly reports:', STATE.weeklyReports.length);
-        } catch (error) {
-            console.error('Error loading weekly reports:', error);
-            STATE.weeklyReports = [];
-        }
-        
+
         STATE.isLoading = false;
-        
+
     } catch (error) {
         console.error('Critical error loading data from Baserow:', error);
-        console.error('Error details:', error.message, error.stack);
-        
-        // Use complete fallback data
-        console.warn('Using complete fallback data due to critical error');
         STATE.divisions = [{ id: 1, name: '운영본부' }];
-        STATE.teams = [
-            { id: 1, name: 'DT전략팀' },
-            { id: 2, name: '개발팀' },
-            { id: 3, name: '디자인팀' },
-            { id: 4, name: '마케팅팀' }
-        ];
-        STATE.members = [
-            { id: 1, name: '김전략', division: '운영본부', team: 'DX팀', position: '팀장', email: 'kim.strategy@childy.com', user_id: 'member', password: '1111' },
-            { id: 2, name: '박성공', division: '운영본부', team: 'DX팀', position: '멤버', email: 'park.success@childy.com', user_id: 'member2', password: '1111' },
-            { id: 3, name: '이혁신', division: '운영본부', team: 'MD팀', position: '팀장', email: 'lee.innovation@childy.com', user_id: 'member3', password: '1111' },
-            { id: 4, name: '최효율', division: '운영본부', team: 'MD팀', position: '멤버', email: 'choi.efficiency@childy.com', user_id: 'member4', password: '1111' }
-        ];
+        STATE.teams = [];
+        STATE.members = [];
         STATE.rnrData = [];
-        STATE.allGoals = [
-            { 
-                id: 101, 
-                userId: 'member', 
-                periodType: 'quarterly', 
-                periodValue: '2026-Q2', 
-                text: '전사 UI/UX 품질 혁신', 
-                keyResults: [
-                    { id: 'kr101-1', text: '핵심 화면 모듈화 100% 달성', progress: 40 },
-                    { id: 'kr101-2', text: '사용자 피드백 만족도 4.5 이상 확보', progress: 20 }
-                ],
-                status: '합의 완료', 
-                requestType: null, 
-                comment: '', 
-                isProcessed: true 
-            }
-        ];
-        
+        STATE.allGoals = [];
+        STATE.weeklyReports = [];
+        STATE.assessmentData = [];
         STATE.isLoading = false;
-        alert('Baserow 연결 실패. 임시 데이터로 작동합니다.\n\n오류: ' + error.message + '\n\n브라우저 콘솔을 확인해주세요.');
+        alert('Baserow 연결 실패. 오류: ' + error.message);
     }
 }
+
 
 // --- Initialization ---
 function getDefaultPeriodValue(type) {
@@ -2201,7 +2147,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     try {
         // Load data from Baserow first
         await loadDataFromBaserow();
-        await loadAssessmentData();
+        // assessment already loaded inside loadDataFromBaserow
         
         // Find member in loaded data (including master account)
         const member = STATE.members.find(m => m.user_id === id && m.division === division);
@@ -4931,7 +4877,7 @@ async function initLoginPage() {
                     
                     // Load data from Baserow
                     await loadDataFromBaserow();
-                    await loadAssessmentData();
+                    // assessment already loaded inside loadDataFromBaserow
                     
                     // Update UI
                     document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);

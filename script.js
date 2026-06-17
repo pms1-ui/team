@@ -1426,34 +1426,37 @@ function renderDashboard(container) {
 
         h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-14">';
         h += '<div class="flex items-center justify-between">';
-        h += '<div>';
-        h += '<div class="text-[13px] font-bold text-on-surface-variant mb-1">총 평균 진척률</div>';
-        h += '<div class="text-[12px] text-on-surface-variant/60">' + sortedUserIds.length + '명 · ' + Object.values(users).flat().length + '개 목표</div>';
-        h += '</div>';
-        h += '<div class="flex items-center gap-6">';
-        // 개인별 미니 게이지
-        sortedUserIds.forEach((uid, i) => {
+        // 좌측: 구성원별 미니 게이지
+        h += '<div class="flex items-center gap-5 flex-wrap">';
+        sortedUserIds.forEach(function(uid, i) {
             const name = getUserName(uid);
             const avg = userAvgList[i];
-            const c = avg === 100 ? '#22c55e' : avg >= 50 ? 'var(--color-primary, #3b82f6)' : '#9ca3af';
+            const c = avg < 30 ? '#ef4444' : avg < 60 ? '#eab308' : '#22c55e';
             const d = avg * 1.76;
             h += '<div class="flex flex-col items-center gap-1">';
             h += '<div class="relative w-10 h-10">';
-            h += '<svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>';
+            h += '<svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#f1f5f9" stroke-width="6" fill="none"/>';
             h += '<circle cx="32" cy="32" r="28" stroke="' + c + '" stroke-width="6" fill="none" stroke-dasharray="' + d + ' 176" stroke-linecap="round"/></svg>';
             h += '<div class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-on-surface">' + avg + '%</div>';
             h += '</div>';
             h += '<div class="text-[10px] font-bold text-on-surface-variant whitespace-nowrap">' + name + '</div>';
             h += '</div>';
         });
-        // 총 평균 대형 게이지
-        h += '<div class="flex flex-col items-center gap-1 ml-4 pl-4 border-l border-blue-100">';
+        // 전체 평균 대형 게이지
+        h += '<div class="flex flex-col items-center gap-1 pl-5 border-l border-blue-100 ml-2">';
         h += '<div class="relative w-16 h-16">';
-        h += '<svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>';
-        h += '<circle cx="32" cy="32" r="28" stroke="' + totalColor + '" stroke-width="6" fill="none" stroke-dasharray="' + totalDash + ' 176" stroke-linecap="round" class="' + (totalAvg >= 50 && totalAvg < 100 ? 'text-primary' : '') + '"/></svg>';
+        const totalGaugeColor = totalAvg < 30 ? '#ef4444' : totalAvg < 60 ? '#eab308' : '#22c55e';
+        h += '<svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#f1f5f9" stroke-width="6" fill="none"/>';
+        h += '<circle cx="32" cy="32" r="28" stroke="' + totalGaugeColor + '" stroke-width="6" fill="none" stroke-dasharray="' + totalDash + ' 176" stroke-linecap="round"/></svg>';
         h += '<div class="absolute inset-0 flex items-center justify-center text-[13px] font-black text-on-surface">' + totalAvg + '%</div>';
         h += '</div>';
-        h += '<div class="text-[11px] font-black text-primary whitespace-nowrap">전체 평균</div>';
+        h += '<div class="text-[11px] font-black text-on-surface-variant whitespace-nowrap">전체 평균</div>';
+        h += '</div>';
+        h += '</div>';
+        // 우측: 인원 · 목표 수
+        h += '<div class="text-right flex-shrink-0 ml-6">';
+        h += '<div class="text-[18px] font-black text-on-surface">' + sortedUserIds.length + '명</div>';
+        h += '<div class="text-[12px] text-on-surface-variant">' + Object.values(users).flat().length + '개 목표</div>';
         h += '</div>';
         h += '</div>';
         h += '</div>';

@@ -25,6 +25,7 @@ const STATE = {
     feedbackDashPeriod: '2026',
     feedbackTeamFilter: 'all',
     feedbackDashTeamFilter: 'all',
+    feedbackPeriodType: '', // '' | 'quarterly' | 'yearly'
     assessmentData: [],
     
     // Modal State
@@ -1293,7 +1294,15 @@ function renderCurrentView() {
             ? 'ml-3 px-3 py-1.5 bg-primary text-white text-[12px] font-bold rounded-lg shadow-sm'
             : 'ml-3 px-3 py-1.5 bg-white border border-blue-100 text-primary text-[12px] font-bold rounded-lg hover:bg-blue-50 shadow-sm';
         btn.textContent = '피드백 대시보드';
-        btn.onclick = function() { STATE.feedbackView = STATE.feedbackView === 'dashboard' ? 'input' : 'dashboard'; renderCurrentView(); };
+        btn.onclick = function() {
+            if (STATE.feedbackView === 'dashboard') {
+                STATE.feedbackView = 'input';
+                STATE.feedbackPeriodType = ''; // 진입 선택 화면으로
+            } else {
+                STATE.feedbackView = 'dashboard';
+            }
+            renderCurrentView();
+        };
         titleContainer.appendChild(btn);
     }
     
@@ -2914,113 +2923,198 @@ renderMembers = function(container) {
 
 // --- Feedback View ---
 function renderFeedback(container) {
-    // Show dashboard or input view
+    // 피드백 대시보드
     if (STATE.feedbackView === 'dashboard') {
         renderFeedbackDashboard(container);
         return;
     }
 
-    const periodOptions = [
-        { value: '2026', label: '2026년' },
-        { value: '2027', label: '2027년' },
+    // 진입 화면: 분기별 / 연간 선택
+    if (!STATE.feedbackPeriodType) {
+        container.innerHTML = `
+            <div class="max-w-3xl mx-auto mt-8">
+                <p class="text-[14px] text-on-surface-variant font-bold mb-8 text-center">피드백을 진행할 기간 유형을 선택하세요.</p>
+                <div class="grid grid-cols-2 gap-6">
+                    <button onclick="window.setFeedbackPeriodType('quarterly')"
+                        class="group flex flex-col items-center justify-center gap-4 p-10 bg-white border-2 border-blue-100 rounded-2xl shadow-sm hover:border-primary hover:shadow-md transition-all">
+                        <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-all">
+                            <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[18px] font-black text-on-surface mb-1">분기별 피드백</div>
+                            <div class="text-[13px] text-on-surface-variant">2026년 2분기 · 3분기 · 4분기</div>
+                        </div>
+                    </button>
+                    <button onclick="window.setFeedbackPeriodType('yearly')"
+                        class="group flex flex-col items-center justify-center gap-4 p-10 bg-white border-2 border-blue-100 rounded-2xl shadow-sm hover:border-primary hover:shadow-md transition-all">
+                        <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center group-hover:bg-purple-500/20 transition-all">
+                            <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[18px] font-black text-on-surface mb-1">연간 피드백</div>
+                            <div class="text-[13px] text-on-surface-variant">2026년 · 2027년</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // 분기별 / 연간 피드백 작성 화면
+    const isQuarterly = STATE.feedbackPeriodType === 'quarterly';
+    const quarterlyOptions = [
         { value: '2026-Q2', label: '2026년 2분기' },
         { value: '2026-Q3', label: '2026년 3분기' },
         { value: '2026-Q4', label: '2026년 4분기' }
     ];
+    const yearlyOptions = [
+        { value: '2026', label: '2026년' },
+        { value: '2027', label: '2027년' }
+    ];
+    const periodOptions = isQuarterly ? quarterlyOptions : yearlyOptions;
 
-    const selectedPeriod = STATE.feedbackPeriod || '2026';
+    // 기간 초기값 설정
+    if (!STATE.feedbackPeriod || !periodOptions.find(p => p.value === STATE.feedbackPeriod)) {
+        STATE.feedbackPeriod = periodOptions[0].value;
+    }
+
+    const selectedPeriod = STATE.feedbackPeriod;
     const selectedMemberId = STATE.feedbackSelectedMember || '';
     const selectedMember = STATE.members.find(m => m.user_id === selectedMemberId);
 
-    // Filter goals by period
-    let memberGoals = [];
-    if (selectedMemberId) {
-        if (selectedPeriod === '2026') {
-            memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'yearly' && g.periodValue === '2026');
-        } else {
-            memberGoals = STATE.allGoals.filter(g => g.userId === selectedMemberId && g.status === '합의 완료' && g.periodType === 'quarterly' && g.periodValue === selectedPeriod);
-        }
-    }
-
-    // Check if feedback already submitted for this member+period
-    const existingFeedback = STATE.assessmentData ? STATE.assessmentData.filter(a => 
-        a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
-    ) : [];
-    const isSubmitted = existingFeedback.length > 0;
-    
-    // Check for unreviewed goals
-    let hasUnreviewedGoals = false;
-    if (selectedMemberId && memberGoals.length > 0) {
-        hasUnreviewedGoals = memberGoals.some(g => !existingFeedback.find(a => a.goal_id == g.id));
-    }
-
-    const selectedTeam = STATE.feedbackTeamFilter || 'all';
-    
-    // 팀장은 본인 팀만, 본부장/대표는 전체 팀 접근 가능
+    // 팀 접근 권한
     const myMemberInfo = STATE.members.find(m => m.user_id === STATE.user.id);
     const myPosition = myMemberInfo?.position || STATE.user.position || '';
     const isTeamLeader = myPosition === '팀장';
     const myTeam = myMemberInfo?.team || STATE.user.team || '';
+    const selectedTeam = STATE.feedbackTeamFilter || 'all';
     const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
-    
+
     let teamOptionsHtml = '';
     if (!isTeamLeader) {
         teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
             STATE.teams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
     }
-    
+
     const filteredMembers = (effectiveTeam === 'all' ? STATE.members : STATE.members.filter(m => m.team === effectiveTeam))
         .filter(m => !m.is_hidden && m.user_id !== STATE.user.id);
-    let memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
+    const memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
     ).join('');
 
-    let periodOptionsHtml = periodOptions.map(p => 
-        `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`
-    ).join('');
+    // OKR 목록
+    let memberGoals = [];
+    if (selectedMemberId) {
+        memberGoals = STATE.allGoals.filter(g =>
+            g.userId === selectedMemberId &&
+            g.status === '합의 완료' &&
+            g.periodType === (isQuarterly ? 'quarterly' : 'yearly') &&
+            g.periodValue === selectedPeriod
+        );
+    }
 
+    // 기존 피드백
+    const existingFeedback = (STATE.assessmentData || []).filter(a =>
+        a.reviewer_id === STATE.user.id && a.target_id === selectedMemberId && a.period_value === selectedPeriod
+    );
+    const hasUnreviewedGoals = memberGoals.some(g => !existingFeedback.find(a => a.goal_id == g.id));
+
+    // 총 진척률
+    const totalAvgProgress = memberGoals.length > 0
+        ? Math.round(memberGoals.reduce((sum, g) => {
+            const avg = g.keyResults.length > 0
+                ? Math.round(g.keyResults.reduce((s, kr) => s + kr.progress, 0) / g.keyResults.length)
+                : 0;
+            return sum + avg;
+          }, 0) / memberGoals.length)
+        : 0;
+
+    // OKR + KR 렌더링
     let goalsHtml = '';
     if (selectedMemberId && memberGoals.length > 0) {
-        goalsHtml = memberGoals.map((g, i) => {
-            const avgProgress = g.keyResults.length > 0 
-                ? Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / g.keyResults.length) 
+        const totalProgressColor = totalAvgProgress === 100 ? '#22c55e' : totalAvgProgress >= 50 ? 'var(--color-primary,#3b82f6)' : '#9ca3af';
+        const totalDash = totalAvgProgress * 1.76;
+
+        goalsHtml += `
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-6 flex items-center gap-6">
+                <div class="flex-1">
+                    <div class="text-[12px] font-bold text-on-surface-variant mb-1">총 진척률</div>
+                    <div class="w-full bg-surface-container-low h-3 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all" style="width:${totalAvgProgress}%; background:${totalProgressColor}"></div>
+                    </div>
+                </div>
+                <div class="relative w-14 h-14 flex-shrink-0">
+                    <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 64 64">
+                        <circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>
+                        <circle cx="32" cy="32" r="28" stroke="${totalProgressColor}" stroke-width="6" fill="none" stroke-dasharray="${totalDash} 176" stroke-linecap="round"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-[13px] font-black text-on-surface">${totalAvgProgress}%</div>
+                </div>
+            </div>
+        `;
+
+        goalsHtml += memberGoals.map((g, i) => {
+            const okrAvg = g.keyResults.length > 0
+                ? Math.round(g.keyResults.reduce((s, kr) => s + kr.progress, 0) / g.keyResults.length)
                 : 0;
             const existingForGoal = existingFeedback.find(a => a.goal_id == g.id);
             const isGoalReviewed = !!existingForGoal;
+            const okrColor = okrAvg === 100 ? 'bg-success' : okrAvg >= 50 ? 'bg-primary' : 'bg-gray-400';
+            const okrColorHex = okrAvg === 100 ? '#22c55e' : okrAvg >= 50 ? 'var(--color-primary,#3b82f6)' : '#9ca3af';
 
             return `
-                <div class="bg-white rounded-xl border ${isGoalReviewed ? 'border-green-100' : 'border-blue-50'} shadow-sm p-6 mb-4">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[11px] font-bold text-on-surface-variant">진척률 ${avgProgress}%</span>
-                                ${isGoalReviewed ? '<span class="text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded">피드백 완료</span>' : '<span class="text-[11px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">피드백 필요</span>'}
+                <div class="bg-white rounded-2xl border ${isGoalReviewed ? 'border-success/30' : 'border-blue-50'} shadow-sm p-6 mb-4">
+                    <!-- OKR 헤더 -->
+                    <div class="flex items-start gap-4 mb-5">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="relative w-12 h-12">
+                                <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="28" stroke="#eff4ff" stroke-width="6" fill="none"/>
+                                    <circle cx="32" cy="32" r="28" stroke="${okrColorHex}" stroke-width="6" fill="none" stroke-dasharray="${okrAvg*1.76} 176" stroke-linecap="round"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-on-surface">${okrAvg}%</div>
                             </div>
-                            <h4 class="text-[15px] font-bold text-on-surface">${g.text}</h4>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">O${i+1}</span>
+                                ${isGoalReviewed ? '<span class="text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded">피드백 완료</span>' : '<span class="text-[11px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">피드백 필요</span>'}
+                            </div>
+                            <h4 class="text-[15px] font-bold text-on-surface leading-relaxed">${g.text}</h4>
                         </div>
                     </div>
-                    <div class="space-y-2 mb-4">
-                        ${g.keyResults.map(kr => `
-                            <div class="flex items-center gap-3 bg-surface-container rounded-lg px-4 py-2.5">
-                                <div class="flex-1">
-                                    <p class="text-[13px] text-on-surface font-medium">${kr.text}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-20 h-1.5 bg-blue-100 rounded-full overflow-hidden">
-                                        <div class="h-full bg-primary rounded-full" style="width: ${kr.progress}%"></div>
+
+                    <!-- KR 목록 -->
+                    ${g.keyResults.length > 0 ? `
+                    <div class="space-y-2.5 mb-5 pl-1">
+                        ${g.keyResults.map((kr, ki) => {
+                            const krColor = kr.progress === 100 ? 'bg-success' : kr.progress >= 50 ? 'bg-primary' : 'bg-gray-300';
+                            return `
+                            <div class="flex items-center gap-3 bg-surface-container rounded-xl px-4 py-3">
+                                <span class="text-[10px] font-black text-on-surface-variant bg-white rounded px-1.5 py-0.5 border border-blue-100 flex-shrink-0">KR${ki+1}</span>
+                                <p class="text-[13px] text-on-surface flex-1 leading-relaxed">${kr.text}</p>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <div class="w-24 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                                        <div class="h-full ${krColor} rounded-full transition-all" style="width:${kr.progress}%"></div>
                                     </div>
-                                    <span class="text-[12px] font-bold text-primary w-8 text-right">${kr.progress}%</span>
+                                    <span class="text-[12px] font-black text-primary w-9 text-right">${kr.progress}%</span>
                                 </div>
                             </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
+                    ` : ''}
+
+                    <!-- 피드백 입력 -->
                     <div class="border-t border-blue-50 pt-4">
                         <label class="block text-[12px] font-bold text-on-surface-variant mb-2">${isGoalReviewed ? '작성된 피드백' : '피드백 작성'}</label>
-                        <textarea id="feedback-${g.id}" rows="3" ${isGoalReviewed ? 'disabled' : ''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed disabled:bg-surface-container-low" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${existingForGoal ? existingForGoal.feedback : (STATE.feedbackData && STATE.feedbackData[g.id] || '')}</textarea>
+                        <textarea id="feedback-${g.id}" rows="3" ${isGoalReviewed ? 'disabled' : ''} class="w-full bg-surface-container border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed disabled:opacity-60" placeholder="이 OKR에 대한 피드백을 작성해 주세요...">${existingForGoal ? existingForGoal.feedback : (STATE.feedbackData && STATE.feedbackData[g.id] || '')}</textarea>
                     </div>
                 </div>
             `;
         }).join('');
+
     } else if (selectedMemberId && memberGoals.length === 0) {
         goalsHtml = `<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">해당 기간에 합의 완료된 OKR이 없습니다.</div>`;
     } else {
@@ -3029,31 +3123,37 @@ function renderFeedback(container) {
 
     container.innerHTML = `
         <div class="mb-6">
+            <!-- 뒤로가기 + 타입 표시 -->
+            <div class="flex items-center gap-3 mb-5">
+                <button onclick="window.setFeedbackPeriodType('')" class="flex items-center gap-1.5 text-[13px] font-bold text-on-surface-variant hover:text-primary transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    뒤로
+                </button>
+                <span class="text-[13px] font-bold ${isQuarterly ? 'text-primary' : 'text-purple-600'} bg-${isQuarterly ? 'primary' : 'purple-500'}/10 px-3 py-1 rounded-full">
+                    ${isQuarterly ? '분기별 피드백' : '연간 피드백'}
+                </span>
+            </div>
+
+            <!-- 컨트롤 바 -->
             <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                 <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 flex-wrap">
-                    <select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
-                        ${periodOptionsHtml}
+                    <select onchange="STATE.feedbackPeriod = this.value; STATE.feedbackSelectedMember=''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                        ${periodOptions.map(p => `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`).join('')}
                     </select>
-                    ${!isTeamLeader ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>` : `<span class="text-[13px] font-bold text-on-surface-variant bg-surface-container px-3 py-2 rounded-lg text-[14px]">${myTeam}</span>`}
+                    ${!isTeamLeader
+                        ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
+                        : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
+                    }
                     <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
-                    ${selectedMember ? `
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[13px]">${selectedMember.name.charAt(0)}</div>
-                            <div>
-                                <p class="text-[13px] font-bold text-on-surface">${selectedMember.name}</p>
-                                <p class="text-[11px] text-on-surface-variant">${selectedMember.team} · ${selectedMember.position}</p>
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
                 ${selectedMemberId && memberGoals.length > 0 ? `
                     <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mt-3 lg:mt-0">
                         ${hasUnreviewedGoals ? `
                             <div class="flex items-center gap-2">
-                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">평가</label>
+                                <label class="text-[13px] font-bold text-on-surface-variant whitespace-nowrap">Grade</label>
                                 <select id="feedback-score" class="bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary outline-none focus:border-primary shadow-sm">
                                     <option value="Excellent">Excellent</option>
                                     <option value="Very good">Very good</option>
@@ -3067,7 +3167,7 @@ function renderFeedback(container) {
                                 피드백 제출
                             </button>
                         ` : `
-                            <span class="text-[13px] font-bold text-on-surface-variant">평가: ${existingFeedback[0]?.score || '-'}</span>
+                            <span class="text-[13px] font-bold text-on-surface-variant">Grade: ${existingFeedback[0]?.score || '-'}</span>
                             <button disabled class="flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
@@ -3080,6 +3180,14 @@ function renderFeedback(container) {
         ${goalsHtml}
     `;
 }
+
+window.setFeedbackPeriodType = function(type) {
+    STATE.feedbackPeriodType = type;
+    STATE.feedbackSelectedMember = '';
+    if (type === 'quarterly') STATE.feedbackPeriod = '2026-Q2';
+    else if (type === 'yearly') STATE.feedbackPeriod = '2026';
+    renderCurrentView();
+};
 
 function renderFeedbackDashboard(container) {
     const periodOptions = [
@@ -3228,7 +3336,7 @@ function renderFeedbackDashboard(container) {
                     ${dashTeamOptionsHtml}
                 </select>
             </div>
-            <button onclick="STATE.feedbackView = 'input'; renderCurrentView();" class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+            <button onclick="STATE.feedbackView = 'input'; STATE.feedbackPeriodType = ''; renderCurrentView();" class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 피드백 작성
             </button>

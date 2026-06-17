@@ -298,7 +298,7 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
 
-    { id: 'weekly_report', label: '주간업무보고', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
+    { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
@@ -3994,7 +3994,7 @@ function renderWeeklyReport(container) {
     let h = '<div class="max-w-3xl mx-auto">';
     h += '<div class="flex items-center gap-3 mb-6">';
     h += `<button onclick="setWeeklyReportViewMode('my')" class="flex items-center gap-2 px-4 py-2.5 font-bold text-[13px] rounded-lg transition-all ${viewMode==='my' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-blue-100 text-on-surface hover:bg-blue-50'}">`;
-    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>내 업무보고 작성</button>';
+    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>내 업무 공유</button>';
     h += `<button onclick="setWeeklyReportViewMode('all')" class="flex items-center gap-2 px-4 py-2.5 font-bold text-[13px] rounded-lg transition-all ${viewMode==='all' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-blue-100 text-on-surface hover:bg-blue-50'}">`;
     h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>구성원 전체 현황</button>';
     h += '</div>';
@@ -4035,7 +4035,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     });
     h += '</div>';
     h += '<div class="mb-5"><div class="flex items-center justify-between mb-2">';
-    h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label+' 업무보고' : '업무보고'}</label>`;
+    h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label+' 업무공유' : '업무공유'}</label>`;
     if (myReport && myReport.updated_at) {
         const fmt = new Date(myReport.updated_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
         h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${fmt}</span>`;
@@ -4116,7 +4116,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
         if (submitted && report.content) {
             h += `<pre class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap font-sans break-all">${report.content}</pre>`;
         } else {
-            h += '<p class="text-[13px] text-on-surface-variant/60 font-medium">아직 작성된 업무보고가 없습니다.</p>';
+            h += '<p class="text-[13px] text-on-surface-variant/60 font-medium">아직 작성된 업무공유가 없습니다.</p>';
         }
         h += '</div></div>';
     });

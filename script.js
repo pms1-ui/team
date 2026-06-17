@@ -32,6 +32,10 @@ const STATE = {
     
     // Members filter state
     membersTeamFilter: 'all', // 'all' or team name
+    membersShowHidden: false, // 숨긴 구성원 보기 토글
+    
+    // Weekly report team filter (all view)
+    weeklyReportTeamFilter: 'all',
     
     // Dashboard team filter
     dashboardTeamFilter: 'all', // 'all' or team name
@@ -1359,10 +1363,14 @@ function renderDashboard(container) {
     
     // Apply team filter
     if (STATE.dashboardTeamFilter !== 'all') {
-        const teamMembers = STATE.members.filter(m => m.team === STATE.dashboardTeamFilter).map(m => m.user_id);
+        const teamMembers = STATE.members.filter(m => m.team === STATE.dashboardTeamFilter && !m.is_hidden).map(m => m.user_id);
         Object.keys(users).forEach(uid => {
             if (!teamMembers.includes(uid)) delete users[uid];
         });
+    } else {
+        // 숨긴 구성원 제외
+        const hiddenIds = STATE.members.filter(m => m.is_hidden).map(m => m.user_id);
+        hiddenIds.forEach(uid => delete users[uid]);
     }
     
     // Sort user keys by name (가나다순)
@@ -2414,6 +2422,30 @@ window.setMembersTeamFilter = function(teamName) {
     renderCurrentView();
 };
 
+window.toggleMembersShowHidden = function() {
+    STATE.membersShowHidden = !STATE.membersShowHidden;
+    renderCurrentView();
+};
+
+window.toggleMemberHidden = async function(id) {
+    const member = STATE.members.find(m => m.id === id);
+    if (!member) return;
+    const newVal = !member.is_hidden;
+    try {
+        await MembersAPI.update(id, { is_hidden: newVal });
+        member.is_hidden = newVal;
+        renderCurrentView();
+    } catch (e) {
+        console.error('Error toggling hidden:', e);
+        alert('숨김 처리 중 오류가 발생했습니다.');
+    }
+};
+
+window.setWeeklyReportTeamFilter = function(val) {
+    STATE.weeklyReportTeamFilter = val;
+    renderCurrentView();
+};
+
 window.addMember = async function() {
     try {
         const newMember = {
@@ -2577,67 +2609,77 @@ window.removeMember = async function(id) {
     }
 };
 function renderMembers(container) {
-    const teamOptions = STATE.teams.map(team => 
-        `<option value="${team.name}">${team.name}</option>`
-    ).join('');
+    const showHidden = STATE.membersShowHidden || false;
 
-    // Filter members by team
-    const filteredMembers = STATE.membersTeamFilter === 'all' 
-        ? STATE.members 
-        : STATE.members.filter(m => m.team === STATE.membersTeamFilter);
+    // 표시할 구성원 필터링
+    let visibleMembers = showHidden
+        ? STATE.members.filter(m => m.is_hidden)
+        : STATE.members.filter(m => !m.is_hidden);
 
-    let rowsHtml = filteredMembers.map((member, i) => {
-        return `
-            <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
-                <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
-                    <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[16%]">
-                    <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
-                        <option value="">팀 선택</option>
-                        ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
-                    </select>
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
-                    <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
-                    <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
-                        <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
-                        <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
-                        <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
-                    </select>
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
-                    <input type="text" value="${member.user_id || ''}" oninput="updateMemberField(${member.id}, 'user_id', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="아이디 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
-                </td>
-                <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
-                    <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
-                </td>
-                <td class="py-5 px-6 text-center w-32">
-                    <button onclick="removeMember(${member.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
+    if (STATE.membersTeamFilter !== 'all') {
+        visibleMembers = visibleMembers.filter(m => m.team === STATE.membersTeamFilter);
+    }
+
+    const hiddenCount = STATE.members.filter(m => m.is_hidden).length;
+
+    const rowsHtml = visibleMembers.map((member, i) => `
+        <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50 ${member.is_hidden ? 'bg-gray-50/50 opacity-60' : ''}">
+            <td class="py-5 px-4 text-center border-r border-blue-50/30 font-bold text-on-surface-variant text-[14px] w-12">${i+1}</td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <input type="text" value="${member.name}" oninput="updateMemberField(${member.id}, 'name', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="이름 입력">
+            </td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[16%]">
+                <select onchange="updateMemberField(${member.id}, 'team', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all">
+                    <option value="">팀 선택</option>
+                    ${STATE.teams.map(team => `<option value="${team.name}" ${member.team === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
+                </select>
+            </td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <input type="text" value="${member.job || ''}" oninput="updateMemberField(${member.id}, 'job', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="직무 입력">
+            </td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
+                    <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
+                    <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
+                    <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
+                </select>
+            </td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <input type="text" value="${member.user_id || ''}" oninput="updateMemberField(${member.id}, 'user_id', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="아이디 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
+            </td>
+            <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
+                <input type="password" value="${member.password || ''}" oninput="updateMemberField(${member.id}, 'password', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" placeholder="비밀번호 입력" ${STATE.user.role !== 'admin' ? 'readonly' : ''}>
+            </td>
+            <td class="py-5 px-6 text-center w-40">
+                <div class="flex items-center justify-center gap-2">
+                    <button onclick="toggleMemberHidden(${member.id})" class="px-3 py-2 bg-white border ${member.is_hidden ? 'border-primary text-primary' : 'border-blue-100 text-on-surface-variant'} font-bold text-[12px] rounded-lg hover:bg-blue-50 transition-colors shadow-sm" title="${member.is_hidden ? '숨김 해제' : '숨김'}">
+                        ${member.is_hidden ? '숨김 해제' : '숨김'}
+                    </button>
+                    <button onclick="removeMember(${member.id})" class="px-3 py-2 bg-white border border-error text-error font-bold text-[12px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">삭제</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
 
     container.innerHTML = `
         <div class="mb-4 w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
             <div class="flex items-center gap-3">
                 <div class="text-[14px] font-bold text-on-surface-variant">
-                    총 <span class="text-primary font-black mx-1">${filteredMembers.length}</span>명의 구성원
-                    ${STATE.membersTeamFilter !== 'all' ? `<span class="text-on-surface-variant/60 ml-1">(${STATE.membersTeamFilter})</span>` : ''}
+                    총 <span class="text-primary font-black mx-1">${visibleMembers.length}</span>명${showHidden ? ' (숨김 구성원)' : ''}
                 </div>
                 <select onchange="setMembersTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm transition-all">
                     <option value="all" ${STATE.membersTeamFilter === 'all' ? 'selected' : ''}>전체 팀</option>
                     ${STATE.teams.map(team => `<option value="${team.name}" ${STATE.membersTeamFilter === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
                 </select>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 flex-wrap">
                 <button onclick="openTeamManagement()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     팀 관리
+                </button>
+                <button onclick="toggleMembersShowHidden()" class="flex items-center gap-2 px-4 py-2 border font-bold text-[13px] rounded-lg transition-all shadow-sm ${showHidden ? 'bg-primary/10 border-primary text-primary' : 'bg-white border-blue-100 text-on-surface-variant hover:bg-blue-50'}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${showHidden ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'}"></path></svg>
+                    숨긴 구성원 보기${hiddenCount > 0 ? ` (${hiddenCount})` : ''}
                 </button>
                 <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -2668,7 +2710,6 @@ function renderMembers(container) {
         </div>
     `;
 }
-
 
 // --- Mobile Menu ---
 window.toggleMobileMenu = function() {
@@ -3902,7 +3943,6 @@ function renderWeeklyReport(container) {
     h += '</select>';
     if (selectedPeriod) {
         h += `<span class="text-[13px] text-primary font-black">${selectedPeriod.label}</span>`;
-        h += `<span class="text-[12px] text-on-surface-variant">${selectedPeriod.dateRange}</span>`;
     }
     h += '</div>';
     h += viewMode==='my' ? renderWeeklyReportMyView(selectedPeriod) : renderWeeklyReportAllView(selectedPeriod);
@@ -3939,10 +3979,21 @@ function renderWeeklyReportMyView(selectedPeriod) {
 
 function renderWeeklyReportAllView(selectedPeriod) {
     const targetMembers = STATE.members.filter(m =>
-        m.division==='운영본부' && m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO'
+        !m.is_hidden &&
+        m.division==='운영본부' && m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
+        (STATE.weeklyReportTeamFilter==='all' || m.team===STATE.weeklyReportTeamFilter)
     ).sort((a,b) => a.name.localeCompare(b.name,'ko'));
 
     let h = '<div class="space-y-3">';
+
+    // 팀 필터
+    h += '<div class="flex items-center gap-2 mb-2">';
+    h += '<select onchange="setWeeklyReportTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
+    h += `<option value="all" ${STATE.weeklyReportTeamFilter==='all' ? 'selected' : ''}>전체 팀</option>`;
+    STATE.teams.forEach(t => {
+        h += `<option value="${t.name}" ${STATE.weeklyReportTeamFilter===t.name ? 'selected' : ''}>${t.name}</option>`;
+    });
+    h += '</select></div>';
     if (!selectedPeriod || targetMembers.length===0) {
         return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';
     }
@@ -4165,11 +4216,12 @@ function renderRnRBrowse(container) {
     // 숨김 처리할 구성원 (베이스로우 데이터는 보존)
     const HIDDEN_MEMBERS = ['이다영', '이보란'];
     
-    // Filter by team and exclude hidden members
+    // Filter by team and exclude hidden members (is_hidden + 명시적 숨김 목록)
+    const hiddenUserIds = STATE.members.filter(m => m.is_hidden).map(m => m.user_id);
     const filteredRnR = (STATE.rnrBrowseTeamFilter === 'all'
         ? STATE.rnrData
         : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter))
-        .filter(r => !HIDDEN_MEMBERS.includes(r.name));
+        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && !hiddenUserIds.includes(r.user_id));
     
     let h = '<div class="max-w-4xl mx-auto">';
     

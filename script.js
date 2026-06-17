@@ -1453,20 +1453,21 @@ function renderDashboard(container) {
         if(isMobile) {
             h += renderDashboardMobile(container, users);
         } else {
+        h += '<div class="mt-10">';
         for(const uid of sortedUserIds) {
             const name = getUserName(uid);
             const uGoals = users[uid];
             const userIdx = Object.keys(users).indexOf(uid);
             
             // User-level toggle (closed by default)
-            h += '<div class="mb-6">';
-            h += '<div class="flex items-center gap-3 px-5 py-4 bg-white rounded-xl border border-blue-50 shadow-sm cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'user-goals-' + userIdx + '\').classList.toggle(\'hidden\'); this.querySelector(\'svg\').classList.toggle(\'-rotate-90\')">';
+            h += '<div class="mb-4">';
+            h += '<div class="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-blue-50 shadow-sm cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'user-goals-' + userIdx + '\').classList.toggle(\'hidden\'); this.querySelector(\'svg\').classList.toggle(\'-rotate-90\')">';
             h += '<svg class="w-4 h-4 text-primary transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
             h += '<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">' + name.charAt(0) + '</div>';
             h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span>';
             h += '<span class="text-[12px] text-on-surface-variant ml-auto">' + uGoals.length + '개 목표</span>';
             h += '</div>';
-            h += '<div id="user-goals-' + userIdx + '" class="hidden mt-4 pl-5">';
+            h += '<div id="user-goals-' + userIdx + '" class="hidden mt-3 pl-4">';
             
             uGoals.forEach(g => {
                 const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / (g.keyResults.length || 1));
@@ -1523,6 +1524,7 @@ function renderDashboard(container) {
             
             h += '</div></div>';
         }
+        h += '</div>'; // end mt-10 wrapper
         } // end else (desktop)
     }
     container.innerHTML = h;
@@ -3033,6 +3035,7 @@ function renderFeedback(container) {
                         ${periodOptionsHtml}
                     </select>
                     ${!isTeamLeader ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>` : `<span class="text-[13px] font-bold text-on-surface-variant bg-surface-container px-3 py-2 rounded-lg text-[14px]">${myTeam}</span>`}
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>

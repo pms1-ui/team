@@ -1415,7 +1415,7 @@ function renderDashboard(container) {
         const totalColor = totalAvg === 100 ? '#22c55e' : totalAvg >= 50 ? 'currentColor' : '#9ca3af';
         const totalDash = totalAvg * 1.76;
 
-        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-10">';
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-5 mb-14">';
         h += '<div class="flex items-center justify-between">';
         h += '<div>';
         h += '<div class="text-[13px] font-bold text-on-surface-variant mb-1">총 평균 진척률</div>';
@@ -1459,14 +1459,14 @@ function renderDashboard(container) {
             const userIdx = Object.keys(users).indexOf(uid);
             
             // User-level toggle (closed by default)
-            h += '<div class="mb-4">';
-            h += '<div class="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-blue-50 shadow-sm cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'user-goals-' + userIdx + '\').classList.toggle(\'hidden\'); this.querySelector(\'svg\').classList.toggle(\'-rotate-90\')">';
+            h += '<div class="mb-6">';
+            h += '<div class="flex items-center gap-3 px-5 py-4 bg-white rounded-xl border border-blue-50 shadow-sm cursor-pointer hover:bg-blue-50/50 transition-colors" onclick="document.getElementById(\'user-goals-' + userIdx + '\').classList.toggle(\'hidden\'); this.querySelector(\'svg\').classList.toggle(\'-rotate-90\')">';
             h += '<svg class="w-4 h-4 text-primary transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
             h += '<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shadow-sm">' + name.charAt(0) + '</div>';
             h += '<span class="font-extrabold text-on-surface text-[14px]">' + name + '</span>';
             h += '<span class="text-[12px] text-on-surface-variant ml-auto">' + uGoals.length + '개 목표</span>';
             h += '</div>';
-            h += '<div id="user-goals-' + userIdx + '" class="hidden mt-3 pl-4">';
+            h += '<div id="user-goals-' + userIdx + '" class="hidden mt-4 pl-5">';
             
             uGoals.forEach(g => {
                 const avgProgress = Math.round(g.keyResults.reduce((sum, kr) => sum + kr.progress, 0) / (g.keyResults.length || 1));

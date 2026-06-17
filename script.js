@@ -1442,8 +1442,11 @@ function renderDashboard(container) {
             h += '<div class="text-[10px] font-bold text-on-surface-variant whitespace-nowrap">' + name + '</div>';
             h += '</div>';
         });
+        h += '</div>';
+        // 우측: 전체 평균 게이지 + 경계선 + 인원/목표 수
+        h += '<div class="flex items-center gap-5 flex-shrink-0">';
         // 전체 평균 대형 게이지
-        h += '<div class="flex flex-col items-center gap-1 pl-5 border-l border-blue-100 ml-2">';
+        h += '<div class="flex flex-col items-center gap-1">';
         h += '<div class="relative w-16 h-16">';
         const totalGaugeColor = totalAvg < 30 ? '#ef4444' : totalAvg < 60 ? '#eab308' : '#22c55e';
         h += '<svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#f1f5f9" stroke-width="6" fill="none"/>';
@@ -1452,11 +1455,11 @@ function renderDashboard(container) {
         h += '</div>';
         h += '<div class="text-[11px] font-black text-on-surface-variant whitespace-nowrap">전체 평균</div>';
         h += '</div>';
-        h += '</div>';
-        // 우측: 인원 · 목표 수
-        h += '<div class="text-right flex-shrink-0 ml-6">';
+        // 경계선 + 인원·목표 수
+        h += '<div class="pl-5 border-l border-blue-100 text-right">';
         h += '<div class="text-[18px] font-black text-on-surface">' + sortedUserIds.length + '명</div>';
         h += '<div class="text-[12px] text-on-surface-variant">' + Object.values(users).flat().length + '개 목표</div>';
+        h += '</div>';
         h += '</div>';
         h += '</div>';
         h += '</div>';
@@ -3081,10 +3084,9 @@ function renderFeedback(container) {
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1.5">
-                                <span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">O${i+1}</span>
-                                ${isGoalReviewed ? '<span class="text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded">피드백 완료</span>' : '<span class="text-[11px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded">피드백 필요</span>'}
+                                <span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded flex-shrink-0">O${i+1}</span>
+                                <h4 class="text-[15px] font-bold text-on-surface leading-relaxed">${g.text}</h4>
                             </div>
-                            <h4 class="text-[15px] font-bold text-on-surface leading-relaxed">${g.text}</h4>
                         </div>
                     </div>
 

@@ -3754,7 +3754,6 @@ function renderGuide(container) {
                         <h4 class="text-[14px] font-bold text-on-surface mb-3">공개 및 열람 정책</h4>
                         <ul class="space-y-2 text-[13px] text-on-surface-variant">
                             <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span>피드백 내용은 해당 구성원에게 공개되어 성장의 방향성을 제시합니다.</li>
-                            <li class="flex items-start gap-2"><span class="text-red-500 font-bold">✗</span>Grade(등급)는 구성원에게 공개되지 않습니다.</li>
                             <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>피드백 내용 전체(피드백 + Grade)는 C레벨에 한해 실시간 열람이 가능합니다.</li>
                             <li class="flex items-start gap-2"><span class="text-primary font-bold">•</span>제출된 피드백 자료는 연초 전사 인사 회고의 참고 자료로 활용될 수 있습니다.</li>
                         </ul>

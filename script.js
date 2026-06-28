@@ -302,7 +302,7 @@ const MENU_ITEMS = [
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
-    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/feedback' }
+    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' }
 ];
 
 // --- URL Routing ---
@@ -1233,7 +1233,7 @@ function renderCurrentView() {
     const titleContainer = title.parentElement;
     const existingBtn = document.getElementById('feedback-dash-btn');
     if (existingBtn) existingBtn.remove();
-    if (STATE.currentView === 'feedback') {
+    if (STATE.currentView === 'feedback' && STATE.user.role === 'admin') {
         const btn = document.createElement('button');
         btn.id = 'feedback-dash-btn';
         btn.className = STATE.feedbackView === 'dashboard' 
@@ -2874,7 +2874,112 @@ renderMembers = function(container) {
 
 
 // --- Feedback View ---
+
+// 일반 구성원용 - 나에게 온 피드백 확인 (읽기 전용, Grade 비공개)
+function renderMyReceivedFeedback(container) {
+    const quarterlyOptions = [
+        { value: '2026-Q2', label: '2026년 2분기' },
+        { value: '2026-Q3', label: '2026년 3분기' },
+        { value: '2026-Q4', label: '2026년 4분기' }
+    ];
+    const yearlyOptions = [
+        { value: '2026', label: '2026년' },
+        { value: '2027', label: '2027년' }
+    ];
+    const allPeriods = [...quarterlyOptions, ...yearlyOptions];
+
+    if (!STATE.feedbackPeriod || !allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
+        STATE.feedbackPeriod = '2026-Q2';
+    }
+    const selectedPeriod = STATE.feedbackPeriod;
+
+    // 나에게 온 피드백 데이터
+    const myFeedbacks = (STATE.assessmentData || []).filter(a => a.target_id === STATE.user.id && a.period_value === selectedPeriod);
+
+    // OKR 목록 (해당 기간)
+    const isQuarterly = selectedPeriod.includes('Q');
+    const myGoals = STATE.allGoals.filter(g =>
+        g.userId === STATE.user.id &&
+        g.status === '합의 완료' &&
+        g.periodType === (isQuarterly ? 'quarterly' : 'yearly') &&
+        g.periodValue === selectedPeriod
+    );
+
+    let h = '<div class="max-w-3xl mx-auto">';
+
+    // 기간 선택
+    h += '<div class="flex items-center gap-3 mb-6 flex-wrap">';
+    h += '<select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">';
+    allPeriods.forEach(p => {
+        h += `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`;
+    });
+    h += '</select>';
+    if (myFeedbacks.length > 0) {
+        h += `<span class="text-[13px] font-bold text-success bg-success/10 px-3 py-1.5 rounded-full">${myFeedbacks.length}건의 피드백</span>`;
+    }
+    h += '</div>';
+
+    if (myGoals.length === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">해당 기간에 합의 완료된 OKR이 없습니다.</div>';
+    } else if (myFeedbacks.length === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">아직 받은 피드백이 없습니다.</div>';
+    } else {
+        // OKR별로 피드백 그룹핑
+        myGoals.forEach((g, i) => {
+            const goalFeedbacks = myFeedbacks.filter(f => String(f.goal_id) == String(g.id));
+            if (goalFeedbacks.length === 0) return;
+
+            const okrAvg = g.keyResults.length > 0
+                ? Math.round(g.keyResults.reduce((s, kr) => s + kr.progress, 0) / g.keyResults.length)
+                : 0;
+
+            h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-4">`;
+            // OKR 헤더
+            h += '<div class="flex items-start gap-3 mb-4">';
+            h += `<span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded flex-shrink-0 mt-1">O${i+1}</span>`;
+            h += `<div class="flex-1">`;
+            h += `<h4 class="text-[15px] font-bold text-on-surface leading-relaxed">${g.text}</h4>`;
+            h += `<span class="text-[12px] text-on-surface-variant mt-1 inline-block">진척률 ${okrAvg}%</span>`;
+            h += '</div>';
+            h += '</div>';
+
+            // 피드백 목록
+            goalFeedbacks.forEach(fb => {
+                const reviewer = STATE.members.find(m => m.user_id === fb.reviewer_id);
+                const reviewerName = reviewer ? reviewer.name : '관리자';
+                const reviewerPosition = reviewer ? reviewer.position : '';
+                const levelLabel = (reviewerPosition === '팀장') ? 'B Level' : 'C Level';
+                const levelColor = (reviewerPosition === '팀장') ? 'text-green-600 bg-green-50' : 'text-purple-600 bg-purple-50';
+
+                h += `<div class="bg-surface-container rounded-xl p-4 mb-3 last:mb-0">`;
+                h += '<div class="flex items-center gap-2 mb-2">';
+                h += `<span class="text-[11px] font-bold ${levelColor} px-2 py-0.5 rounded">${levelLabel}</span>`;
+                h += `<span class="text-[12px] font-bold text-on-surface">${reviewerName}</span>`;
+                h += `<span class="text-[11px] text-on-surface-variant">${reviewerPosition}</span>`;
+                if (fb.created_at) {
+                    const d = new Date(fb.created_at);
+                    h += `<span class="text-[11px] text-on-surface-variant/60 ml-auto">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</span>`;
+                }
+                h += '</div>';
+                h += `<p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">${fb.feedback || '(피드백 내용 없음)'}</p>`;
+                h += '</div>';
+            });
+
+            h += '</div>';
+        });
+    }
+
+    h += '</div>';
+    container.innerHTML = h;
+}
+
 function renderFeedback(container) {
+    // 일반 구성원(user)은 "나에게 온 피드백" 뷰만 표시
+    if (STATE.user.role !== 'admin') {
+        renderMyReceivedFeedback(container);
+        return;
+    }
+
     // 피드백 대시보드
     if (STATE.feedbackView === 'dashboard') {
         renderFeedbackDashboard(container);

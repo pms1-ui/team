@@ -4596,20 +4596,38 @@ function renderOrgChart(container) {
 
     // CEO/CCO를 최상단에 표시
     const ceoMembers = members.filter(m => m.team === 'CEO,CCO' || m.position === '대표' || m.position === 'CCO');
+    const ceoOnly = ceoMembers.filter(m => m.position === '대표');
+    const ccoOnly = ceoMembers.filter(m => m.position === 'CCO');
 
     let h = '<div class="max-w-full mx-auto">';
 
-    // CEO/CCO 최상단
+    // CEO/CCO 최상단 - 별도 박스로 나란히
     if (ceoMembers.length > 0) {
-        h += '<div class="flex justify-center mb-8">';
-        h += '<div class="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl px-8 py-5 text-center shadow-sm">';
-        ceoMembers.forEach(m => {
-            h += `<div class="text-[16px] font-black text-on-surface">${m.name}</div>`;
-            h += `<div class="text-[12px] text-primary font-bold mt-1">${m.position} · ${m.job || ''}</div>`;
-        });
+        h += '<div class="flex justify-center items-center gap-6 mb-8">';
+        // CEO 박스
+        if (ceoOnly.length > 0) {
+            h += '<div class="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl px-8 py-5 text-center shadow-sm">';
+            ceoOnly.forEach(m => {
+                h += `<div class="text-[16px] font-black text-on-surface">${m.name}</div>`;
+                h += `<div class="text-[12px] text-primary font-bold mt-1">${m.position} · ${m.job || ''}</div>`;
+            });
+            h += '</div>';
+        }
+        // 연결선 (가로)
+        if (ceoOnly.length > 0 && ccoOnly.length > 0) {
+            h += '<div class="w-8 h-px bg-blue-200"></div>';
+        }
+        // CCO 박스
+        if (ccoOnly.length > 0) {
+            h += '<div class="bg-gradient-to-br from-purple-50 to-purple-50/50 border-2 border-purple-200 rounded-2xl px-8 py-5 text-center shadow-sm">';
+            ccoOnly.forEach(m => {
+                h += `<div class="text-[16px] font-black text-on-surface">${m.name}</div>`;
+                h += `<div class="text-[12px] text-purple-600 font-bold mt-1">${m.position} · ${m.job || ''}</div>`;
+            });
+            h += '</div>';
+        }
         h += '</div>';
-        h += '</div>';
-        // 연결선
+        // 연결선 (세로)
         h += '<div class="flex justify-center mb-4"><div class="w-px h-8 bg-blue-200"></div></div>';
     }
 

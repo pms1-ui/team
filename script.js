@@ -978,6 +978,27 @@ window.approveAdminRequest = async function(id) {
                 }
             }
             
+            // 이메일 알림 발송 (temp 클리어 전)
+            const notiMember = STATE.members.find(m => m.user_id === goal.userId);
+            if (notiMember && notiMember.email) {
+                let progressChanges = "";
+                const krChanges = goal.keyResults.map(kr => {
+                    const oldKr = existingKRs.find(k => k.kr_id == kr.id);
+                    const oldProg = oldKr ? parseInt(oldKr.progress) || 0 : 0;
+                    if (oldProg !== kr.progress) {
+                        return (kr.text || "KR") + ": " + oldProg + "% → " + kr.progress + "%";
+                    }
+                    return null;
+                }).filter(Boolean);
+                if (krChanges.length > 0) progressChanges = krChanges.join(" | ");
+                sendNotificationWebhook({
+                    type: "approved", name: notiMember.name, email: notiMember.email,
+                    title: goal.text, requestType: goal.requestType || "신규 수립",
+                    comment: goal.comment || "", progressChanges: progressChanges,
+                    reviewer: STATE.user.name
+                });
+            }
+
             // Clear temp data
             goal.tempText = undefined;
             goal.tempKeyResults = undefined;
@@ -985,34 +1006,6 @@ window.approveAdminRequest = async function(id) {
             goal.requestType = null;
             goal.isProcessed = true;
             goal.reject_comment = null;
-            // 이메일 알림 발송
-            const notiMember = STATE.members.find(m => m.user_id === goal.userId);
-            if (notiMember && notiMember.email) {
-                // 진척률 변경 전후 비교 데이터 생성
-                let progressChanges = '';
-                if (goal.tempKeyResults && goal.keyResults) {
-                    const changes = goal.tempKeyResults.map(tkr => {
-                        const oldKr = goal.keyResults.find(k => k.id == tkr.id);
-                        if (oldKr && oldKr.progress !== tkr.progress) {
-                            return (tkr.text || 'KR') + ': ' + (oldKr.progress || 0) + '% → ' + tkr.progress + '%';
-                        }
-                        return null;
-                    }).filter(Boolean);
-                    if (changes.length > 0) progressChanges = changes.join(' | ');
-                }
-                sendNotificationWebhook({
-                    type: "approved",
-                    name: notiMember.name,
-                    email: notiMember.email,
-                    title: goal.text,
-                    requestType: goal.requestType || "신규 수립",
-                    comment: goal.comment || "",
-                    oldText: goal.tempText ? goal.text : "",
-                    newText: goal.tempText || "",
-                    progressChanges: progressChanges,
-                    reviewer: STATE.user.name
-                });
-            }
             renderCurrentView();
             updateNavigation();
         } catch (error) {

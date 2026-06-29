@@ -1248,6 +1248,8 @@ function renderCurrentView() {
     const titleContainer = title.parentElement;
     const existingBtn = document.getElementById('feedback-dash-btn');
     if (existingBtn) existingBtn.remove();
+    const existingMyBtn = document.getElementById("feedback-my-btn");
+    if (existingMyBtn) existingMyBtn.remove();
     if (STATE.currentView === 'feedback' && STATE.user.role === 'admin') {
         const btn = document.createElement('button');
         btn.id = 'feedback-dash-btn';
@@ -1267,8 +1269,6 @@ function renderCurrentView() {
         titleContainer.appendChild(btn);
 
         // 나에게 온 피드백 버튼
-        const existingMyBtn = document.getElementById("feedback-my-btn");
-        if (existingMyBtn) existingMyBtn.remove();
         const myBtn = document.createElement("button");
         myBtn.id = "feedback-my-btn";
         myBtn.className = STATE.feedbackView === "myreceived"

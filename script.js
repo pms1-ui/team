@@ -903,6 +903,14 @@ window.submitModifyRequest = function(id) {
     }, false);
 };
 
+
+// --- 알림 웹훅 발송 ---
+function sendNotificationWebhook(params) {
+    const baseUrl = "https://n8n.childylab.com/webhook/7b666c7f-b12d-447f-bef7-957d4c896219";
+    const query = new URLSearchParams(params).toString();
+    fetch(baseUrl + "?" + query).catch(e => console.error("Webhook error:", e));
+}
+
 window.approveAdminRequest = async function(id) {
     const goal = STATE.allGoals.find(g => g.id === id);
     if(goal) {
@@ -973,6 +981,11 @@ window.approveAdminRequest = async function(id) {
             goal.requestType = null;
             goal.isProcessed = true;
             goal.reject_comment = null;
+            // 이메일 알림 발송
+            const notiMember = STATE.members.find(m => m.user_id === goal.userId);
+            if (notiMember && notiMember.email) {
+                sendNotificationWebhook({ type: "approved", name: notiMember.name, email: notiMember.email, title: goal.text, reviewer: STATE.user.name });
+            }
             renderCurrentView();
             updateNavigation();
         } catch (error) {
@@ -1036,6 +1049,11 @@ window.rejectAdminRequest = async function(id) {
                     
                     STATE.modalData = null;
                     alert('요청이 거부되었습니다.');
+                    // 이메일 알림 발송
+                    const rejectMember = STATE.members.find(m => m.user_id === goal.userId);
+                    if (rejectMember && rejectMember.email) {
+                        sendNotificationWebhook({ type: "rejected", name: rejectMember.name, email: rejectMember.email, title: goal.text, comment: rejectComment, reviewer: STATE.user.name });
+                    }
                     renderCurrentView();
                     updateNavigation();
                 } catch (error) {
@@ -1103,6 +1121,10 @@ window.approveRnRRequest = async function(id) {
             rnr.comment = '';
             rnr.reject_comment = null;
             alert('요청이 승인되었습니다.');
+            // 이메일 알림 발송
+            if (rnr && rnr.email) {
+                sendNotificationWebhook({ type: "approved", name: rnr.name, email: rnr.email || STATE.members.find(m => m.user_id === rnr.user_id)?.email, title: "R&R 합의", reviewer: STATE.user.name });
+            }
             renderCurrentView();
             updateNavigation();
         } catch (error) {
@@ -1167,6 +1189,11 @@ window.rejectRnRRequest = async function(id) {
                     
                     STATE.modalData = null;
                     alert('요청이 거부되었습니다.');
+                    // 이메일 알림 발송
+                    const rnrRejectMember = STATE.members.find(m => m.user_id === rnr.user_id);
+                    if (rnrRejectMember && rnrRejectMember.email) {
+                        sendNotificationWebhook({ type: "rejected", name: rnrRejectMember.name, email: rnrRejectMember.email, title: "R&R 합의", comment: rejectComment, reviewer: STATE.user.name });
+                    }
                     renderCurrentView();
                     updateNavigation();
                 } catch (error) {

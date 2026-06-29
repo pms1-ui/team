@@ -907,10 +907,12 @@ window.submitModifyRequest = function(id) {
 // --- 알림 웹훅 발송 ---
 function sendNotificationWebhook(params) {
     const baseUrl = "https://n8n.childylab.com/webhook/7b666c7f-b12d-447f-bef7-957d4c896219";
-    const query = new URLSearchParams(params).toString();
-    const url = baseUrl + "?" + query;
-    console.log("Sending webhook:", url);
-    fetch(url).then(r => console.log("Webhook response:", r.status)).catch(e => console.error("Webhook error:", e));
+    console.log("Sending webhook:", params);
+    fetch(baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params)
+    }).then(r => console.log("Webhook response:", r.status)).catch(e => console.error("Webhook error:", e));
 }
 
 window.approveAdminRequest = async function(id) {

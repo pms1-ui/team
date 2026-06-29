@@ -2694,7 +2694,7 @@ function renderMembers(container) {
         visibleMembers = visibleMembers.filter(m => m.team === STATE.membersTeamFilter);
     }
 
-    const hiddenCount = STATE.members.filter(m => m.is_hidden).length;
+    const hiddenCount = STATE.members.filter(m => m.is_hidden && m.is_approved !== false).length;
 
     const rowsHtml = visibleMembers.map((member, i) => `
         <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50 ${member.is_hidden ? 'bg-gray-50/50 opacity-60' : ''}">

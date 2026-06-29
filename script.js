@@ -41,6 +41,7 @@ const STATE = {
     
     // Weekly report team filter (all view)
     weeklyReportTeamFilter: '',
+    weeklyReportDivisionFilter: '',
     
     // Dashboard team filter
     dashboardTeamFilter: 'all', // 'all' or team name
@@ -2504,6 +2505,12 @@ window.setWeeklyReportTeamFilter = function(val) {
     renderCurrentView();
 };
 
+window.setWeeklyReportDivisionFilter = function(val) {
+    STATE.weeklyReportDivisionFilter = val;
+    STATE.weeklyReportTeamFilter = '';
+    renderCurrentView();
+};
+
 window.addMember = async function() {
     try {
         const newMember = {
@@ -4432,10 +4439,11 @@ function renderWeeklyReportMyView(selectedPeriod) {
 }
 
 function renderWeeklyReportAllView(selectedPeriod) {
+    const divSelected = STATE.weeklyReportDivisionFilter && STATE.weeklyReportDivisionFilter !== '';
     const teamSelected = STATE.weeklyReportTeamFilter && STATE.weeklyReportTeamFilter !== '';
     const targetMembers = teamSelected ? STATE.members.filter(m =>
         !m.is_hidden &&
-        m.division==='운영본부' && m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
+        m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
         m.team===STATE.weeklyReportTeamFilter
     ).sort((a,b) => a.name.localeCompare(b.name,'ko')) : [];
 
@@ -4448,19 +4456,28 @@ function renderWeeklyReportAllView(selectedPeriod) {
         }
     }
 
+    // 본부 기준 팀 필터
+    const wrFilteredTeams = divSelected ? STATE.teams.filter(t => t.division === STATE.weeklyReportDivisionFilter) : STATE.teams;
+
     let h = '<div class="space-y-3">';
 
-    // 팀 필터
+    // 본부 + 팀 필터
     h += '<div class="flex items-center gap-2 mb-2">';
-    h += '<select onchange="setWeeklyReportTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
-    h += `<option value="" ${!teamSelected ? 'selected' : ''}>팀 선택</option>`;
-    STATE.teams.forEach(t => {
+    h += '<select onchange="setWeeklyReportDivisionFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
+    h += `<option value="" ${!divSelected ? 'selected' : ''}>본부 선택</option>`;
+    STATE.divisions.forEach(d => {
+        h += `<option value="${d.name}" ${STATE.weeklyReportDivisionFilter===d.name ? 'selected' : ''}>${d.name}</option>`;
+    });
+    h += '</select>';
+    h += `<select onchange="setWeeklyReportTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm" ${!divSelected ? 'disabled' : ''}>`;
+    h += `<option value="" ${!teamSelected ? 'selected' : ''}>${divSelected ? '팀 선택' : '본부를 먼저 선택'}</option>`;
+    wrFilteredTeams.forEach(t => {
         h += `<option value="${t.name}" ${STATE.weeklyReportTeamFilter===t.name ? 'selected' : ''}>${t.name}</option>`;
     });
     h += '</select></div>';
 
     if (!teamSelected) {
-        return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">팀을 선택하면 구성원별 업무공유 현황이 표시됩니다.</div></div>';
+        return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">본부와 팀을 선택하면 구성원별 업무공유 현황이 표시됩니다.</div></div>';
     }
     if (!selectedPeriod || targetMembers.length===0) {
         return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';

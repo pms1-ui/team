@@ -4517,7 +4517,7 @@ function renderOrgChart(container) {
     // CEO/CCO를 최상단에 표시
     const ceoMembers = members.filter(m => m.team === 'CEO,CCO' || m.position === '대표');
 
-    let h = '<div class="max-w-5xl mx-auto">';
+    let h = '<div class="max-w-full mx-auto">';
 
     // CEO/CCO 최상단
     if (ceoMembers.length > 0) {

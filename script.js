@@ -3045,19 +3045,22 @@ function renderFeedback(container) {
     const myPosition = myMemberInfo?.position || STATE.user.position || '';
     const isTeamLeader = myPosition === '팀장';
     const myTeam = myMemberInfo?.team || STATE.user.team || '';
-    const selectedTeam = STATE.feedbackTeamFilter || 'all';
+    const selectedTeam = STATE.feedbackTeamFilter || '';
     const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
 
+    // 팀 드롭다운 (팀장은 본인 팀 고정, 본부장/대표는 팀 선택 드롭다운)
     let teamOptionsHtml = '';
     if (!isTeamLeader) {
-        teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
+        teamOptionsHtml = `<option value="" ${effectiveTeam === '' ? 'selected' : ''}>팀 선택</option>` +
             STATE.teams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
     }
 
-    const filteredMembers = (effectiveTeam === 'all' ? STATE.members : STATE.members.filter(m => m.team === effectiveTeam))
-        .filter(m => !m.is_hidden && m.user_id !== STATE.user.id);
+    // 팀이 선택된 경우에만 구성원 표시
+    const filteredMembers = effectiveTeam
+        ? STATE.members.filter(m => m.team === effectiveTeam && !m.is_hidden && m.user_id !== STATE.user.id)
+        : [];
     const memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
-        `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.team} · ${m.position})</option>`
+        `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.position})</option>`
     ).join('');
 
     // OKR 목록
@@ -3200,8 +3203,8 @@ function renderFeedback(container) {
                         ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
                         : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
                     }
-                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
-                        <option value="">구성원 선택</option>
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm" ${!effectiveTeam ? 'disabled' : ''}>
+                        <option value="">${effectiveTeam ? '구성원 선택' : '팀을 먼저 선택하세요'}</option>
                         ${memberOptions}
                     </select>
                 </div>

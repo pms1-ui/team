@@ -979,21 +979,26 @@ window.approveAdminRequest = async function(id) {
             }
             
             // 이메일 알림 발송 (temp 클리어 전)
+            console.log("WEBHOOK DEBUG - goal.requestType:", goal.requestType, "goal.comment:", goal.comment, "existingKRs:", existingKRs.map(k => k.kr_id + ":" + k.progress), "goal.keyResults:", goal.keyResults.map(k => k.id + ":" + k.progress));
             const notiMember = STATE.members.find(m => m.user_id === goal.userId);
             if (notiMember && notiMember.email) {
                 let progressChanges = "";
                 const krChanges = goal.keyResults.map(kr => {
                     const oldKr = existingKRs.find(k => k.kr_id == kr.id);
-                    const oldProg = oldKr ? parseInt(oldKr.progress) || 0 : 0;
-                    if (oldProg !== kr.progress) {
-                        return (kr.text || "KR") + ": " + oldProg + "% → " + kr.progress + "%";
+                    const oldProg = oldKr ? (parseInt(oldKr.progress) || 0) : 0;
+                    const newProg = parseInt(kr.progress) || 0;
+                    if (oldProg !== newProg) {
+                        return (kr.text || "KR") + ": " + oldProg + "% → " + newProg + "%";
                     }
                     return null;
                 }).filter(Boolean);
                 if (krChanges.length > 0) progressChanges = krChanges.join(" | ");
+                
+                // requestType은 승인 전에 캡처 (승인 후 null이 되므로)
+                const reqType = goal.requestType || goal.comment || "승인";
                 sendNotificationWebhook({
                     type: "approved", name: notiMember.name, email: notiMember.email,
-                    title: goal.text, requestType: goal.requestType || "신규 수립",
+                    title: goal.text, requestType: reqType,
                     comment: goal.comment || "", progressChanges: progressChanges,
                     reviewer: STATE.user.name
                 });

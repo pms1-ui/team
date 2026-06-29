@@ -1218,6 +1218,9 @@ function updateNavigation() {
         const btn = document.createElement('button');
         const isActive = STATE.currentView === item.id;
         const isRestricted = item.roles.includes('admin') && !item.roles.includes('user') && STATE.user.role !== 'admin';
+        
+        // 비활성화된 메뉴에는 뱃지 표시 안 함
+        if (isRestricted) badgeHtml = '';
         btn.className = `flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-bold transition-all w-full ${isActive ? 'bg-primary/10 text-primary' : isRestricted ? 'text-on-surface-variant/50 hover:bg-surface-container' : 'text-on-surface-variant hover:bg-surface-container'}`;
         btn.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${item.icon}</svg> ${item.label} ${badgeHtml}`;
         btn.onclick = () => {

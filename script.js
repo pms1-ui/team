@@ -1260,6 +1260,22 @@ function renderCurrentView() {
             renderCurrentView();
         };
         titleContainer.appendChild(btn);
+
+        // 나에게 온 피드백 버튼
+        const existingMyBtn = document.getElementById("feedback-my-btn");
+        if (existingMyBtn) existingMyBtn.remove();
+        const myBtn = document.createElement("button");
+        myBtn.id = "feedback-my-btn";
+        myBtn.className = STATE.feedbackView === "myreceived"
+            ? "ml-2 px-3 py-1.5 bg-primary text-white text-[12px] font-bold rounded-lg shadow-sm"
+            : "ml-2 px-3 py-1.5 bg-white border border-blue-100 text-on-surface-variant text-[12px] font-bold rounded-lg hover:bg-blue-50 shadow-sm";
+        myBtn.textContent = "나에게 온 피드백";
+        myBtn.onclick = function() {
+            STATE.feedbackView = STATE.feedbackView === "myreceived" ? "input" : "myreceived";
+            STATE.feedbackPeriodType = "";
+            renderCurrentView();
+        };
+        titleContainer.appendChild(myBtn);
     }
     
     // Handle guide view title
@@ -2996,6 +3012,12 @@ function renderFeedback(container) {
         return;
     }
 
+    // 관리자도 나에게 온 피드백 확인
+    if (STATE.feedbackView === 'myreceived') {
+        renderMyReceivedFeedback(container);
+        return;
+    }
+
     // 진입 화면: 분기별 / 연간 선택
     if (!STATE.feedbackPeriodType) {
         container.innerHTML = `
@@ -3055,20 +3077,20 @@ function renderFeedback(container) {
     const myPosition = myMemberInfo?.position || STATE.user.position || '';
     const isTeamLeader = myPosition === '팀장';
     const myTeam = myMemberInfo?.team || STATE.user.team || '';
-    const selectedTeam = STATE.feedbackTeamFilter || '';
+    const selectedTeam = STATE.feedbackTeamFilter || 'all';
     const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
 
     // 팀 드롭다운 (팀장은 본인 팀 고정, 본부장/대표는 팀 선택 드롭다운)
     let teamOptionsHtml = '';
     if (!isTeamLeader) {
-        teamOptionsHtml = `<option value="" ${effectiveTeam === '' ? 'selected' : ''}>팀 선택</option>` +
+        teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
             STATE.teams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
     }
 
-    // 팀이 선택된 경우에만 구성원 표시
-    const filteredMembers = effectiveTeam
-        ? STATE.members.filter(m => m.team === effectiveTeam && !m.is_hidden && m.user_id !== STATE.user.id)
-        : [];
+    // 구성원 표시 (전체 팀이면 전부, 특정 팀이면 해당 팀만)
+    const filteredMembers = (effectiveTeam === 'all'
+        ? STATE.members.filter(m => !m.is_hidden && m.user_id !== STATE.user.id)
+        : STATE.members.filter(m => m.team === effectiveTeam && !m.is_hidden && m.user_id !== STATE.user.id));
     const memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.position})</option>`
     ).join('');
@@ -3213,8 +3235,8 @@ function renderFeedback(container) {
                         ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
                         : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
                     }
-                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm" ${!effectiveTeam ? 'disabled' : ''}>
-                        <option value="">${effectiveTeam ? '구성원 선택' : '팀을 먼저 선택하세요'}</option>
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm" >
+                        <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
                 </div>
@@ -3468,6 +3490,7 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
         let content = `<div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">`;
         assessments.forEach(a => {
             const gradeClass = getGradeStyle(a.score);
+            const dateStr = a.created_at ? new Date(a.created_at).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
             content += `
                 <div class="bg-surface-container rounded-xl p-5 border border-blue-50">
                     <div class="flex items-center justify-between mb-3">
@@ -3475,7 +3498,13 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
                         <span class="text-[12px] font-black ${gradeClass} px-2.5 py-1 rounded-lg">${a.score || '-'}</span>
                     </div>
                     <p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${a.feedback || '피드백 없음'}</p>
-                    <p class="text-[11px] text-on-surface-variant mt-3">작성자: ${a.reviewer_name || '-'} | ${a.created_at ? new Date(a.created_at).toLocaleDateString('ko-KR') : '-'}</p>
+                    <div class="flex items-center justify-between mt-3">
+                        <p class="text-[11px] text-on-surface-variant">작성자: ${a.reviewer_name || '-'} | ${dateStr}</p>
+                        ${a.reviewer_id === STATE.user.id ? `<div class="flex items-center gap-2">
+                            <button onclick="editFeedbackItem(${a.id}, '${(a.feedback||'').replace(/'/g, "\\'")}', '${a.score}')" class="text-[11px] font-bold text-primary hover:underline">수정</button>
+                            <button onclick="deleteFeedbackItem(${a.id})" class="text-[11px] font-bold text-error hover:underline">삭제</button>
+                        </div>` : ''}
+                    </div>
                 </div>
             `;
         });
@@ -3484,6 +3513,50 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedData) {
     } catch (e) {
         console.error('Error showing feedback modal:', e);
     }
+};
+
+
+window.editFeedbackItem = function(id, currentFeedback, currentScore) {
+    const content = `
+        <div class="space-y-4">
+            <div><label class="text-[12px] font-bold text-on-surface-variant mb-2 block">피드백 내용</label>
+            <textarea id="edit-feedback-text" rows="4" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none">${currentFeedback}</textarea></div>
+            <div><label class="text-[12px] font-bold text-on-surface-variant mb-2 block">Grade</label>
+            <select id="edit-feedback-score" class="bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-bold text-primary outline-none">
+                <option value="Excellent" ${currentScore==="Excellent"?"selected":""}>Excellent</option>
+                <option value="Very good" ${currentScore==="Very good"?"selected":""}>Very good</option>
+                <option value="Good" ${currentScore==="Good"?"selected":""}>Good</option>
+                <option value="Fair" ${currentScore==="Fair"?"selected":""}>Fair</option>
+                <option value="Poor" ${currentScore==="Poor"?"selected":""}>Poor</option>
+            </select></div>
+        </div>`;
+    STATE.modalData = {
+        title: "피드백 수정",
+        content: content,
+        onConfirm: async () => {
+            const newText = document.getElementById("edit-feedback-text").value.trim();
+            const newScore = document.getElementById("edit-feedback-score").value;
+            try {
+                await AssessmentAPI.update(id, { feedback: newText, score: newScore });
+                const idx = STATE.assessmentData.findIndex(a => a.id === id);
+                if (idx !== -1) { STATE.assessmentData[idx].feedback = newText; STATE.assessmentData[idx].score = newScore; }
+                STATE.modalData = null;
+                renderCurrentView();
+            } catch (e) { console.error(e); alert("수정 중 오류 발생"); }
+        },
+        isWide: false
+    };
+    renderCurrentView();
+};
+
+window.deleteFeedbackItem = async function(id) {
+    if (!confirm("이 피드백을 삭제하시겠습니까?")) return;
+    try {
+        await AssessmentAPI.delete(id);
+        STATE.assessmentData = STATE.assessmentData.filter(a => a.id !== id);
+        STATE.modalData = null;
+        renderCurrentView();
+    } catch (e) { console.error(e); alert("삭제 중 오류 발생"); }
 };
 
 window.submitFeedback = async function() {

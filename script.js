@@ -2586,19 +2586,30 @@ window.deleteTeam = async function(id) {
     }
 };
 
-window.removeMember = async function(id) {
-    if(STATE.members.length > 1) {
-        try {
-            await MembersAPI.delete(id);
-            STATE.members = STATE.members.filter(m => m.id !== id);
-            renderCurrentView();
-        } catch (error) {
-            console.error('Error removing member:', error);
-            alert('구성원 삭제 중 오류가 발생했습니다.');
-        }
-    } else {
+window.removeMember = function(id) {
+    const member = STATE.members.find(m => m.id === id);
+    if (!member) return;
+    if (STATE.members.length <= 1) {
         alert('최소 1명의 구성원이 필요합니다.');
+        return;
     }
+    STATE.modalData = {
+        title: '구성원 삭제',
+        content: `<div class="text-center py-2"><p class="text-[14px] text-on-surface font-bold mb-2">${member.name}님을 구성원에서 정말 삭제하시겠습니까?</p><p class="text-[13px] text-on-surface-variant">복구할 수 없습니다.</p></div>`,
+        onConfirm: async () => {
+            try {
+                await MembersAPI.delete(id);
+                STATE.members = STATE.members.filter(m => m.id !== id);
+                STATE.modalData = null;
+                renderCurrentView();
+            } catch (error) {
+                console.error('Error removing member:', error);
+                alert('구성원 삭제 중 오류가 발생했습니다.');
+            }
+        },
+        isWide: false
+    };
+    renderCurrentView();
 };
 function renderMembers(container) {
     const showHidden = STATE.membersShowHidden || false;

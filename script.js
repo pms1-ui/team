@@ -34,6 +34,7 @@ const STATE = {
     // Members filter state
     membersTeamFilter: 'all', // 'all' or team name
     membersShowHidden: false, // 숨긴 구성원 보기 토글
+    membersView: 'list', // 'list' | 'pending'
     
     // Weekly report team filter (all view)
     weeklyReportTeamFilter: '',
@@ -2199,6 +2200,14 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             return;
         }
         
+        // 가입 승인 대기 체크
+        if (member.is_approved === false) {
+            alert('승인 대기중입니다.');
+            loginBtn.innerText = originalText;
+            loginBtn.disabled = false;
+            return;
+        }
+        
         // Debug logging
         console.log('Login - member data:', member);
         console.log('Login - member.team:', member.team);
@@ -2423,6 +2432,19 @@ window.toggleMembersShowHidden = function() {
     renderCurrentView();
 };
 
+
+window.approveMember = async function(id) {
+    try {
+        await MembersAPI.update(id, { is_approved: true });
+        const member = STATE.members.find(m => m.id === id);
+        if (member) member.is_approved = true;
+        renderCurrentView();
+    } catch (e) {
+        console.error("Error approving member:", e);
+        alert("승인 처리 중 오류가 발생했습니다.");
+    }
+};
+
 window.toggleMemberHidden = async function(id) {
     const member = STATE.members.find(m => m.id === id);
     if (!member) return;
@@ -2616,12 +2638,51 @@ window.removeMember = function(id) {
     renderCurrentView();
 };
 function renderMembers(container) {
+    // 가입 대기자 승인 권한: 대표, 본부장, pms1
+    const canApprove = STATE.user && (
+        STATE.user.position === '대표' || STATE.user.position === '본부장' || STATE.user.id === 'pms1'
+    );
+    const pendingMembers = STATE.members.filter(m => m.is_approved === false);
+
+    // 가입 대기자 뷰
+    if (STATE.membersView === 'pending' && canApprove) {
+        let pendingHtml = pendingMembers.length === 0
+            ? '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">가입 대기자가 없습니다.</div>'
+            : pendingMembers.map(m => `
+                <div class="bg-white rounded-xl border border-blue-50 shadow-sm p-5 mb-3 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning font-bold text-[14px]">${m.name.charAt(0)}</div>
+                        <div>
+                            <p class="text-[14px] font-bold text-on-surface">${m.name}</p>
+                            <p class="text-[12px] text-on-surface-variant">${m.email || ''} · ${m.division} · ${m.team} · ${m.job || ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="approveMember(${m.id})" class="px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">승인</button>
+                        <button onclick="removeMember(${m.id})" class="px-4 py-2 bg-white border border-error text-error font-bold text-[13px] rounded-lg hover:bg-error/10 transition-colors shadow-sm">거부</button>
+                    </div>
+                </div>
+            `).join('');
+
+        container.innerHTML = `
+            <div class="mb-5 flex items-center gap-3">
+                <button onclick="STATE.membersView='list'; renderCurrentView();" class="flex items-center gap-1.5 text-[13px] font-bold text-on-surface-variant hover:text-primary transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    구성원 목록으로
+                </button>
+                <span class="text-[14px] font-black text-on-surface">가입 대기자 (${pendingMembers.length}명)</span>
+            </div>
+            ${pendingHtml}
+        `;
+        return;
+    }
+
     const showHidden = STATE.membersShowHidden || false;
 
-    // 표시할 구성원 필터링
+    // 표시할 구성원 필터링 (승인된 구성원만)
     let visibleMembers = showHidden
-        ? STATE.members.filter(m => m.is_hidden)
-        : STATE.members.filter(m => !m.is_hidden);
+        ? STATE.members.filter(m => m.is_hidden && m.is_approved !== false)
+        : STATE.members.filter(m => !m.is_hidden && m.is_approved !== false);
 
     if (STATE.membersTeamFilter !== 'all') {
         visibleMembers = visibleMembers.filter(m => m.team === STATE.membersTeamFilter);
@@ -2689,6 +2750,7 @@ function renderMembers(container) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${showHidden ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'}"></path></svg>
                     숨긴 구성원 보기${hiddenCount > 0 ? ` (${hiddenCount})` : ''}
                 </button>
+                ${canApprove && pendingMembers.length > 0 ? `<button onclick="STATE.membersView='pending'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning text-warning font-bold text-[13px] rounded-lg hover:bg-warning/20 transition-all shadow-sm">가입 대기자 (${pendingMembers.length})</button>` : ""}
                 <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     구성원 추가
@@ -5782,12 +5844,13 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             division: division,
             team: team,
             job: job,
-            position: '멤버'
+            position: '멤버',
+            is_approved: false
         };
         
         await MembersAPI.create(newMember);
         
-        alert('회원가입이 완료되었습니다! 로그인해주세요.');
+        alert('회원가입 신청이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.');
         
         // Reset form and go back to login
         document.getElementById('signup-form').reset();

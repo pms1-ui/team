@@ -299,6 +299,7 @@ const MENU_ITEMS = [
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
 
     { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
+    { id: 'org_chart', label: '조직도', icon: '<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/org-chart' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
@@ -1304,6 +1305,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'requests') renderRequests(content);
     else if (STATE.currentView === 'members') renderMembers(content);
     else if (STATE.currentView === 'weekly_report') renderWeeklyReport(content);
+    else if (STATE.currentView === 'org_chart') renderOrgChart(content);
     else if (STATE.currentView === 'rnr') renderRnR(content);
     else if (STATE.currentView === 'guide') renderGuide(content);
     else if (STATE.currentView === 'feedback') renderFeedback(content);
@@ -4436,6 +4438,92 @@ window.saveWeeklyReport = async function(periodKey) {
         if (btn) { btn.disabled=false; btn.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장'; }
     }
 };
+
+// --- Org Chart View ---
+function renderOrgChart(container) {
+    // divisions 기준으로 teams 그룹핑
+    const divisions = STATE.divisions.filter(d => d.name !== '무소속');
+    const teams = STATE.teams;
+    const members = STATE.members.filter(m => !m.is_hidden);
+
+    // CEO/CCO를 최상단에 표시
+    const ceoMembers = members.filter(m => m.team === 'CEO,CCO' || m.position === '대표');
+
+    let h = '<div class="max-w-5xl mx-auto">';
+
+    // CEO/CCO 최상단
+    if (ceoMembers.length > 0) {
+        h += '<div class="flex justify-center mb-8">';
+        h += '<div class="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl px-8 py-5 text-center shadow-sm">';
+        ceoMembers.forEach(m => {
+            h += `<div class="text-[16px] font-black text-on-surface">${m.name}</div>`;
+            h += `<div class="text-[12px] text-primary font-bold mt-1">${m.position} · ${m.job || ''}</div>`;
+        });
+        h += '</div>';
+        h += '</div>';
+        // 연결선
+        h += '<div class="flex justify-center mb-4"><div class="w-px h-8 bg-blue-200"></div></div>';
+    }
+
+    // 본부별 가로 배치
+    h += '<div class="grid grid-cols-1 lg:grid-cols-' + Math.min(divisions.length, 4) + ' gap-6">';
+
+    divisions.forEach(div => {
+        const divTeams = teams.filter(t => t.division === div.name && t.name !== div.name && t.name !== 'CEO,CCO');
+        const divDirectMembers = members.filter(m => m.team === div.name && !ceoMembers.includes(m));
+
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">';
+        // 본부 헤더
+        h += `<div class="bg-gradient-to-r from-primary/5 to-primary/10 px-5 py-4 border-b border-blue-50">`;
+        h += `<div class="text-[15px] font-black text-on-surface">${div.name}</div>`;
+        if (divDirectMembers.length > 0) {
+            h += '<div class="mt-2 space-y-1">';
+            divDirectMembers.forEach(m => {
+                h += `<div class="text-[12px] text-on-surface-variant"><span class="font-bold text-on-surface">${m.name}</span> · ${m.position} · ${m.job || ''}</div>`;
+            });
+            h += '</div>';
+        }
+        h += '</div>';
+
+        // 팀 목록
+        if (divTeams.length > 0) {
+            h += '<div class="p-4 space-y-3">';
+            divTeams.forEach(t => {
+                const teamMembers = members.filter(m => m.team === t.name && m.division === div.name);
+                h += '<div class="bg-surface-container rounded-xl p-4 border border-blue-50">';
+                h += `<div class="text-[13px] font-black text-primary mb-2">${t.name}</div>`;
+                if (teamMembers.length > 0) {
+                    h += '<div class="space-y-1.5">';
+                    // 팀장 먼저, 멤버 나중에
+                    const sorted = [...teamMembers].sort((a, b) => {
+                        const order = { '대표': 0, '본부장': 1, '팀장': 2, '멤버': 3 };
+                        return (order[a.position] || 9) - (order[b.position] || 9);
+                    });
+                    sorted.forEach(m => {
+                        const posColor = m.position === '팀장' ? 'text-primary bg-primary/10' : 'text-on-surface-variant bg-surface-container-high';
+                        h += `<div class="flex items-center gap-2">`;
+                        h += `<span class="text-[10px] font-bold ${posColor} px-1.5 py-0.5 rounded">${m.position}</span>`;
+                        h += `<span class="text-[13px] font-bold text-on-surface">${m.name}</span>`;
+                        h += `<span class="text-[11px] text-on-surface-variant">${m.job || ''}</span>`;
+                        h += '</div>';
+                    });
+                    h += '</div>';
+                } else {
+                    h += '<p class="text-[12px] text-on-surface-variant/60">구성원 없음</p>';
+                }
+                h += '</div>';
+            });
+            h += '</div>';
+        } else {
+            h += '<div class="p-4"><p class="text-[12px] text-on-surface-variant/60">팀 없음</p></div>';
+        }
+        h += '</div>';
+    });
+
+    h += '</div>'; // grid
+    h += '</div>'; // max-w wrapper
+    container.innerHTML = h;
+}
 
 // --- R&R View ---
 function renderRnR(container) {

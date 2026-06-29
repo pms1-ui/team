@@ -908,7 +908,9 @@ window.submitModifyRequest = function(id) {
 function sendNotificationWebhook(params) {
     const baseUrl = "https://n8n.childylab.com/webhook/7b666c7f-b12d-447f-bef7-957d4c896219";
     const query = new URLSearchParams(params).toString();
-    fetch(baseUrl + "?" + query).catch(e => console.error("Webhook error:", e));
+    const url = baseUrl + "?" + query;
+    console.log("Sending webhook:", url);
+    fetch(url).then(r => console.log("Webhook response:", r.status)).catch(e => console.error("Webhook error:", e));
 }
 
 window.approveAdminRequest = async function(id) {

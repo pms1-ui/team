@@ -1197,12 +1197,22 @@ function updateNavigation() {
     const pendingRnrCount = STATE.rnrData.filter(r => r.request_type !== null && r.status === '승인 대기중').length;
     const pendingReqCount = pendingOkrCount + pendingRnrCount;
 
+    // 2주 이내 나에게 온 새 피드백 여부
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const hasNewFeedback = (STATE.assessmentData || []).some(a =>
+        a.target_id === STATE.user.id && a.created_at && new Date(a.created_at) >= twoWeeksAgo
+    );
+
     MENU_ITEMS.forEach(item => {
         // Show all menus to everyone (don't filter by role)
         
         let badgeHtml = '';
         if(item.id === 'requests' && pendingReqCount > 0) {
             badgeHtml = `<span class="bg-error text-white text-[11px] font-black w-5 h-5 flex items-center justify-center rounded-full ml-auto shadow-sm">${pendingReqCount}</span>`;
+        }
+        if(item.id === 'feedback' && hasNewFeedback && STATE.user.role !== 'admin') {
+            badgeHtml = `<span class="bg-error text-white text-[10px] font-black px-1.5 h-5 flex items-center justify-center rounded-full ml-auto shadow-sm">N</span>`;
         }
 
         const btn = document.createElement('button');

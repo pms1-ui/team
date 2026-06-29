@@ -3540,8 +3540,20 @@ window.editFeedbackItem = function(id, currentFeedback, currentScore) {
                 await AssessmentAPI.update(id, { feedback: newText, score: newScore });
                 const idx = STATE.assessmentData.findIndex(a => a.id === id);
                 if (idx !== -1) { STATE.assessmentData[idx].feedback = newText; STATE.assessmentData[idx].score = newScore; }
-                STATE.modalData = null;
-                renderCurrentView();
+                
+                // 수정 후 같은 모달 재오픈
+                const assessment = STATE.assessmentData[idx];
+                const targetId = assessment ? assessment.target_id : null;
+                const reviewerPos = assessment ? (STATE.members.find(m => m.user_id === assessment.reviewer_id)?.position || '') : '';
+                const targetName = assessment ? (STATE.members.find(m => m.user_id === assessment.target_id)?.name || '') : '';
+                const reviewerType = reviewerPos === '팀장' ? '팀장' : '본부장';
+                const period = STATE.feedbackDashPeriod || '2026-Q2';
+                const sameType = STATE.assessmentData.filter(a => {
+                    if (a.target_id !== targetId || a.period_value !== period) return false;
+                    const r = STATE.members.find(m => m.user_id === a.reviewer_id);
+                    return reviewerType === '팀장' ? (r && r.position === '팀장') : (r && (r.position === '본부장' || r.position === '대표'));
+                });
+                showFeedbackModal(targetName, reviewerType, encodeURIComponent(JSON.stringify(sameType)));
             } catch (e) { console.error(e); alert("수정 중 오류 발생"); }
         },
         isWide: false
@@ -3552,10 +3564,30 @@ window.editFeedbackItem = function(id, currentFeedback, currentScore) {
 window.deleteFeedbackItem = async function(id) {
     if (!confirm("이 피드백을 삭제하시겠습니까?")) return;
     try {
+        // 삭제 전에 같은 멤버/타입 정보 저장
+        const assessment = STATE.assessmentData.find(a => a.id === id);
+        const targetId = assessment ? assessment.target_id : null;
+        const reviewerPos = assessment ? (STATE.members.find(m => m.user_id === assessment.reviewer_id)?.position || '') : '';
+        const targetName = assessment ? (STATE.members.find(m => m.user_id === assessment.target_id)?.name || '') : '';
+        const reviewerType = reviewerPos === '팀장' ? '팀장' : '본부장';
+
         await AssessmentAPI.delete(id);
         STATE.assessmentData = STATE.assessmentData.filter(a => a.id !== id);
-        STATE.modalData = null;
-        renderCurrentView();
+
+        // 같은 멤버의 남은 피드백으로 모달 재오픈
+        const period = STATE.feedbackDashPeriod || '2026-Q2';
+        const remaining = STATE.assessmentData.filter(a => a.target_id === targetId && a.period_value === period);
+        const sameType = remaining.filter(a => {
+            const r = STATE.members.find(m => m.user_id === a.reviewer_id);
+            return reviewerType === '팀장' ? (r && r.position === '팀장') : (r && (r.position === '본부장' || r.position === '대표'));
+        });
+
+        if (sameType.length > 0) {
+            showFeedbackModal(targetName, reviewerType, encodeURIComponent(JSON.stringify(sameType)));
+        } else {
+            STATE.modalData = null;
+            renderCurrentView();
+        }
     } catch (e) { console.error(e); alert("삭제 중 오류 발생"); }
 };
 

@@ -988,6 +988,18 @@ window.approveAdminRequest = async function(id) {
             // 이메일 알림 발송
             const notiMember = STATE.members.find(m => m.user_id === goal.userId);
             if (notiMember && notiMember.email) {
+                // 진척률 변경 전후 비교 데이터 생성
+                let progressChanges = '';
+                if (goal.tempKeyResults && goal.keyResults) {
+                    const changes = goal.tempKeyResults.map(tkr => {
+                        const oldKr = goal.keyResults.find(k => k.id == tkr.id);
+                        if (oldKr && oldKr.progress !== tkr.progress) {
+                            return (tkr.text || 'KR') + ': ' + (oldKr.progress || 0) + '% → ' + tkr.progress + '%';
+                        }
+                        return null;
+                    }).filter(Boolean);
+                    if (changes.length > 0) progressChanges = changes.join(' | ');
+                }
                 sendNotificationWebhook({
                     type: "approved",
                     name: notiMember.name,
@@ -997,6 +1009,7 @@ window.approveAdminRequest = async function(id) {
                     comment: goal.comment || "",
                     oldText: goal.tempText ? goal.text : "",
                     newText: goal.tempText || "",
+                    progressChanges: progressChanges,
                     reviewer: STATE.user.name
                 });
             }

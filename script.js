@@ -44,6 +44,7 @@ const STATE = {
     
     // Dashboard team filter
     dashboardTeamFilter: 'all', // 'all' or team name
+    dashboardDivisionFilter: 'all', // 'all' or division name
     
     // R&R view state
     rnrViewMode: 'edit', // 'edit' | 'browse'
@@ -409,6 +410,12 @@ window.setDashboardTeamFilter = function(val) {
     renderCurrentView();
 };
 
+window.setDashboardDivisionFilter = function(val) {
+    STATE.dashboardDivisionFilter = val;
+    STATE.dashboardTeamFilter = 'all';
+    renderCurrentView();
+};
+
 window.setRnrViewMode = function(mode) {
     STATE.rnrViewMode = mode;
     renderCurrentView();
@@ -511,7 +518,7 @@ window.openDivisionGoalModal = function() {
             </div>
         </div>
     `;
-    openModal('2026 운영본부 OKR', content, null, true);
+    openModal('2026년 본부별 목표', content, null, true);
 };
 
 window.openModal = function(title, content, onConfirmAction = null, isWide = false) {
@@ -1357,19 +1364,19 @@ function renderDashboard(container) {
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
     
-    // Apply team filter
-    if (STATE.dashboardTeamFilter !== 'all') {
-        const teamMembers = STATE.members.filter(m => m.team === STATE.dashboardTeamFilter && !m.is_hidden).map(m => m.user_id);
-        Object.keys(users).forEach(uid => {
-            if (!teamMembers.includes(uid)) delete users[uid];
-        });
+    // Apply division + team filter
+    let activeFilterIds;
+    if (STATE.dashboardDivisionFilter !== 'all' || STATE.dashboardTeamFilter !== 'all') {
+        let filtered = STATE.members.filter(m => !m.is_hidden);
+        if (STATE.dashboardDivisionFilter !== 'all') filtered = filtered.filter(m => m.division === STATE.dashboardDivisionFilter);
+        if (STATE.dashboardTeamFilter !== 'all') filtered = filtered.filter(m => m.team === STATE.dashboardTeamFilter);
+        activeFilterIds = filtered.map(m => m.user_id);
     } else {
-        // 숨긴 구성원 및 삭제된(members에 없는) 구성원 제외
-        const activeIds = STATE.members.filter(m => !m.is_hidden).map(m => m.user_id);
-        Object.keys(users).forEach(uid => {
-            if (!activeIds.includes(uid)) delete users[uid];
-        });
+        activeFilterIds = STATE.members.filter(m => !m.is_hidden).map(m => m.user_id);
     }
+    Object.keys(users).forEach(uid => {
+        if (!activeFilterIds.includes(uid)) delete users[uid];
+    });
     
     // Sort user keys by name (가나다순)
     const sortedUserIds = Object.keys(users).sort((a, b) => {
@@ -1389,9 +1396,14 @@ function renderDashboard(container) {
     h += '<select onchange="setPeriod(\'dashboard\', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += generatePeriodOptions(STATE.dashboardTab, STATE.dashboardPeriodValue);
     h += '</select>';
+    h += '<select onchange="setDashboardDivisionFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    h += '<option value="all"' + (STATE.dashboardDivisionFilter === 'all' ? ' selected' : '') + '>전체 본부</option>';
+    STATE.divisions.forEach(function(d) { h += '<option value="' + d.name + '"' + (STATE.dashboardDivisionFilter === d.name ? ' selected' : '') + '>' + d.name + '</option>'; });
+    h += '</select>';
+    var dashFilteredTeams = STATE.dashboardDivisionFilter === 'all' ? STATE.teams : STATE.teams.filter(function(t) { return t.division === STATE.dashboardDivisionFilter; });
     h += '<select onchange="setDashboardTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-1.5 outline-none">';
     h += '<option value="all"' + (STATE.dashboardTeamFilter === 'all' ? ' selected' : '') + '>전체 팀</option>';
-    STATE.teams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.dashboardTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
+    dashFilteredTeams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.dashboardTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
     h += '</select>';
     h += '</div>';
     h += '<div class="flex items-center gap-2">';
@@ -2174,7 +2186,6 @@ function renderModal(container) {
 document.getElementById('btn-login').addEventListener('click', async () => {
     const id = document.getElementById('login-id').value;
     const pw = document.getElementById('login-pw').value;
-    const division = document.getElementById('login-division').value;
     
     if (!id || !pw) {
         alert('아이디와 비밀번호를 입력하세요.');
@@ -2193,7 +2204,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         // assessment already loaded inside loadDataFromBaserow
         
         // Find member in loaded data (including master account)
-        const member = STATE.members.find(m => m.user_id === id && m.division === division);
+        const member = STATE.members.find(m => m.user_id === id);
         
         if (!member) {
             alert('아이디가 존재하지 않습니다.');
@@ -2225,9 +2236,10 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         STATE.user = {
             id: member.user_id,
             name: member.name,
-            role: (member.position === '팀장' || member.position === '본부장' || member.position === '대표') ? 'admin' : 'user',
+            role: (member.position === '팀장' || member.position === '본부장' || member.position === '대표' || member.position === 'CCO' || member.user_id === 'pms1') ? 'admin' : 'user',
             division: member.division,
             team: member.team,
+            position: member.position,
             memberId: member.id
         };
         
@@ -2240,7 +2252,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         
         document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
         document.getElementById('auth-user-name').innerText = STATE.user.name;
-        document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
+        document.getElementById('division-label').innerText = '';
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         
@@ -2400,7 +2412,7 @@ window.saveAllMembers = async function() {
                 // Check if current user's position was updated
                 if (member.user_id === STATE.user.id && member._modified.position) {
                     currentUserUpdated = true;
-                    STATE.user.role = (member.position === '팀장' || member.position === '본부장' || member.position === '대표') ? 'admin' : 'user';
+                    STATE.user.role = (member.position === '팀장' || member.position === '본부장' || member.position === '대표' || member.position === 'CCO' || member.user_id === 'pms1') ? 'admin' : 'user';
                     
                     // Update localStorage session
                     const session = JSON.parse(localStorage.getItem('okr_session') || '{}');
@@ -2746,6 +2758,7 @@ function renderMembers(container) {
             <td class="py-5 px-6 border-r border-blue-50/30 w-[14%]">
                 <select onchange="updateMemberField(${member.id}, 'position', this.value)" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] font-medium text-on-surface outline-none focus:border-primary shadow-sm transition-all" ${STATE.user.role !== 'admin' ? 'disabled' : ''}>
                     <option value="대표" ${member.position === '대표' ? 'selected' : ''}>대표</option>
+                    <option value="CCO" ${member.position === 'CCO' ? 'selected' : ''}>CCO</option>
                     <option value="본부장" ${member.position === '본부장' ? 'selected' : ''}>본부장</option>
                     <option value="팀장" ${member.position === '팀장' ? 'selected' : ''}>팀장</option>
                     <option value="멤버" ${member.position === '멤버' ? 'selected' : ''}>멤버</option>
@@ -4565,7 +4578,7 @@ function renderOrgChart(container) {
     const members = STATE.members.filter(m => !m.is_hidden);
 
     // CEO/CCO를 최상단에 표시
-    const ceoMembers = members.filter(m => m.team === 'CEO,CCO' || m.position === '대표');
+    const ceoMembers = members.filter(m => m.team === 'CEO,CCO' || m.position === '대표' || m.position === 'CCO');
 
     let h = '<div class="max-w-full mx-auto">';
 
@@ -5344,7 +5357,7 @@ async function initLoginPage() {
                     // Update UI
                     document.getElementById('user-avatar').innerText = STATE.user.name.charAt(0);
                     document.getElementById('auth-user-name').innerText = STATE.user.name;
-                    document.getElementById('division-label').innerText = '[' + STATE.user.division + ']';
+                    document.getElementById('division-label').innerText = '';
                     document.getElementById('login-view').classList.add('hidden');
                     document.getElementById('app-view').classList.remove('hidden');
                     

@@ -22,7 +22,7 @@ const STATE = {
     feedbackData: {},
     feedbackPeriod: '2026',
     feedbackView: 'dashboard',
-    feedbackDashPeriod: '2026',
+    feedbackDashPeriod: '2026-Q2',
     feedbackTeamFilter: 'all',
     feedbackDashTeamFilter: 'all',
     feedbackPeriodType: '', // '' | 'quarterly' | 'yearly'
@@ -3256,7 +3256,7 @@ function renderFeedbackDashboard(container) {
         { value: '2026-Q3', label: '2026년 3분기' },
         { value: '2026-Q4', label: '2026년 4분기' }
     ];
-    const selectedPeriod = STATE.feedbackDashPeriod || '2026';
+    const selectedPeriod = STATE.feedbackDashPeriod || '2026-Q2';
     const assessments = STATE.assessmentData || [];
 
     let periodOptionsHtml = periodOptions.map(p => 

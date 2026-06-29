@@ -25,6 +25,8 @@ const STATE = {
     feedbackDashPeriod: '2026-Q2',
     feedbackTeamFilter: 'all',
     feedbackDashTeamFilter: 'all',
+    feedbackDivisionFilter: 'all',
+    feedbackDashDivisionFilter: 'all',
     feedbackPeriodType: '', // '' | 'quarterly' | 'yearly'
     assessmentData: [],
     
@@ -33,6 +35,7 @@ const STATE = {
     
     // Members filter state
     membersTeamFilter: 'all', // 'all' or team name
+    membersDivisionFilter: 'all', // 'all' or division name
     membersShowHidden: false, // 숨긴 구성원 보기 토글
     membersView: 'list', // 'list' | 'pending'
     
@@ -2433,6 +2436,25 @@ window.setMembersTeamFilter = function(teamName) {
     renderCurrentView();
 };
 
+window.setMembersDivisionFilter = function(val) {
+    STATE.membersDivisionFilter = val;
+    STATE.membersTeamFilter = 'all';
+    renderCurrentView();
+};
+
+window.setFeedbackDivisionFilter = function(val) {
+    STATE.feedbackDivisionFilter = val;
+    STATE.feedbackTeamFilter = 'all';
+    STATE.feedbackSelectedMember = '';
+    renderCurrentView();
+};
+
+window.setFeedbackDashDivisionFilter = function(val) {
+    STATE.feedbackDashDivisionFilter = val;
+    STATE.feedbackDashTeamFilter = 'all';
+    renderCurrentView();
+};
+
 window.toggleMembersShowHidden = function() {
     STATE.membersShowHidden = !STATE.membersShowHidden;
     renderCurrentView();
@@ -2690,9 +2712,19 @@ function renderMembers(container) {
         ? STATE.members.filter(m => m.is_hidden && m.is_approved !== false)
         : STATE.members.filter(m => !m.is_hidden && m.is_approved !== false);
 
+    // 본부 필터
+    if (STATE.membersDivisionFilter !== 'all') {
+        visibleMembers = visibleMembers.filter(m => m.division === STATE.membersDivisionFilter);
+    }
+    // 팀 필터
     if (STATE.membersTeamFilter !== 'all') {
         visibleMembers = visibleMembers.filter(m => m.team === STATE.membersTeamFilter);
     }
+
+    // 본부 필터에 따른 팀 목록
+    const filteredTeamsForMembers = STATE.membersDivisionFilter === 'all'
+        ? STATE.teams
+        : STATE.teams.filter(t => t.division === STATE.membersDivisionFilter);
 
     const hiddenCount = STATE.members.filter(m => m.is_hidden && m.is_approved !== false).length;
 
@@ -2742,9 +2774,13 @@ function renderMembers(container) {
                 <div class="text-[14px] font-bold text-on-surface-variant">
                     총 <span class="text-primary font-black mx-1">${visibleMembers.length}</span>명${showHidden ? ' (숨김 구성원)' : ''}
                 </div>
+                <select onchange="setMembersDivisionFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm transition-all">
+                    <option value="all" ${STATE.membersDivisionFilter === 'all' ? 'selected' : ''}>전체 본부</option>
+                    ${STATE.divisions.map(d => `<option value="${d.name}" ${STATE.membersDivisionFilter === d.name ? 'selected' : ''}>${d.name}</option>`).join('')}
+                </select>
                 <select onchange="setMembersTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm transition-all">
                     <option value="all" ${STATE.membersTeamFilter === 'all' ? 'selected' : ''}>전체 팀</option>
-                    ${STATE.teams.map(team => `<option value="${team.name}" ${STATE.membersTeamFilter === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
+                    ${filteredTeamsForMembers.map(team => `<option value="${team.name}" ${STATE.membersTeamFilter === team.name ? 'selected' : ''}>${team.name}</option>`).join('')}
                 </select>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -3165,12 +3201,17 @@ function renderFeedback(container) {
     const myTeam = myMemberInfo?.team || STATE.user.team || '';
     const selectedTeam = STATE.feedbackTeamFilter || 'all';
     const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
+    const selectedDivision = STATE.feedbackDivisionFilter || 'all';
 
-    // 팀 드롭다운 (팀장은 본인 팀 고정, 본부장/대표는 팀 선택 드롭다운)
+    // 본부/팀 드롭다운 (팀장은 본인 팀 고정)
+    let divisionOptionsHtml = '';
     let teamOptionsHtml = '';
     if (!isTeamLeader) {
+        divisionOptionsHtml = `<option value="all" ${selectedDivision === 'all' ? 'selected' : ''}>전체 본부</option>` +
+            STATE.divisions.map(d => `<option value="${d.name}" ${selectedDivision === d.name ? 'selected' : ''}>${d.name}</option>`).join('');
+        const filteredTeamsForFeedback = selectedDivision === 'all' ? STATE.teams : STATE.teams.filter(t => t.division === selectedDivision);
         teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
-            STATE.teams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+            filteredTeamsForFeedback.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
     }
 
     // 구성원 표시 (전체 팀이면 전부, 특정 팀이면 해당 팀만)
@@ -3318,10 +3359,10 @@ function renderFeedback(container) {
                         ${periodOptions.map(p => `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`).join('')}
                     </select>
                     ${!isTeamLeader
-                        ? `<select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
+                        ? `<select onchange="setFeedbackDivisionFilter(this.value);" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${divisionOptionsHtml}</select>
+                           <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
                         : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
                     }
-                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm" >
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
@@ -3382,12 +3423,18 @@ function renderFeedbackDashboard(container) {
     ).join('');
 
     const selectedDashTeam = STATE.feedbackDashTeamFilter || 'all';
-    let dashTeamOptionsHtml = `<option value="all" ${selectedDashTeam === 'all' ? 'selected' : ''}>전체 팀</option>` + 
-        STATE.teams.map(t => `<option value="${t.name}" ${selectedDashTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+    const selectedDashDivision = STATE.feedbackDashDivisionFilter || 'all';
+    const filteredTeamsForDash = selectedDashDivision === 'all' ? STATE.teams : STATE.teams.filter(t => t.division === selectedDashDivision);
+    let dashDivisionOptionsHtml = `<option value="all" ${selectedDashDivision === 'all' ? 'selected' : ''}>전체 본부</option>` +
+        STATE.divisions.map(d => `<option value="${d.name}" ${selectedDashDivision === d.name ? 'selected' : ''}>${d.name}</option>`).join('');
+    let dashTeamOptionsHtml = `<option value="all" ${selectedDashTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
+        filteredTeamsForDash.map(t => `<option value="${t.name}" ${selectedDashTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+
 
     // Build member rows
     const allMembers = [...STATE.members].filter(m => !m.is_hidden).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    const sortedMembers = selectedDashTeam === 'all' ? allMembers : allMembers.filter(m => m.team === selectedDashTeam);
+    let sortedMembers = selectedDashDivision !== "all" ? allMembers.filter(m => m.division === selectedDashDivision) : allMembers;
+    if (selectedDashTeam !== "all") sortedMembers = sortedMembers.filter(m => m.team === selectedDashTeam);
     
     let rowsHtml = sortedMembers.map((m, i) => {
         const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
@@ -3508,6 +3555,9 @@ function renderFeedbackDashboard(container) {
             <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
                 <select onchange="STATE.feedbackDashPeriod = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                     ${periodOptionsHtml}
+                </select>
+                <select onchange="setFeedbackDashDivisionFilter(this.value);" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
+                    ${dashDivisionOptionsHtml}
                 </select>
                 <select onchange="STATE.feedbackDashTeamFilter = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                     ${dashTeamOptionsHtml}

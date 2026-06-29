@@ -1216,6 +1216,12 @@ function updateNavigation() {
         if(item.id === 'feedback' && hasNewFeedback && STATE.user.role !== 'admin') {
             badgeHtml = `<span class="bg-error text-white text-[10px] font-black px-1.5 h-5 flex items-center justify-center rounded-full ml-auto shadow-sm">N</span>`;
         }
+        // 구성원 메뉴 - 가입 대기자 뱃지
+        const pendingApprovalCount = STATE.members.filter(m => m.is_approved === false).length;
+        const canApproveMembers = STATE.user && (STATE.user.position === '대표' || STATE.user.position === '본부장' || STATE.user.id === 'pms1');
+        if(item.id === 'members' && pendingApprovalCount > 0 && canApproveMembers) {
+            badgeHtml = `<span class="bg-error text-white text-[10px] font-black px-1.5 h-5 flex items-center justify-center rounded-full ml-auto shadow-sm">N</span>`;
+        }
 
         const btn = document.createElement('button');
         const isActive = STATE.currentView === item.id;
@@ -2750,7 +2756,7 @@ function renderMembers(container) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${showHidden ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'}"></path></svg>
                     숨긴 구성원 보기${hiddenCount > 0 ? ` (${hiddenCount})` : ''}
                 </button>
-                ${canApprove && pendingMembers.length > 0 ? `<button onclick="STATE.membersView='pending'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning text-warning font-bold text-[13px] rounded-lg hover:bg-warning/20 transition-all shadow-sm">가입 대기자 (${pendingMembers.length})</button>` : ""}
+                ${canApprove && pendingMembers.length > 0 ? `<button onclick="STATE.membersView='pending'; renderCurrentView();" class="flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning text-warning font-bold text-[13px] rounded-lg hover:bg-warning/20 transition-all shadow-sm">가입 대기자 <span class="bg-error text-white text-[11px] font-black w-5 h-5 flex items-center justify-center rounded-full ml-1 shadow-sm">${pendingMembers.length}</span></button>` : ""}
                 <button onclick="addMember()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     구성원 추가

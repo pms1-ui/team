@@ -988,7 +988,17 @@ window.approveAdminRequest = async function(id) {
             // 이메일 알림 발송
             const notiMember = STATE.members.find(m => m.user_id === goal.userId);
             if (notiMember && notiMember.email) {
-                sendNotificationWebhook({ type: "approved", name: notiMember.name, email: notiMember.email, title: goal.text, reviewer: STATE.user.name });
+                sendNotificationWebhook({
+                    type: "approved",
+                    name: notiMember.name,
+                    email: notiMember.email,
+                    title: goal.text,
+                    requestType: goal.requestType || "신규 수립",
+                    comment: goal.comment || "",
+                    oldText: goal.tempText ? goal.text : "",
+                    newText: goal.tempText || "",
+                    reviewer: STATE.user.name
+                });
             }
             renderCurrentView();
             updateNavigation();
@@ -1056,7 +1066,7 @@ window.rejectAdminRequest = async function(id) {
                     // 이메일 알림 발송
                     const rejectMember = STATE.members.find(m => m.user_id === goal.userId);
                     if (rejectMember && rejectMember.email) {
-                        sendNotificationWebhook({ type: "rejected", name: rejectMember.name, email: rejectMember.email, title: goal.text, comment: rejectComment, reviewer: STATE.user.name });
+                        sendNotificationWebhook({ type: "rejected", name: rejectMember.name, email: rejectMember.email, title: goal.text, requestType: goal.requestType || "", comment: rejectComment, reviewer: STATE.user.name });
                     }
                     renderCurrentView();
                     updateNavigation();

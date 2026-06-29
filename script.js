@@ -2435,9 +2435,9 @@ window.toggleMembersShowHidden = function() {
 
 window.approveMember = async function(id) {
     try {
-        await MembersAPI.update(id, { is_approved: true });
+        await MembersAPI.update(id, { is_approved: true, is_hidden: false });
         const member = STATE.members.find(m => m.id === id);
-        if (member) member.is_approved = true;
+        if (member) { member.is_approved = true; member.is_hidden = false; }
         renderCurrentView();
     } catch (e) {
         console.error("Error approving member:", e);
@@ -5845,7 +5845,8 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             team: team,
             job: job,
             position: '멤버',
-            is_approved: false
+            is_approved: false,
+            is_hidden: false
         };
         
         await MembersAPI.create(newMember);

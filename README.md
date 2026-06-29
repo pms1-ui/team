@@ -29,6 +29,17 @@
 - 변경 전후 비교 상세 보기
 - 승인/취소 처리
 
+### 5. 회원가입 승인 시스템
+- **회원가입**: 신규 구성원이 가입 신청 시 `is_approved: false` 상태로 생성됨
+- **로그인 차단**: 미승인 상태(`is_approved: false`)에서 로그인 시도 시 "승인 대기중입니다." 알럿 표시
+- **승인 권한**: 대표, 본부장, pms1(박명수)만 가입 승인 가능
+- **승인 경로**: 구성원 메뉴 > 상단 `가입 대기자 (n)` 버튼 > 대기자 목록에서 승인/거부
+- **승인 처리**: 승인 시 `is_approved: true`, `is_hidden: false`로 업데이트 → 즉시 로그인 및 모든 화면에 표시
+- **거부 처리**: 해당 구성원 데이터 삭제 (복구 불가)
+- **Baserow 필드**: `members` 테이블의 `is_approved` (Boolean, 기본값 true), `is_hidden` (Boolean, 기본값 true)
+  - 기존 구성원: `is_approved: true`, `is_hidden: false`
+  - 신규 가입자: `is_approved: false`, `is_hidden: false`로 생성
+
 ## 기술 스택
 
 - **Frontend**: HTML5, Tailwind CSS, Vanilla JavaScript

@@ -1352,9 +1352,11 @@ function renderDashboard(container) {
             if (!teamMembers.includes(uid)) delete users[uid];
         });
     } else {
-        // 숨긴 구성원 제외
-        const hiddenIds = STATE.members.filter(m => m.is_hidden).map(m => m.user_id);
-        hiddenIds.forEach(uid => delete users[uid]);
+        // 숨긴 구성원 및 삭제된(members에 없는) 구성원 제외
+        const activeIds = STATE.members.filter(m => !m.is_hidden).map(m => m.user_id);
+        Object.keys(users).forEach(uid => {
+            if (!activeIds.includes(uid)) delete users[uid];
+        });
     }
     
     // Sort user keys by name (가나다순)
@@ -4549,12 +4551,12 @@ function renderRnRBrowse(container) {
     // 숨김 처리할 구성원 (베이스로우 데이터는 보존)
     const HIDDEN_MEMBERS = ['이다영', '이보란'];
     
-    // Filter by team and exclude hidden members (is_hidden + 명시적 숨김 목록)
-    const hiddenUserIds = STATE.members.filter(m => m.is_hidden).map(m => m.user_id);
+    // Filter by team and exclude hidden/deleted members
+    const activeUserIds = STATE.members.filter(m => !m.is_hidden).map(m => m.user_id);
     const filteredRnR = (STATE.rnrBrowseTeamFilter === 'all'
         ? STATE.rnrData
         : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter))
-        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && !hiddenUserIds.includes(r.user_id));
+        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && activeUserIds.includes(r.user_id));
     
     let h = '<div class="max-w-4xl mx-auto">';
     

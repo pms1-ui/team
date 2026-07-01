@@ -1429,7 +1429,7 @@ function generatePeriodOptions(tab, selectedValue, useSettings) {
     }
     
     if (tab === 'quarterly') {
-        const startQ = STATE.currentView === 'dashboard' ? 1 : (Math.floor(d.getMonth()/3)+1);
+        const startQ = (STATE.currentView === 'dashboard' || STATE.currentView === 'requests') ? 1 : (Math.floor(d.getMonth()/3)+1);
         for(let q = startQ; q <= 4; q++) html += `<option value="${currYear}-Q${q}" ${selectedValue === `${currYear}-Q${q}` ? 'selected' : ''}>${currYear}년 ${q}분기</option>`;
     } else if (tab === 'yearly') {
         html += `<option value="${currYear}" ${selectedValue === String(currYear) ? 'selected':''}>${currYear}년</option><option value="${currYear+1}" ${selectedValue === String(currYear+1) ? 'selected':''}>${currYear+1}년</option>`;

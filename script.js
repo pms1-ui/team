@@ -71,6 +71,9 @@ const STATE = {
     // All Goals Data (loaded from Baserow)
     allGoals: [],
     
+    // Period Settings
+    periodSettings: [],
+    
     // Loading state
     isLoading: true
 };
@@ -119,16 +122,18 @@ async function loadDataFromBaserow() {
             goalsResult,
             allKeyResultsResult,
             weeklyReportsResult,
-            assessmentResult
+            assessmentResult,
+            periodSettingsResult
         ] = await Promise.allSettled([
             DivisionsAPI.list(),
             TeamsAPI.list(),
             MembersAPI.list(),
             RnRAPI.list(),
             GoalsAPI.list(),
-            KeyResultsAPI.listAll(),         // key_results 전체 1번에 가져오기
+            KeyResultsAPI.listAll(),
             WeeklyReportAPI.list(),
-            AssessmentAPI.list()
+            AssessmentAPI.list(),
+            PeriodSettingsAPI.list()
         ]);
 
         // --- divisions ---
@@ -241,6 +246,14 @@ async function loadDataFromBaserow() {
             STATE.assessmentData = [];
         }
 
+        // --- period settings ---
+        if (periodSettingsResult.status === 'fulfilled') {
+            STATE.periodSettings = periodSettingsResult.value;
+        } else {
+            console.error('period settings load error:', periodSettingsResult.reason);
+            STATE.periodSettings = [];
+        }
+
         console.log(`All data loaded in ${Date.now() - t0}ms`, {
             divisions: STATE.divisions.length,
             teams: STATE.teams.length,
@@ -304,12 +317,13 @@ const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
 
-    { id: 'weekly_report', label: '주간업무공유 (오픈 예정)', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
+    { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     { id: 'org_chart', label: '조직도', icon: '<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/org-chart' },
-    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' }
+    { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' },
+    { id: 'admin_settings', label: '관리자', icon: '<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/admin-settings' }
 ];
 
 // --- URL Routing ---
@@ -1380,6 +1394,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'guide') renderGuide(content);
     else if (STATE.currentView === 'feedback') renderFeedback(content);
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
+    else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -1398,10 +1413,21 @@ function renderCurrentView() {
     }, 50);
 }
 
-function generatePeriodOptions(tab, selectedValue) {
+function generatePeriodOptions(tab, selectedValue, useSettings) {
     let html = '';
     const d = new Date();
     const currYear = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    
+    // 내 목표 / 요청관리에서는 period_settings 기반
+    if (useSettings && STATE.periodSettings && STATE.periodSettings.length > 0) {
+        const filtered = STATE.periodSettings.filter(p => p.period_type === tab && p.is_open);
+        filtered.forEach(p => {
+            const closed = p.is_closed ? ' (마감)' : '';
+            html += `<option value="${p.period_value}" ${selectedValue === p.period_value ? 'selected' : ''}>${p.label}${closed}</option>`;
+        });
+        return html;
+    }
+    
     if (tab === 'quarterly') {
         const startQ = STATE.currentView === 'dashboard' ? 1 : (Math.floor(d.getMonth()/3)+1);
         for(let q = startQ; q <= 4; q++) html += `<option value="${currYear}-Q${q}" ${selectedValue === `${currYear}-Q${q}` ? 'selected' : ''}>${currYear}년 ${q}분기</option>`;
@@ -1734,6 +1760,10 @@ function renderGoalsSet(container) {
 }
 
 function renderGoalsManage(container) {
+    // 현재 선택된 기간이 마감인지 확인
+    const currentPeriodSetting = STATE.periodSettings.find(p => p.period_type === STATE.goalsManageTab && p.period_value === STATE.goalsManagePeriodValue);
+    const isPeriodClosed = currentPeriodSetting && currentPeriodSetting.is_closed;
+    
     const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue);
     
     let rowsHtml = '';
@@ -1787,7 +1817,7 @@ function renderGoalsManage(container) {
                                 `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
                                 isRejected ?
                                 `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button>` :
-                                `<button onclick="console.log('Modify clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">체크인</button>`
+                                `${isPeriodClosed ? "<button disabled class=\"w-full bg-surface-container text-on-surface-variant py-2 rounded-lg text-[13px] font-bold cursor-not-allowed\">마감됨</button>" : "<button onclick=\"submitModifyRequest('" + g.id + "')\" class=\"w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all\">체크인</button>"}`
                             }
                         </div>
                     </td>
@@ -1805,12 +1835,9 @@ function renderGoalsManage(container) {
         </div>
         <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
-                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
+                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue, true)}
             </select>
-            <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                새 OKR 추가
-            </button>
+            ${isPeriodClosed ? "" : `<button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>새 OKR 추가</button>`}
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">
@@ -2977,7 +3004,7 @@ renderGoalsManage = function(container) {
         </div>
         <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
-                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue)}
+                ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue, true)}
             </select>
             <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -4460,7 +4487,7 @@ function renderWeeklyReport(container) {
     h += '</div>';
     h += viewMode==='my' ? renderWeeklyReportMyView(selectedPeriod) : renderWeeklyReportAllView(selectedPeriod);
     h += '</div>';
-    container.innerHTML = '<div class="relative">' + h + '<div class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center rounded-2xl z-10"><div class="text-center"><div class="text-[20px] font-black text-on-surface mb-2">오픈 예정</div><p class="text-[13px] text-on-surface-variant">곧 오픈됩니다. 조금만 기다려주세요.</p></div></div></div>';
+    container.innerHTML = h;
 }
 
 function renderWeeklyReportMyView(selectedPeriod) {
@@ -4742,6 +4769,75 @@ function renderOrgChart(container) {
     h += '</div>'; // max-w wrapper
     container.innerHTML = h;
 }
+
+// --- Admin Settings View ---
+function renderAdminSettings(container) {
+    const periods = STATE.periodSettings || [];
+    const quarterlyPeriods = periods.filter(p => p.period_type === 'quarterly');
+    const yearlyPeriods = periods.filter(p => p.period_type === 'yearly');
+
+    function renderPeriodRow(p) {
+        const openChecked = p.is_open ? 'checked' : '';
+        const closedChecked = p.is_closed ? 'checked' : '';
+        const statusText = !p.is_open && !p.is_closed ? '미오픈' : (p.is_open && !p.is_closed ? '입력 가능' : '마감');
+        const statusColor = !p.is_open ? 'text-on-surface-variant bg-surface-container' : (p.is_closed ? 'text-error bg-error/10' : 'text-success bg-success/10');
+        return `
+            <div class="flex items-center justify-between bg-white rounded-xl border border-blue-50 shadow-sm px-5 py-4 mb-3">
+                <div class="flex items-center gap-4">
+                    <span class="text-[14px] font-bold text-on-surface min-w-[120px]">${p.label}</span>
+                    <span class="text-[12px] font-bold ${statusColor} px-2.5 py-1 rounded-full">${statusText}</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" ${openChecked} onchange="togglePeriodSetting(${p.id}, 'is_open', this.checked)" class="w-4 h-4 accent-primary">
+                        <span class="text-[13px] font-bold text-on-surface-variant">시작</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" ${closedChecked} onchange="togglePeriodSetting(${p.id}, 'is_closed', this.checked)" class="w-4 h-4 accent-error">
+                        <span class="text-[13px] font-bold text-on-surface-variant">마감</span>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+
+    let h = '<div class="max-w-3xl mx-auto">';
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">목표 입력 기간 관리</h3>';
+    h += '<p class="text-[13px] text-on-surface-variant mb-6">시작 체크 시 구성원에게 해당 기간이 노출되며 입력 가능합니다. 마감 체크 시 조회만 가능하고 새 OKR 추가 및 체크인이 불가합니다.</p>';
+    
+    h += '<div class="mb-6">';
+    h += '<h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>분기별</h4>';
+    h += quarterlyPeriods.map(renderPeriodRow).join('');
+    h += '</div>';
+    
+    h += '<div>';
+    h += '<h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-500"></span>연간</h4>';
+    h += yearlyPeriods.map(renderPeriodRow).join('');
+    h += '</div>';
+    
+    h += '</div>';
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+window.togglePeriodSetting = async function(id, field, value) {
+    try {
+        const updateData = {};
+        updateData[field] = value;
+        await baserowFetch('/database/rows/table/2132/' + id + '/?user_field_names=true', {
+            method: 'PATCH',
+            body: JSON.stringify(updateData)
+        });
+        // STATE 업데이트
+        const ps = STATE.periodSettings.find(p => p.id === id);
+        if (ps) ps[field] = value;
+        renderCurrentView();
+    } catch (e) {
+        console.error('Error updating period setting:', e);
+        alert('설정 변경 중 오류가 발생했습니다.');
+    }
+};
 
 // --- R&R View ---
 function renderRnR(container) {

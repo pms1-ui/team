@@ -326,3 +326,17 @@ const WeeklyReportAPI = {
         });
     }
 };
+
+// Period Settings API (table id: 2132)
+const PeriodSettingsAPI = {
+    async list() {
+        const data = await baserowFetch(`/database/rows/table/2132/?user_field_names=true&size=200`);
+        return data.results;
+    },
+    async update(id, row) {
+        return await baserowFetch(`/database/rows/table/2132/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(row)
+        });
+    }
+};

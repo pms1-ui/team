@@ -1762,7 +1762,8 @@ function renderGoalsSet(container) {
 function renderGoalsManage(container) {
     // 현재 선택된 기간이 마감인지 확인
     const currentPeriodSetting = STATE.periodSettings.find(p => p.period_type === STATE.goalsManageTab && p.period_value === STATE.goalsManagePeriodValue);
-    const isPeriodClosed = currentPeriodSetting && currentPeriodSetting.is_closed;
+    const isAdmin = STATE.user && (STATE.user.position === '대표' || STATE.user.position === 'CCO' || STATE.user.position === '본부장' || STATE.user.position === '팀장' || STATE.user.id === 'pms1');
+    const isPeriodClosed = currentPeriodSetting && currentPeriodSetting.is_closed && !isAdmin;
     
     const items = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsManageTab && g.periodValue === STATE.goalsManagePeriodValue);
     

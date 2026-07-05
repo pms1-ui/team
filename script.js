@@ -3463,6 +3463,7 @@ function renderFeedback(container) {
                            <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
                         : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
                     }
+                    <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>

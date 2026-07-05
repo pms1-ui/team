@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> </title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important}
+  .pdf-btn{display:none!important}
+}
+.page{width:210mm;height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;overflow:hidden;page-break-after:always}
+.page:last-child{page-break-after:auto}
+
+/* COVER */
+.cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
+.cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
+.cover h1{color:#fff;font-size:32px;font-weight:700;line-height:1.35;margin-bottom:16px}
+.cover .sub{color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;max-width:480px}
+.cover .foot{padding:0 28mm 20mm;color:rgba(255,255,255,.5);font-size:10px;margin-top:auto}
+</style>
+</head>
+<body>
+<style>
+.st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.tbl{width:100%;border-collapse:collapse;margin-top:12px}
+.tbl th{background:#2563EB;color:#fff;font-weight:600;padding:9px 10px;font-size:11px;text-align:center}
+.tbl td{padding:9px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center}
+.tbl tr:nth-child(even){background:#f8fafc}
+.tbl td:first-child{font-weight:600;text-align:left}
+.ph{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+.pn{font-size:16px;font-weight:700}
+.pr{font-size:11px;color:#475569}
+.sb{margin-left:auto;padding:4px 12px;border-radius:16px;font-size:12px;font-weight:600}
+.sb-h{background:#dcfce7;color:#166534}.sb-m{background:#fef9c3;color:#854d0e}.sb-l{background:#fee2e2;color:#991b1b}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.sb2{background:#f8fafc;border-radius:6px;padding:10px;text-align:center}
+.sb2 .l{font-size:10px;color:#64748b;margin-bottom:2px}
+.sb2 .v{font-size:18px;font-weight:700}
+.ol{list-style:none;padding:0;margin:8px 0 14px}
+.ol li{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
+.ol li:last-child{border-bottom:none}
+.op{font-weight:600;font-size:10px;padding:2px 6px;border-radius:3px;background:#f1f5f9}
+.eb{background:#f8fafc;border-radius:6px;padding:11px;margin-bottom:8px}
+.eb .bt{font-size:11px;font-weight:700;color:#2563EB;margin-bottom:5px}
+.eb ul{padding-left:14px;margin:0}
+.eb li{font-size:11px;color:#334155;margin-bottom:2px}
+.eb p{font-size:11px;color:#334155;margin:0;line-height:1.6}
+.tg{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.t{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500}
+.ts{background:#dbeafe;color:#1e40af}.ti{background:#fef3c7;color:#92400e}
+.ib{background:#f1f5f9;border-radius:6px;padding:12px;margin-top:14px}
+.ib p{font-size:10px;color:#475569;line-height:1.6}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+</style>
+
+<button class="pdf-btn" onclick="document.title=' ';alert('인쇄 설정에서:\n1. 여백: 없음\n2. 배경 그래픽: 체크 ✓\n3. 머리글 및 바닥글: 해제');window.print()">📄 PDF 내려받기</button>
+
+<!-- P1: 표지 -->
+<div class="page cover">
+<div class="cover-inner">
+<div class="logo">Childy</div>
+<h1>2026년 2분기<br>운영본부 DX팀<br>구성원별 AI 피드백 리포트</h1>
+<p class="sub">구성원들이 제출한 OKR, JD/R&R, 중간 체크인 데이터를 토대로 AI 모델(Claude)이 자동 생성한 피드백 리포트입니다. 주간업무내역 및 중간 체크인/코멘트 내용이 상세할수록 더 정확하고 올바른 결과물이 산출됩니다.</p>
+</div>
+<div class="foot">© childy.co.kr. All rights reserved</div>
+</div>
+
+<!-- P2: 요약 -->
+<div class="page">
+<div class="st">전체 구성원 평가 요약</div>
+<p style="font-size:11px;color:#475569;margin-bottom:12px">평가 기간: 2026.04 ~ 2026.06 | 기준: 직무적합성(30%) + 역량(40%) + 근면성실도(30%) | 10점 만점</p>
+<table class="tbl">
+<thead><tr><th>구성원</th><th>직급</th><th>직무</th><th>직무적합성</th><th>역량</th><th>근면성실도</th><th>종합</th></tr></thead>
+<tbody>
+<tr><td>박명수</td><td>팀장</td><td>PM</td><td>8.5</td><td>8.5</td><td>8.5</td><td><b>8.5</b></td></tr>
+<tr><td>이정현</td><td>멤버</td><td>백엔드개발</td><td>8.5</td><td>8.0</td><td>8.2</td><td><b>8.2</b></td></tr>
+<tr><td>김강모</td><td>멤버</td><td>프론트개발</td><td>8.5</td><td>8.0</td><td>7.5</td><td><b>8.0</b></td></tr>
+<tr><td>김슬기</td><td>멤버</td><td>프론트개발</td><td>7.5</td><td>7.0</td><td>7.5</td><td><b>7.3</b></td></tr>
+<tr><td>이지원</td><td>멤버</td><td>콘텐츠마케팅</td><td>6.5</td><td>5.5</td><td>5.5</td><td><b>5.8</b></td></tr>
+<tr><td>배우람</td><td>멤버</td><td>마케팅</td><td>6.5</td><td>5.0</td><td>5.0</td><td><b>5.5</b></td></tr>
+</tbody>
+</table>
+<div class="ib"><p>본 리포트는 최신 진척률 데이터(2026-07-06 기준)를 기반으로 AI가 자동 생성한 참고 자료입니다. 단순 달성률이 아닌 <b>업무량(M/D)</b>, <b>성취도</b>, <b>비즈니스 임팩트</b>를 종합 반영. 최종 평가는 1:1 면담을 통해 확정됩니다.</p></div>
+</div>
+
+<!-- P3: 박명수 -->
+<div class="page">
+<div class="ph"><div><div class="pn">박명수</div><div class="pr">PM · DX팀 · 팀장</div></div><div class="sb sb-h">종합 8.5</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">8.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">8.5</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">8.5</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>전사 BI 핵심 인프라(발주/생산·앱푸시·포털) 구축 런칭</span><span class="op">74%</span></li>
+<li><span>브랜드 내 신규 전략 서비스 성공적 런칭 3건 이상</span><span class="op">77%</span></li>
+<li><span>AI 기반 디자인·콘텐츠 생성 프로세스 고도화</span><span class="op">83%</span></li>
+<li><span>고효율 린(Lean) 스쿼드 — DX 팀 목표 관리 체계 확립</span><span class="op">100%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 핵심 성과</div><ul>
+<li>발주/생산 모듈 런칭 — <b>100%</b></li>
+<li>히크릿도어 VIP몰 개발·고도화 — <b>100%</b></li>
+<li>AI 룩북 서비스 기획·런칭 — <b>100%</b></li>
+<li>AI 벡터화 기술 도입·검증 — <b>100%</b></li>
+<li>팀원 R&R + OKR 세팅 — <b>100%</b></li>
+<li>스프린트·1:1 피드백 루프 — <b>정착</b></li>
+<li>디자인 퍼널 공석 + 마케팅 커버리지 — <b>운영 공백 0건</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>4개 OKR 전체 높은 진척. 신규 서비스 2건 완료, AI 고도화 집중 실행. 6월 디자인 퍼널 공석 직접 커버리지로 팀 연속성 확보. 기획 일부 지연은 인력 공백에 대한 적절한 우선순위 판단.</p></div>
+<div class="tg"><span class="t ts">BI 발주/생산 런칭</span><span class="t ts">히크릿도어 VIP몰</span><span class="t ts">AI 룩북</span><span class="t ts">공백 커버리지</span><span class="t ti">포털 50%</span><span class="t ti">클래스 설문 30%</span></div>
+</div>
+
+<!-- P4: 이정현 -->
+<div class="page">
+<div class="ph"><div><div class="pn">이정현</div><div class="pr">백엔드개발 · DX팀 · 멤버</div></div><div class="sb sb-h">종합 8.2</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">8.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">8.0</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">8.2</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>E2E QA 자동화 도입</span><span class="op">60%</span></li>
+<li><span>FinOps — 레거시 전환 및 서버비용 최적화</span><span class="op">0%</span></li>
+<li><span>AI 에이전트 업무 대응 범위 확장</span><span class="op">50%</span></li>
+<li><span>외부 연동 수작업 자동화</span><span class="op">40%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 핵심 성과</div><ul>
+<li>Playwright E2E 셋업 + CI 연동 — <b>80%</b></li>
+<li>BI 핵심 시나리오 10개 자동화 — <b>100%</b></li>
+<li>AI 에이전트 도구 16개 확장 — <b>70%</b></li>
+<li>카페24↔세원WMS 반품 자동화 — <b>100%</b></li>
+<li>AI 자연어 데이터 조회 확대 — <b>50%</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 미착수</div><ul>
+<li>레거시 EC2→ECS 전환 — 0%</li>
+<li>PHP 크론잡→Lambda 전환 — 0%</li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>20개+ MSA, AWS, AI, 모바일을 단독 수행. QA·AI·외부연동에 전략 집중하여 실질 성과. FinOps 미착수는 우선순위 판단. 업무 난이도 대비 매우 높은 생산성.</p></div>
+<div class="tg"><span class="t ts">풀스택 단독</span><span class="t ts">AI 에이전트</span><span class="t ts">외부 연동</span><span class="t ti">FinOps 미착수</span></div>
+</div>
+
+<!-- P5: 김강모 -->
+<div class="page">
+<div class="ph"><div><div class="pn">김강모</div><div class="pr">프론트개발 · DX팀 · 멤버</div></div><div class="sb sb-h">종합 8.0</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">8.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">8.0</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">7.5</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>앱 이관 — 개발효율 50% 개선</span><span class="op">95%</span></li>
+<li><span>도메인별 서비스 고도화 — 핵심 UX</span><span class="op">50%</span></li>
+<li><span>개발 표준 정립 및 기술 자산 고도화</span><span class="op">42%</span></li>
+<li><span>물류 시딩 워크플로우 최적화</span><span class="op">44%</span></li>
+<li><span>AI 비주얼 프로덕션 시스템 구축</span><span class="op">38%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 핵심 성과</div><ul>
+<li>멀티 테넌시 구조 설계 — <b>100%</b></li>
+<li>앱-웹 브릿지 + 푸시 최적화 — <b>100%</b></li>
+<li>렌더링 최적화 — <b>85%</b></li>
+<li>가상 피팅 시스템 — <b>100%</b></li>
+<li>히크릿도어 기술 고도화 — <b>100%</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 미착수</div><ul>
+<li>클래스 후기 시스템 — 0%</li>
+<li>카페24 대기화면 UI — 0%</li>
+<li>API 명세 시스템 통합 — 0%</li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>5개 OKR 동시 추진, 핵심 항목(앱 이관·가상 피팅·히크릿도어) 전략 집중으로 높은 완성도. 물류 시딩 BI 이식 전환은 적절한 판단. 문서화·API 명세 착수가 3분기 과제.</p></div>
+<div class="tg"><span class="t ts">앱 이관 완수</span><span class="t ts">멀티 테넌시</span><span class="t ts">성능 최적화</span><span class="t ti">문서화 미완</span><span class="t ti">KR 미착수</span></div>
+</div>
+
+<!-- P6: 김슬기 -->
+<div class="page">
+<div class="ph"><div><div class="pn">김슬기</div><div class="pr">프론트개발 · DX팀 · 멤버</div></div><div class="sb sb-m">종합 7.3</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">7.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">7.0</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">7.5</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>네이티브 앱 이관</span><span class="op">100%</span></li>
+<li><span>기술·API 문서화</span><span class="op">48%</span></li>
+<li><span>물류 시딩 자동화</span><span class="op">0%</span></li>
+<li><span>인터랙션 이벤트 콘텐츠</span><span class="op">0%</span></li>
+<li><span>핵심 사용자 경험 개선</span><span class="op">50%</span></li>
+<li><span>AI 프로덕션 — 패션 콘텐츠</span><span class="op">50%</span></li>
+<li><span>리소스 공백 대응(6월)</span><span class="op">100%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 핵심 성과</div><ul>
+<li>앱 이관 정상 작동률 99% + 버그 0건 — <b>100%</b></li>
+<li>중복 개발 제거 — <b>100%</b></li>
+<li>가상피팅 베타 오픈 — <b>100%</b></li>
+<li>히크릿도어 2회차 고도화 — <b>100%</b></li>
+<li>디자인 공백: 웹디자인/UI, 콘텐츠, 썸네일 — <b>전 KR 100%</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>앱 이관 완수 + 6월 디자인 공백 커버. 7개 OKR 중 2개 미착수는 목표 과다. 3분기 목표 수 축소·완료도 향상 필요.</p></div>
+<div class="tg"><span class="t ts">앱 이관</span><span class="t ts">가상피팅</span><span class="t ts">디자인 공백 대응</span><span class="t ti">시딩 미착수</span><span class="t ti">인터랙션 미착수</span></div>
+</div>
+
+<!-- P7: 이지원 -->
+<div class="page">
+<div class="ph"><div><div class="pn">이지원</div><div class="pr">콘텐츠마케팅 · DX팀 · 멤버</div></div><div class="sb sb-l">종합 5.8</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">6.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">5.5</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">5.5</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>인스타 오가닉 도달 극대화</span><span class="op">93%</span></li>
+<li><span>데이터 기반 고효율 소재 + CRM 최적화</span><span class="op">44%</span></li>
+<li><span>인플루언서 협업 체계 고도화</span><span class="op">78%</span></li>
+<li><span>OSMU 확장 — 타 플랫폼 트래픽</span><span class="op">1%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 업무량 (M/D)</div><ul>
+<li>인스타 주 2회 = 분기 12 M/D</li>
+<li>CRM 월 4~8건 = 분기 3~6 M/D</li>
+<li>인플루언서 56명 = 분기 14~20 M/D</li>
+<li>합산 29~38 M/D → <b>가용 60 M/D의 50~63%</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 임팩트</div><ul>
+<li>오가닉 +23.3%(목표 30%) → 운영 루틴 자연 성장</li>
+<li>인플루언서 56명 + 키워드 노출 1건 → 매출 전환 미증명</li>
+<li>CRM 클릭률 50%+ 목표 3건 중 1건만</li>
+<li>ROAS 1000%+ 4건 → 기존 세그먼트 재활용</li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 미착수</div><ul>
+<li>OSMU 확장(스레드 3.69%) — 사실상 미착수</li>
+<li>AI 툴 도입 — 0%</li>
+<li>타 매체 10만회 — 0%</li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>달성률은 양호하나 투입 공수 낮고 반복 운영 비중 높음. 신규 도전 실행 극히 부족. 업무 밀도와 도전성 모두 개선 필요.</p></div>
+<div class="tg"><span class="t ts">인플루언서 56명</span><span class="t ts">ROAS 1000% 4건</span><span class="t ti">밀도 부족</span><span class="t ti">OSMU 미착수</span><span class="t ti">AI 미실행</span></div>
+</div>
+
+<!-- P8: 배우람 -->
+<div class="page">
+<div class="ph"><div><div class="pn">배우람</div><div class="pr">마케팅 · DX팀 · 멤버</div></div><div class="sb sb-l">종합 5.5</div></div>
+<div class="sg"><div class="sb2"><div class="l">직무적합성</div><div class="v">6.5</div></div><div class="sb2"><div class="l">역량</div><div class="v">5.0</div></div><div class="sb2"><div class="l">근면성실도</div><div class="v">5.0</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="ol">
+<li><span>분기별 목표 매출 달성</span><span class="op">20%</span></li>
+<li><span>유통망 다각화 및 대형 구좌 영업</span><span class="op">0%</span></li>
+<li><span>컨텐츠 제작 및 인플루언서 협업</span><span class="op">33%</span></li>
+</ul>
+<div class="eb"><div class="bt">▸ 달성</div><ul>
+<li>ROAS 330% 유지 (목표 350%)</li>
+<li>인플루언서 시딩 20명 — <b>100%</b></li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 미착수 (9개 KR 중 7개 = 0%)</div><ul>
+<li>신규 샵 컨택 20개 — 0%</li>
+<li>홀세일 계약 — 0%</li>
+<li>메인 구좌 노출 2회 — 0%</li>
+<li>무신사 스냅 50건 + LIKE 1만 — 0%</li>
+<li>완판 캐리오버 — 0%</li>
+<li>FW 콜라보 — 0%</li>
+<li>행사 후 매출 방어 — 0%</li>
+</ul></div>
+<div class="eb"><div class="bt">▸ 종합 판단</div><p>OKR 수립은 적합하나 실행력 매우 부족. 달성 항목이 반복 업무(시딩, ROAS 유지)에 국한. 영업·구좌·콜라보 등 도전적 목표 액션 전무. 업무 밀도·실행 의지 개선 시급.</p></div>
+<div class="tg"><span class="t ts">시딩 완료</span><span class="t ts">ROAS 유지</span><span class="t ti">영업 미착수</span><span class="t ti">구좌 실패</span><span class="t ti">KR 0%</span></div>
+</div>
+
+</body>
+</html>

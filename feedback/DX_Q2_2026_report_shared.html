@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>&nbsp;</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Pretendard', sans-serif; background: #e2e8f0; color: #1e293b; line-height: 1.6; font-size: 13px; }
+
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important}
+  .pdf-btn{display:none!important}
+}
+
+.page { width: 210mm; height: 297mm; margin: 16px auto; padding: 20mm; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; page-break-after: always; page-break-inside: avoid; position: relative; }
+
+.cover { padding: 30mm 24mm; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #2563EB; text-align: center; }
+.cover .logo { font-size: 22px; font-weight: 700; color: #fff; position: absolute; top: 24mm; left: 24mm; }
+.cover .title-area { margin-top: -20mm; }
+.cover h1 { color: #fff; font-size: 34px; font-weight: 700; line-height: 1.3; margin-bottom: 14px; }
+.cover .subtitle { color: rgba(255,255,255,0.82); font-size: 14px; line-height: 1.7; }
+.cover .footer { color: rgba(255,255,255,0.55); font-size: 11px; position: absolute; bottom: 24mm; left: 24mm; }
+
+.section-title { color: #2563EB; font-size: 18px; font-weight: 700; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 2px solid #2563EB; display: inline-block; }
+</style>
+</head>
+<body>
+<style>
+.person-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.person-name { font-size: 18px; font-weight: 700; }
+.person-role { font-size: 12px; color: #475569; }
+
+.okr-list { list-style: none; padding: 0; margin: 12px 0 18px; }
+.okr-list li { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+.okr-list li:last-child { border-bottom: none; }
+.okr-pct { font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f1f5f9; }
+
+.eval-block { background: #f8fafc; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.eval-block .block-title { font-size: 12px; font-weight: 700; color: #2563EB; margin-bottom: 6px; }
+.eval-block ul { padding-left: 16px; margin: 0; }
+.eval-block li { font-size: 12px; color: #334155; margin-bottom: 3px; }
+.eval-block p { font-size: 12px; color: #334155; margin: 0; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag { padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 500; }
+.tag-s { background: #dbeafe; color: #1e40af; }
+.tag-i { background: #fef3c7; color: #92400e; }
+
+.info-box { background: #f1f5f9; border-radius: 8px; padding: 14px; margin-top: 20px; }
+.info-box p { font-size: 11px; color: #475569; line-height: 1.7; }
+</style>
+
+<style>
+.pdf-btn { position: fixed; top: 20px; right: 20px; background: #2563EB; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Pretendard', sans-serif; box-shadow: 0 2px 8px rgba(37,99,235,0.3); z-index: 9999; }
+.pdf-btn:hover { background: #1e40af; }
+@media print { .pdf-btn { display: none; } }
+</style>
+<button class="pdf-btn" onclick="document.title=' ';alert('인쇄 설정에서:\n1. 여백: 없음\n2. 배경 그래픽: 체크 ✓\n3. 머리글 및 바닥글: 해제');window.print()">📄 PDF 내려받기</button>
+<div class="page cover">
+<div class="logo">Childy</div>
+<div class="title-area">
+<h1>2026년 2분기<br>운영본부 DX팀<br>구성원별 AI 피드백 리포트</h1>
+<p class="subtitle">구성원들이 제출한 OKR, JD/R&R, 중간 체크인 데이터를 토대로 AI 모델(Claude)이 자동 생성한 피드백 리포트입니다. 주간업무내역 및 중간 체크인/코멘트 내용이 상세할수록 더 정확하고 올바른 결과물이 산출됩니다.</p>
+</div>
+<div class="footer">© childy.co.kr. All rights reserved | 구성원 공유용</div>
+</div>
+
+<!-- PAGE 2: 박명수 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">박명수</div><div class="person-role">PM · DX팀 · 팀장</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>전사 BI 핵심 인프라(발주/생산·앱푸시·포털) 구축 런칭</span><span class="okr-pct">74%</span></li>
+<li><span>브랜드 내 신규 전략 서비스 성공적 런칭 3건 이상</span><span class="okr-pct">77%</span></li>
+<li><span>AI 기반 디자인·콘텐츠 생성 프로세스 고도화</span><span class="okr-pct">83%</span></li>
+<li><span>고효율 린(Lean) 스쿼드 — DX 팀 목표 관리 체계 확립</span><span class="okr-pct">100%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 핵심 성과</div>
+<ul>
+<li>발주/생산 모듈 기획·개발 및 런칭 — <strong>100%</strong></li>
+<li>히크릿도어 VIP몰 신규 서비스 개발 및 고도화 — <strong>100%</strong></li>
+<li>AI 룩북 서비스 기획 및 런칭 — <strong>100%</strong></li>
+<li>AI 벡터화(Vectorization) 기술 도입 및 검증 — <strong>100%</strong></li>
+<li>팀원 R&R 정의 + 개인별 OKR 세팅 — <strong>100%</strong></li>
+<li>스프린트 체계 및 1:1 피드백 루프 — <strong>정착 완료</strong></li>
+<li>디자인 퍼널 공석 + 퍼포먼스 마케팅 직접 커버리지 — <strong>6월 운영 공백 0건</strong></li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>임직원 포털·전사 게시판·EDMS 완료 (현재 50%)</li>
+<li>올데이히로 클래스 설문/상품평 완료 (현재 30%)</li>
+<li>AI 솔루션 전사 온보딩 마무리 (현재 69%)</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>4개 OKR 전체에서 높은 진척을 보였으며, 분기 후반 집중 실행력이 돋보인다. 6월 디자인 퍼널 공석 상황에서 직접 커버리지하여 팀 운영 연속성을 확보한 리더십이 인상적이다. 3분기에는 진행 중 항목의 완료에 집중하면 좋겠다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">BI 발주/생산 런칭</span>
+<span class="tag tag-s">히크릿도어 VIP몰</span>
+<span class="tag tag-s">AI 룩북 런칭</span>
+<span class="tag tag-s">디자인/마케팅 공백 커버리지</span>
+<span class="tag tag-i">포털/EDMS 완료 필요</span>
+<span class="tag tag-i">클래스 설문 완료 필요</span>
+</div>
+</div>
+
+<!-- PAGE 3: 이정현 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">이정현</div><div class="person-role">백엔드개발 · DX팀 · 멤버</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>E2E QA 자동화 도입</span><span class="okr-pct">60%</span></li>
+<li><span>FinOps 실천 — 레거시 전환 및 서버비용 최적화</span><span class="okr-pct">0%</span></li>
+<li><span>AI 에이전트 업무 대응 범위 확장</span><span class="okr-pct">50%</span></li>
+<li><span>외부 연동 수작업 자동화</span><span class="okr-pct">40%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 핵심 성과</div>
+<ul>
+<li>Playwright E2E 프레임워크 셋업 및 CI 연동 — <strong>80%</strong></li>
+<li>BI 핵심 시나리오 10개 자동화 — <strong>100%</strong></li>
+<li>AI 에이전트 업무 도구 16개 확장 — <strong>70%</strong></li>
+<li>카페24 ↔ 세원WMS 반품 자동화 — <strong>100%</strong></li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>FinOps: 레거시 EC2 → ECS/서버리스 전환</li>
+<li>FinOps: PHP 크론잡 → Lambda 전환</li>
+<li>E2E 테스트 올데이히로/Parc de GLGK 확대 적용</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>QA 자동화, AI 에이전트, 외부 연동 등 핵심 과제에 전략적으로 집중하여 실질적 성과를 도출했다. 단독으로 광범위한 기술 스택을 커버하는 높은 생산성을 보였으며, 3분기에는 FinOps 영역 착수를 통해 인프라 비용 최적화에도 기여하길 기대한다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">풀스택 단독 수행력</span>
+<span class="tag tag-s">AI 에이전트 확장</span>
+<span class="tag tag-s">외부 연동 자동화</span>
+<span class="tag tag-i">FinOps 3분기 착수 필요</span>
+</div>
+</div>
+
+<!-- PAGE 4: 김강모 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">김강모</div><div class="person-role">프론트개발 · DX팀 · 멤버</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>앱 이관 — 개발효율 50% 개선, 기술 전환 및 안정성</span><span class="okr-pct">95%</span></li>
+<li><span>도메인별 서비스 고도화 — 핵심 UX 개선</span><span class="okr-pct">50%</span></li>
+<li><span>개발 표준 정립 및 기술 자산 고도화</span><span class="okr-pct">42%</span></li>
+<li><span>물류 시딩 워크플로우 시스템 최적화</span><span class="okr-pct">44%</span></li>
+<li><span>AI 비주얼 프로덕션 시스템 구축</span><span class="okr-pct">38%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 핵심 성과</div>
+<ul>
+<li>멀티 테넌시 구조 설계 완수 — <strong>100%</strong></li>
+<li>앱-웹 브릿지 고도화 및 푸시 최적화 — <strong>100%</strong></li>
+<li>렌더링 최적화 체감 속도 개선 — <strong>85%</strong></li>
+<li>가상 피팅 시스템 구축 — <strong>100%</strong></li>
+<li>히크릿도어 기술 고도화 — <strong>100%</strong></li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>클래스 후기 시스템 구축</li>
+<li>카페24 대기화면 UI 고도화</li>
+<li>프론트-백엔드 API 명세 시스템 통합</li>
+<li>기술 문서 체계화 완료</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>앱 이관을 높은 완성도로 마무리하고, 가상 피팅·히크릿도어 등 주요 서비스에서도 성과를 보였다. 물류 시딩 BI 이식 전환은 적절한 판단. 3분기에는 문서화 및 기반 작업에 착수하여 팀 확장성을 확보하길 기대한다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">앱 이관 완수</span>
+<span class="tag tag-s">멀티 테넌시 설계</span>
+<span class="tag tag-s">성능 최적화</span>
+<span class="tag tag-i">문서화·API 명세 착수 필요</span>
+</div>
+</div>
+
+<!-- PAGE 5: 김슬기 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">김슬기</div><div class="person-role">프론트개발 · DX팀 · 멤버</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>네이티브 앱 이관 — 모바일 UX 도약 및 생산성 극대화</span><span class="okr-pct">100%</span></li>
+<li><span>기술·API 문서화 — 기술 부채 해소</span><span class="okr-pct">48%</span></li>
+<li><span>마케팅 물류 시딩 자동화</span><span class="okr-pct">0%</span></li>
+<li><span>프론트 인터랙션 몰입형 이벤트 콘텐츠 개발</span><span class="okr-pct">0%</span></li>
+<li><span>핵심 사용자 경험 개선</span><span class="okr-pct">50%</span></li>
+<li><span>AI 프로덕션 도입 — 패션 콘텐츠 제작 혁신</span><span class="okr-pct">50%</span></li>
+<li><span>리소스 공백 대응 및 제작 업무 지원(6월)</span><span class="okr-pct">100%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 핵심 성과</div>
+<ul>
+<li>앱 이관 주요 기능 정상 작동률 99% + 버그 0건 — <strong>100%</strong></li>
+<li>중복 개발 제거 완료 — <strong>100%</strong></li>
+<li>가상피팅 시스템 베타 오픈 — <strong>100%</strong></li>
+<li>히크릿도어 인터랙션 이벤트 2회차 고도화 — <strong>100%</strong></li>
+<li>디자인 리소스 공백: 웹디자인/UI, ODP·UO 콘텐츠, 코스트코 썸네일 — <strong>전 KR 100%</strong></li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>마케팅 물류 시딩 자동화 착수</li>
+<li>프론트 인터랙션 이벤트 콘텐츠 개발 착수</li>
+<li>기술 문서화 완료율 80% 달성</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>앱 이관을 성공적으로 마무리한 핵심 기여자이며, 6월 디자인 퍼널 공석에서 웹디자인·콘텐츠·썸네일까지 추가 커버한 점이 인상적이다. 다만 7개 OKR 중 2개 미착수로 목표 수립 시 리소스 배분 조정이 필요하다. 3분기에는 목표 수를 줄이고 완료도를 높이는 방향을 권장한다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">앱 이관 완수</span>
+<span class="tag tag-s">가상피팅 오픈</span>
+<span class="tag tag-s">디자인 공백 대응</span>
+<span class="tag tag-i">미착수 OKR 착수 필요</span>
+<span class="tag tag-i">목표 수 조정 권장</span>
+</div>
+</div>
+
+<!-- PAGE 6: 이지원 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">이지원</div><div class="person-role">콘텐츠마케팅 · DX팀 · 멤버</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>인스타 채널 오가닉 도달 극대화</span><span class="okr-pct">93%</span></li>
+<li><span>데이터 기반 고효율 소재 발굴 및 CRM 최적화</span><span class="okr-pct">44%</span></li>
+<li><span>인플루언서 협업 체계 고도화 및 브랜드 팬덤 구축</span><span class="okr-pct">78%</span></li>
+<li><span>인스타그램 콘텐츠 기반 OSMU 확장</span><span class="okr-pct">1%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 핵심 성과</div>
+<ul>
+<li>비팔로워 도달 80% 이상 콘텐츠 월 3건 — <strong>100%</strong></li>
+<li>팔로워 참여형 이벤트 신규 팔로워 30명 유입 — <strong>100%</strong></li>
+<li>인플루언서 56명 협업 + 키워드 상단 노출 1건</li>
+<li>ROAS 1000% 이상 캠페인 4건 달성</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>OSMU 확장 — 스레드/유튜브 등 타 플랫폼 실질 실행</li>
+<li>AI 툴 도입을 통한 소재 제작 효율화 착수</li>
+<li>CRM 클릭률 50% 이상 소재 발굴 강화</li>
+<li>업무 밀도 향상 — 반복 운영 외 도전적 업무 비중 확대</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>인스타 오가닉 도달과 인플루언서 협업에서 안정적 성과를 보였다. 다만 OSMU 확장, AI 툴 도입 등 신규 도전 과제의 실행이 부족했으며, 반복 운영 외 비즈니스 임팩트를 증명할 도전적 업무 비중을 높여야 한다. 업무 투입량 대비 가용 시간 활용도 개선이 핵심 과제이다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">인플루언서 56명 협업</span>
+<span class="tag tag-s">ROAS 1000% 4건</span>
+<span class="tag tag-i">OSMU 실행 필요</span>
+<span class="tag tag-i">AI 툴 도입 필요</span>
+<span class="tag tag-i">업무 밀도 향상 필요</span>
+</div>
+</div>
+
+<!-- PAGE 7: 배우람 -->
+<div class="page">
+
+<div class="person-header">
+<div><div class="person-name">배우람</div><div class="person-role">마케팅 · DX팀 · 멤버</div></div>
+</div>
+
+<div class="section-title">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>분기별 목표 매출 달성</span><span class="okr-pct">20%</span></li>
+<li><span>유통망 다각화 및 대형 구좌 영업</span><span class="okr-pct">0%</span></li>
+<li><span>컨텐츠 제작 및 인플루언서 협업 극대화</span><span class="okr-pct">33%</span></li>
+</ul>
+
+<div class="eval-block">
+<div class="block-title">▸ 달성 항목</div>
+<ul>
+<li>ROAS 평균 330% 유지</li>
+<li>인플루언서 시딩 20명 완료 — <strong>100%</strong></li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 3분기 집중 필요 항목</div>
+<ul>
+<li>신규 샵 컨택 및 홀세일 거래 실행</li>
+<li>주요 플랫폼 메인 구좌 노출 확보</li>
+<li>무신사 스냅 업로드 및 브랜드 LIKE 확보</li>
+<li>FW 콜라보 계약 체결</li>
+<li>완판 캐리오버 아이템 발굴</li>
+</ul>
+</div>
+
+<div class="eval-block">
+<div class="block-title">▸ 종합 피드백</div>
+<p>ROAS 유지와 인플루언서 시딩에서 기본 운영 업무를 수행했으나, 유통망 영업·대형 구좌·콜라보 등 도전적 목표의 실행이 부족했다. 3분기에는 수립한 목표에 대한 구체적 실행 계획을 세우고, 주 단위 진척 관리가 필요하다. 영업 및 외부 협업 업무에 적극적 액션이 가장 중요한 개선 사항이다.</p>
+</div>
+
+<div class="tags">
+<span class="tag tag-s">인플루언서 시딩 완료</span>
+<span class="tag tag-s">ROAS 유지</span>
+<span class="tag tag-i">영업 실행력 강화 시급</span>
+<span class="tag tag-i">도전적 목표 액션 필요</span>
+</div>
+</div>
+
+<!-- 마지막: 안내 -->
+<div class="page" style="height: auto; min-height: 0; overflow: visible; page-break-after: avoid;">
+<div class="info-box">
+<p>본 리포트는 2026-07-06 기준 OKR 진척률 데이터를 기반으로 작성된 분기 피드백입니다.<br>
+각 구성원의 <strong>핵심 성과</strong>와 <strong>3분기 집중 필요 항목</strong>을 참고하여 개인별 목표 수립에 활용해주세요.<br>
+상세 면담은 팀장과 1:1로 진행됩니다.</p>
+</div>
+</div>
+
+</body>
+</html>

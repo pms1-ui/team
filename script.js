@@ -3297,27 +3297,44 @@ function renderFeedback(container) {
     // 팀 접근 권한
     const myMemberInfo = STATE.members.find(m => m.user_id === STATE.user.id);
     const myPosition = myMemberInfo?.position || STATE.user.position || '';
-    const isTeamLeader = myPosition === '팀장';
+    const myDivision = myMemberInfo?.division || STATE.user.division || '';
     const myTeam = myMemberInfo?.team || STATE.user.team || '';
+    const isCEO = myPosition === '대표' || myPosition === 'CCO';
+    const isDivisionHead = myPosition === '본부장';
+    const isTeamLeader = myPosition === '팀장';
     const selectedTeam = STATE.feedbackTeamFilter || 'all';
-    const effectiveTeam = isTeamLeader ? myTeam : selectedTeam;
-    const selectedDivision = STATE.feedbackDivisionFilter || 'all';
+    const selectedDivision = STATE.feedbackDivisionFilter || myDivision;
 
-    // 본부/팀 드롭다운 (팀장은 본인 팀 고정)
+    // 본부 고정 로직: 대표는 전체 선택 가능, 본부장/팀장은 소속 본부 고정
+    const effectiveDivision = isCEO ? selectedDivision : myDivision;
+    const effectiveTeam = selectedTeam;
+
+    // 본부/팀 드롭다운
     let divisionOptionsHtml = '';
     let teamOptionsHtml = '';
-    if (!isTeamLeader) {
+    if (isCEO) {
+        // 대표: 전체 본부 선택 가능
         divisionOptionsHtml = `<option value="all" ${selectedDivision === 'all' ? 'selected' : ''}>전체 본부</option>` +
             STATE.divisions.map(d => `<option value="${d.name}" ${selectedDivision === d.name ? 'selected' : ''}>${d.name}</option>`).join('');
         const filteredTeamsForFeedback = selectedDivision === 'all' ? STATE.teams : STATE.teams.filter(t => t.division === selectedDivision);
         teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
             filteredTeamsForFeedback.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+    } else {
+        // 본부장/팀장: 소속 본부 고정, 본부 내 팀 선택 가능
+        divisionOptionsHtml = `<option value="${myDivision}" selected>${myDivision}</option>`;
+        const myDivisionTeams = STATE.teams.filter(t => t.division === myDivision);
+        teamOptionsHtml = `<option value="all" ${effectiveTeam === 'all' ? 'selected' : ''}>전체 팀</option>` +
+            myDivisionTeams.map(t => `<option value="${t.name}" ${effectiveTeam === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
     }
 
-    // 구성원 표시 (전체 팀이면 전부, 특정 팀이면 해당 팀만)
-    const filteredMembers = (effectiveTeam === 'all'
-        ? STATE.members.filter(m => !m.is_hidden && m.user_id !== STATE.user.id)
-        : STATE.members.filter(m => m.team === effectiveTeam && !m.is_hidden && m.user_id !== STATE.user.id));
+    // 구성원 표시 (본부+팀 필터 적용)
+    let filteredMembers = STATE.members.filter(m => !m.is_hidden && m.user_id !== STATE.user.id);
+    if (effectiveDivision !== 'all') {
+        filteredMembers = filteredMembers.filter(m => m.division === effectiveDivision);
+    }
+    if (effectiveTeam !== 'all') {
+        filteredMembers = filteredMembers.filter(m => m.team === effectiveTeam);
+    }
     const memberOptions = [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(m =>
         `<option value="${m.user_id}" ${selectedMemberId === m.user_id ? 'selected' : ''}>${m.name} (${m.position})</option>`
     ).join('');
@@ -3458,17 +3475,18 @@ function renderFeedback(container) {
                     <select onchange="STATE.feedbackPeriod = this.value; STATE.feedbackSelectedMember=''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         ${periodOptions.map(p => `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`).join('')}
                     </select>
-                    ${!isTeamLeader
-                        ? `<select onchange="setFeedbackDivisionFilter(this.value);" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${divisionOptionsHtml}</select>
+                    ${!isCEO
+                        ? `<select onchange="setFeedbackDivisionFilter(this.value);" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm" ${!isCEO ? 'disabled' : ''}>${divisionOptionsHtml}</select>
                            <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
-                        : `<span class="text-[14px] font-bold text-on-surface-variant bg-surface-container px-3 py-2.5 rounded-lg">${myTeam}</span>`
+                        : `<select onchange="setFeedbackDivisionFilter(this.value);" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${divisionOptionsHtml}</select>
+                           <select onchange="STATE.feedbackTeamFilter = this.value; STATE.feedbackSelectedMember = ''; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">${teamOptionsHtml}</select>`
                     }
                     <select onchange="STATE.feedbackSelectedMember = this.value; renderCurrentView();" class="w-full lg:w-auto bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">
                         <option value="">구성원 선택</option>
                         ${memberOptions}
                     </select>
                 </div>
-                ${selectedMemberId && memberGoals.length > 0 ? `
+                ${selectedMemberId && memberGoals.length > 0 && !isCEO ? `
                     <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mt-3 lg:mt-0">
                         ${hasUnreviewedGoals ? `
                             <div class="flex items-center gap-2">

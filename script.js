@@ -3554,7 +3554,23 @@ function renderFeedbackDashboard(container) {
     const allMembers = [...STATE.members].filter(m => !m.is_hidden).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     let sortedMembers = selectedDashDivision !== "all" ? allMembers.filter(m => m.division === selectedDashDivision) : allMembers;
     if (selectedDashTeam !== "all") sortedMembers = sortedMembers.filter(m => m.team === selectedDashTeam);
-    
+
+    // 피드백/그레이드 공개 범위 권한 판단
+    const dashMyInfo = STATE.members.find(mem => mem.user_id === STATE.user.id);
+    const dashMyPosition = dashMyInfo?.position || '';
+    const dashMyDivision = dashMyInfo?.division || '';
+    const dashMyTeam = dashMyInfo?.team || '';
+    const dashIsCEO = dashMyPosition === '대표' || dashMyPosition === 'CCO';
+    const dashIsDivHead = dashMyPosition === '본부장';
+    const dashIsTeamLeader = dashMyPosition === '팀장';
+
+    function canViewFeedback(memberObj) {
+        if (dashIsCEO) return true;
+        if (dashIsDivHead) return memberObj.division === dashMyDivision;
+        if (dashIsTeamLeader) return memberObj.team === dashMyTeam;
+        return false;
+    }
+
     let rowsHtml = sortedMembers.map((m, i) => {
         const memberAssessments = assessments.filter(a => a.target_id === m.user_id && a.period_value === selectedPeriod);
         
@@ -3589,11 +3605,17 @@ function renderFeedbackDashboard(container) {
         if (teamLeaderAssessments.length > 0) window._feedbackModalCache[tlCacheKey] = teamLeaderAssessments;
         if (directorAssessments.length > 0) window._feedbackModalCache[dirCacheKey] = directorAssessments;
 
+        const canView = canViewFeedback(m);
+
         const tlFeedbackHtml = teamLeaderAssessments.length > 0 
-            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            ? (canView 
+                ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+                : `<span class="text-[12px] font-bold text-white bg-gray-700 px-3 py-1 rounded-full">피드백 완료</span>`)
             : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
         const dirFeedbackHtml = directorAssessments.length > 0 
-            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+            ? (canView 
+                ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
+                : `<span class="text-[12px] font-bold text-white bg-gray-700 px-3 py-1 rounded-full">피드백 완료</span>`)
             : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
 
         return `
@@ -3612,13 +3634,13 @@ function renderFeedbackDashboard(container) {
                     ${tlFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    ${tlScoreText ? `<span class="text-[12px] font-black ${getGradeColor(tlScoreText)} px-2.5 py-1 rounded-lg">${tlScoreText}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
+                    ${tlScoreText ? (canView ? `<span class="text-[12px] font-black ${getGradeColor(tlScoreText)} px-2.5 py-1 rounded-lg">${tlScoreText}</span>` : `<span class="text-[12px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">비공개</span>`) : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
                 <td class="py-4 px-4 text-center">
                     ${dirFeedbackHtml}
                 </td>
                 <td class="py-4 px-4 text-center">
-                    ${dirScoreText ? `<span class="text-[12px] font-black ${getGradeColor(dirScoreText)} px-2.5 py-1 rounded-lg">${dirScoreText}</span>` : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
+                    ${dirScoreText ? (canView ? `<span class="text-[12px] font-black ${getGradeColor(dirScoreText)} px-2.5 py-1 rounded-lg">${dirScoreText}</span>` : `<span class="text-[12px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">비공개</span>`) : `<span class="text-[14px] font-bold text-on-surface-variant">-</span>`}
                 </td>
             </tr>
         `;
@@ -3641,6 +3663,7 @@ function renderFeedbackDashboard(container) {
         const dirCacheKey = `dash_dir_${m.user_id}_${i}`;
         if (teamLeaderAssessments.length > 0) window._feedbackModalCache[tlCacheKey] = teamLeaderAssessments;
         if (directorAssessments.length > 0) window._feedbackModalCache[dirCacheKey] = directorAssessments;
+        const canViewM = canViewFeedback(m);
         function getGradeColorM(g) { if(g==='Excellent') return 'text-blue-600 bg-blue-100'; if(g==='Very good') return 'text-green-600 bg-green-100'; if(g==='Good') return 'text-yellow-600 bg-yellow-100'; if(g==='Fair') return 'text-purple-600 bg-purple-100'; if(g==='Poor') return 'text-red-600 bg-red-100'; return 'text-on-surface-variant bg-surface-container'; }
 
         return `
@@ -3656,22 +3679,22 @@ function renderFeedbackDashboard(container) {
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">팀장 피드백</p>
                         ${teamLeaderAssessments.length > 0 
-                            ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            ? (canViewM ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>` : `<span class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 완료</span>`)
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">B Level</p>
-                        ${tlGrade ? `<span class="text-[11px] font-black ${getGradeColorM(tlGrade)} px-2 py-0.5 rounded">${tlGrade}</span>` : `<span class="text-[11px] text-on-surface-variant">-</span>`}
+                        ${tlGrade ? (canViewM ? `<span class="text-[11px] font-black ${getGradeColorM(tlGrade)} px-2 py-0.5 rounded">${tlGrade}</span>` : `<span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">비공개</span>`) : `<span class="text-[11px] text-on-surface-variant">-</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">본부장 피드백</p>
                         ${directorAssessments.length > 0 
-                            ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>`
+                            ? (canViewM ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>` : `<span class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 완료</span>`)
                             : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">C Level</p>
-                        ${dirGrade ? `<span class="text-[11px] font-black ${getGradeColorM(dirGrade)} px-2 py-0.5 rounded">${dirGrade}</span>` : `<span class="text-[11px] text-on-surface-variant">-</span>`}
+                        ${dirGrade ? (canViewM ? `<span class="text-[11px] font-black ${getGradeColorM(dirGrade)} px-2 py-0.5 rounded">${dirGrade}</span>` : `<span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">비공개</span>`) : `<span class="text-[11px] text-on-surface-variant">-</span>`}
                     </div>
                 </div>
             </div>

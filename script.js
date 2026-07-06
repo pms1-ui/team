@@ -3168,9 +3168,17 @@ function renderMyReceivedFeedback(container) {
     const hasBLevel = bLevelFeedbacks.length > 0;
     const hasCLevel = cLevelFeedbacks.length > 0;
 
-    // 피드백 열람 가능 여부: period_settings의 feedback_visible 기준
+    // 피드백 열람 가능 여부: feedback_visible AND 현재 시각이 시작일~종료일 사이
     const periodSetting = (STATE.periodSettings || []).find(p => p.period_value === selectedPeriod);
-    const isFeedbackVisible = periodSetting ? periodSetting.feedback_visible : false;
+    let isFeedbackVisible = false;
+    if (periodSetting && periodSetting.feedback_visible) {
+        const now = new Date();
+        const openDate = periodSetting.feedback_open_date ? new Date(periodSetting.feedback_open_date) : null;
+        const closeDate = periodSetting.feedback_cloase_date ? new Date(periodSetting.feedback_cloase_date) : null;
+        const afterOpen = !openDate || now >= openDate;
+        const beforeClose = !closeDate || now <= closeDate;
+        isFeedbackVisible = afterOpen && beforeClose;
+    }
     const feedbackUnlocked = isFeedbackVisible || STATE._feedbackPreviewUnlocked;
 
     // OKR 목록 (해당 기간)
@@ -4943,8 +4951,8 @@ function renderAdminSettings(container) {
 
     function renderFeedbackRow(p) {
         const visibleChecked = p.feedback_visible ? 'checked' : '';
-        const openDate = p.feedback_open_date ? p.feedback_open_date.split('T')[0] : '';
-        const closeDate = p.feedback_cloase_date ? p.feedback_cloase_date.split('T')[0] : '';
+        const openDate = p.feedback_open_date ? p.feedback_open_date.slice(0, 16) : '';
+        const closeDate = p.feedback_cloase_date ? p.feedback_cloase_date.slice(0, 16) : '';
         const statusText = p.feedback_visible ? '열람 가능' : '비공개';
         const statusColor = p.feedback_visible ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container';
         return `
@@ -4961,12 +4969,12 @@ function renderAdminSettings(container) {
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                        <span class="text-[12px] text-on-surface-variant">시작일</span>
-                        <input type="date" value="${openDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_open_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
+                        <span class="text-[12px] text-on-surface-variant">시작</span>
+                        <input type="datetime-local" value="${openDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_open_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[12px] text-on-surface-variant">종료일</span>
-                        <input type="date" value="${closeDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_cloase_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
+                        <span class="text-[12px] text-on-surface-variant">종료</span>
+                        <input type="datetime-local" value="${closeDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_cloase_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
                     </div>
                 </div>
             </div>
@@ -5025,13 +5033,13 @@ window.toggleFeedbackVisible = async function(id, value) {
 window.updateFeedbackDate = async function(id, field, value) {
     try {
         const updateData = {};
-        updateData[field] = value ? value + 'T00:00:00Z' : null;
+        updateData[field] = value ? new Date(value).toISOString() : null;
         await baserowFetch('/database/rows/table/2132/' + id + '/?user_field_names=true', {
             method: 'PATCH',
             body: JSON.stringify(updateData)
         });
         const ps = STATE.periodSettings.find(p => p.id === id);
-        if (ps) ps[field] = value ? value + 'T00:00:00Z' : null;
+        if (ps) ps[field] = value ? new Date(value).toISOString() : null;
     } catch (e) {
         console.error('Error updating feedback date:', e);
         alert('날짜 설정 변경 중 오류가 발생했습니다.');

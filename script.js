@@ -3136,14 +3136,20 @@ function renderMyReceivedFeedback(container) {
     ];
     const allPeriods = [...quarterlyOptions, ...yearlyOptions];
 
-    if (!STATE.feedbackPeriod || !allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
+    // 현재 분기를 기본값으로 (이 화면 첫 진입 시)
+    if (!STATE._myFeedbackPeriodInit) {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentQuarter = Math.ceil((now.getMonth() + 1) / 3);
-        STATE.feedbackPeriod = `${currentYear}-Q${currentQuarter}`;
-        if (!allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
-            STATE.feedbackPeriod = '2026-Q2';
+        let defaultPeriod = `${currentYear}-Q${currentQuarter}`;
+        if (!allPeriods.find(p => p.value === defaultPeriod)) {
+            defaultPeriod = quarterlyOptions[0].value;
         }
+        STATE.feedbackPeriod = defaultPeriod;
+        STATE._myFeedbackPeriodInit = true;
+    }
+    if (!STATE.feedbackPeriod || !allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
+        STATE.feedbackPeriod = quarterlyOptions[0].value;
     }
     const selectedPeriod = STATE.feedbackPeriod;
 

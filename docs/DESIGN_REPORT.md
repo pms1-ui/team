@@ -72,48 +72,56 @@
 
 ### 4-1. 표지 (1페이지)
 
-```
-┌─────────────────────────────────┐
-│  [전체 파란 배경 #2563EB]         │
-│                                 │
-│  ┌ Childy (로고, 좌상단)         │
-│  │                              │
-│  │                              │
-│  │  2026년 2분기                 │
-│  │  운영본부 DX팀                │
-│  │  구성원별 AI 피드백 리포트      │
-│  │                              │
-│  │  (서브) 제출된 OKR, JD/R&R,   │
-│  │  중간 체크인 데이터 기반        │
-│  │                              │
-│  │                              │
-│  │                              │
-│  └ © childy.co.kr (좌하단)       │
-│                                 │
-└─────────────────────────────────┘
+`260706_DX_2026_Q2_report_ai.html`의 표지 구조를 표준으로 사용한다.
+
+```html
+<div class="page cover">
+  <div class="cover-inner">  <!-- padding: 28mm, flex-start -->
+    <div class="logo">Childy</div>  <!-- 좌상단, mb: 40mm -->
+    <h1>제목 (32px bold white)</h1>
+    <p class="sub">설명문 (13px, white 80%)</p>
+  </div>
+  <div class="foot">© childy.co.kr</div>  <!-- 좌하단, mt: auto -->
+</div>
 ```
 
 - 배경: `#2563EB` 전면
-- 로고: 좌상단, 흰색 버전 (Childy 로고)
-- 제목: 흰색, Pretendard Bold 36px
-- 서브타이틀: 흰색 80% opacity, 16px Regular
-- 하단: `© childy.co.kr. All rights reserved` 좌하단, 흰색 60% opacity, 11px
+- 제목은 상단 1/3 지점에 위치 (가운데 아님, 위쪽 배치)
+- 로고 → 여백 40mm → 제목 → 설명 → (하단 자동) 카피라이트
 
-### 4-2. 요약 페이지 (2페이지)
+### 4-2. 본문 페이지
 
-- 상단: 평가 기간, 생성일, 평가 기준 안내
-- 전체 구성원 점수 비교 테이블
-- 직급순 정렬 (팀장 → 멤버)
+`260706_DX_2026_Q2_report_ai_shared.html`의 본문 스타일을 표준으로 사용한다.
 
-### 4-3. 개인별 평가 카드 (3페이지~)
+```css
+/* 구성원 헤더 */
+.person-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.person-name { font-size: 18px; font-weight: 700; }
+.person-role { font-size: 12px; color: #475569; }
 
-- 구성원당 1페이지 (내용 많으면 2페이지까지 허용)
-- 구성 순서:
-  1. 헤더 (이름, 직급, 직무, 종합점수 뱃지)
-  2. 3축 점수 (직무적합성 / 역량 / 근면성실도)
-  3. OKR 달성 현황 리스트
-  4. 서술 평가 (핵심 성과 / 미착수·지연 / 종합 판단)
-  5. 강점·개선 태그
+/* OKR 리스트 */
+.okr-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+
+/* 평가 블록 */
+.eval-block { background: #f8fafc; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.eval-block .block-title { font-size: 12px; font-weight: 700; color: #2563EB; }
+.eval-block li { font-size: 12px; color: #334155; }
+.eval-block p { font-size: 12px; color: #334155; }
+
+/* 태그 */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag { padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 500; }
+```
+
+### 4-3. 통합 기준 요약
+
+| 요소 | 참조 파일 |
+|------|-----------|
+| 표지 구조 | `report_ai.html` (cover-inner, flex-start, 로고 위 배치) |
+| 본문 스타일 | `report_ai_shared.html` (person-header, eval-block, okr-list, tags) |
+| 인쇄 CSS | 공통 (`@page size: 210mm 297mm; margin: 0`, `color-adjust: exact`) |
+
+앞으로 리포트 생성 시 이 두 파일의 조합을 표준 템플릿으로 사용한다.
 
 ---
 

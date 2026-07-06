@@ -4958,8 +4958,8 @@ function renderAdminSettings(container) {
         return `
             <div class="bg-white rounded-xl border border-blue-50 shadow-sm px-5 py-4 mb-3">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-4">
-                        <span class="text-[14px] font-bold text-on-surface min-w-[120px]">${p.label}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[14px] font-bold text-on-surface">${p.label}</span>
                         <span class="text-[12px] font-bold ${statusColor} px-2.5 py-1 rounded-full">${statusText}</span>
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer">

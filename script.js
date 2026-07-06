@@ -3637,6 +3637,10 @@ function renderFeedbackDashboard(container) {
         });
         const tlGrade = teamLeaderAssessments.length > 0 ? (teamLeaderAssessments[0].score || null) : null;
         const dirGrade = directorAssessments.length > 0 ? (directorAssessments[0].score || null) : null;
+        const tlCacheKey = `dash_tl_${m.user_id}_${i}`;
+        const dirCacheKey = `dash_dir_${m.user_id}_${i}`;
+        if (teamLeaderAssessments.length > 0) window._feedbackModalCache[tlCacheKey] = teamLeaderAssessments;
+        if (directorAssessments.length > 0) window._feedbackModalCache[dirCacheKey] = directorAssessments;
         function getGradeColorM(g) { if(g==='Excellent') return 'text-blue-600 bg-blue-100'; if(g==='Very good') return 'text-green-600 bg-green-100'; if(g==='Good') return 'text-yellow-600 bg-yellow-100'; if(g==='Fair') return 'text-purple-600 bg-purple-100'; if(g==='Poor') return 'text-red-600 bg-red-100'; return 'text-on-surface-variant bg-surface-container'; }
 
         return `

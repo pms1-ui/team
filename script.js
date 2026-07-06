@@ -3260,6 +3260,22 @@ function renderMyReceivedFeedback(container) {
             h += '</div>';
             h += '</div>';
 
+            // Key Results 리스트
+            if (g.keyResults.length > 0) {
+                h += '<div class="mb-4 pl-1">';
+                g.keyResults.forEach((kr, ki) => {
+                    const krColor = kr.progress === 100 ? 'bg-green-500' : kr.progress >= 50 ? 'bg-primary' : 'bg-gray-300';
+                    h += `<div class="flex items-center gap-3 bg-surface-container rounded-lg px-4 py-2.5 mb-2">`;
+                    h += `<span class="text-[10px] font-black text-on-surface-variant bg-white rounded px-1.5 py-0.5 border border-blue-100 flex-shrink-0">KR${ki+1}</span>`;
+                    h += `<p class="text-[12px] text-on-surface flex-1 leading-relaxed">${kr.text}</p>`;
+                    h += `<div class="flex items-center gap-2 flex-shrink-0">`;
+                    h += `<div class="w-16 h-1.5 bg-blue-100 rounded-full overflow-hidden"><div class="h-full ${krColor} rounded-full" style="width:${kr.progress}%"></div></div>`;
+                    h += `<span class="text-[11px] font-black text-primary w-8 text-right">${kr.progress}%</span>`;
+                    h += `</div></div>`;
+                });
+                h += '</div>';
+            }
+
             // 피드백 목록
             goalFeedbacks.forEach(fb => {
                 const reviewer = STATE.members.find(m => m.user_id === fb.reviewer_id);

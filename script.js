@@ -3761,7 +3761,7 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedDataOrKey) 
         function buildModalContent(items) {
             let c = `<div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">`;
             items.forEach(a => {
-                const dateStr = a.created_at ? new Date(a.created_at).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
+                const dateStr = a.created_at ? new Date(a.created_at).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit'}) : '-';
                 const isOwn = a.reviewer_id === STATE.user.id;
                 c += `
                     <div class="bg-surface-container rounded-xl p-5 border border-blue-50" id="fb-item-${a.id}">

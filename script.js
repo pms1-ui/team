@@ -13,7 +13,7 @@ const STATE = {
     goalsManageTab: 'quarterly',
     goalsManagePeriodValue: '',
     
-    requestsTab: 'yearly',
+    requestsTab: 'quarterly',
     requestsPeriodValue: '',
     requestsFilter: 'pending', // 'pending' | 'approved' | 'rejected'
     
@@ -293,7 +293,7 @@ function initDates() {
     STATE.dashboardPeriodValue = getDefaultPeriodValue('quarterly');
     STATE.goalsSetPeriodValue = getDefaultPeriodValue('quarterly');
     STATE.goalsManagePeriodValue = getDefaultPeriodValue('quarterly');
-    STATE.requestsPeriodValue = getDefaultPeriodValue('yearly');
+    STATE.requestsPeriodValue = getDefaultPeriodValue('quarterly');
 }
 initDates();
 
@@ -2064,8 +2064,8 @@ function renderRequests(container) {
     container.innerHTML = `
         <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full">
             <div class="flex items-center gap-8">
-                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
                 <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             </div>
             <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
                 <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>
@@ -3063,8 +3063,8 @@ renderRequests = function(container) {
     let h = `
         <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
             <div class="flex items-center gap-4 lg:gap-8">
-                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
                 <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
+                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             </div>
             <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
                 <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>

@@ -3144,6 +3144,13 @@ function renderMyReceivedFeedback(container) {
     // 나에게 온 피드백 데이터
     const myFeedbacks = (STATE.assessmentData || []).filter(a => a.target_id === STATE.user.id && a.period_value === selectedPeriod);
 
+    // C Level 피드백 존재 여부 확인
+    const hasCLevelFeedback = myFeedbacks.some(f => {
+        const reviewer = STATE.members.find(m => m.user_id === f.reviewer_id);
+        return reviewer && (reviewer.position === '본부장' || reviewer.position === '대표');
+    });
+    const feedbackUnlocked = hasCLevelFeedback || STATE._feedbackPreviewUnlocked;
+
     // OKR 목록 (해당 기간)
     const isQuarterly = selectedPeriod.includes('Q');
     const myGoals = STATE.allGoals.filter(g =>
@@ -3171,6 +3178,13 @@ function renderMyReceivedFeedback(container) {
         h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">해당 기간에 합의 완료된 OKR이 없습니다.</div>';
     } else if (myFeedbacks.length === 0) {
         h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">아직 받은 피드백이 없습니다.</div>';
+    } else if (!feedbackUnlocked) {
+        h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
+            <div class="text-[40px] mb-4">🔒</div>
+            <p class="text-[15px] font-bold text-on-surface mb-2">피드백이 아직 공개되지 않았습니다</p>
+            <p class="text-[13px] text-on-surface-variant mb-6">C Level(본부장) 피드백이 완료된 후 열람 가능합니다.</p>
+            <button onclick="promptFeedbackPreviewPassword()" class="px-5 py-2.5 bg-gray-700 text-white font-bold text-[13px] rounded-lg hover:bg-gray-800 transition-all">미리보기 (관리자용)</button>
+        </div>`;
     } else {
         // OKR별로 피드백 그룹핑
         myGoals.forEach((g, i) => {
@@ -3222,6 +3236,17 @@ function renderMyReceivedFeedback(container) {
 }
 
 function renderFeedback(container) {
+    // 비밀번호 미리보기 함수
+    window.promptFeedbackPreviewPassword = function() {
+        const pw = prompt('미리보기 비밀번호를 입력하세요:');
+        if (pw === 'dxpreview') {
+            STATE._feedbackPreviewUnlocked = true;
+            renderCurrentView();
+        } else if (pw !== null) {
+            alert('비밀번호가 틀렸습니다.');
+        }
+    };
+
     // 일반 구성원(user)은 "나에게 온 피드백" 뷰만 표시
     if (STATE.user.role !== 'admin') {
         renderMyReceivedFeedback(container);

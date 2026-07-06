@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 기반 성과 평가 기업 사례</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;background:#f0f0f0;color:#111;line-height:1.5}
+.slide{width:1280px;height:720px;margin:16px auto;background:#fff;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.slide-cover{background:#006EBE;display:flex;flex-direction:column;justify-content:center;padding:80px}
+.slide-cover h1{font-size:48px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:16px}
+.slide-cover .desc{font-size:20px;color:rgba(255,255,255,.8)}
+.slide-cover .foot{position:absolute;bottom:40px;left:80px;right:80px;display:flex;justify-content:space-between;font-size:14px;color:rgba(255,255,255,.55)}
+.slide-body{padding:56px 80px}
+.slide-body .bar{position:absolute;top:0;left:0;width:24px;height:130px;background:#006EBE}
+.slide-body .label{font-size:16px;font-weight:700;color:#006EBE;margin-bottom:10px}
+.slide-body .page-num{position:absolute;top:32px;right:50px;font-size:15px;color:#999}
+.slide-body h2{font-size:40px;font-weight:800;color:#111;margin-bottom:18px;line-height:1.2}
+.slide-body p{font-size:18px;color:#3C4646;line-height:1.7;margin-bottom:10px;font-weight:400}
+.case{background:#F6FBFF;border-radius:12px;padding:22px 26px;margin-bottom:16px;border-left:4px solid #006EBE}
+.case .case-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.case .case-name{font-size:20px;font-weight:700;color:#006EBE}
+.case .case-tag{font-size:12px;font-weight:600;background:#006EBE;color:#fff;padding:3px 10px;border-radius:5px}
+.case .case-desc{font-size:16px;color:#3C4646;line-height:1.7}
+.case .case-desc b{color:#111}
+@media print{body{background:#fff}.slide{box-shadow:none;margin:0;page-break-after:always}}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: 해외 기업 사례 -->
+<div class="slide slide-body">
+<div class="bar"></div>
+<div class="label">Global Cases</div>
+<span class="page-num">01</span>
+<h2>해외 기업 — AI 기반 성과 평가 사례</h2>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">Uber</span>
+<span class="case-tag">알고리즘 매니지먼트</span>
+</div>
+<div class="case-desc">앱 접속 시간, 승인율, GPS 주행 데이터, 고객 평점을 실시간 분석하여 드라이버에게 <b>1~5점 생산성 점수</b>를 산정. 기준 이하 시 AI가 자동으로 배차 제한·계정 비활성화를 결정하며, 인간 매니저 개입 없이 등급이 곧 퇴출을 결정하는 대표 사례.</div>
+</div>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">IBM</span>
+<span class="case-tag">Watson Career Coach</span>
+</div>
+<div class="case-desc">교육 이수율, KPI 달성, 프로젝트 이력, 협업 빈도를 기반으로 <b>성과 예측 점수 + 퇴사 확률 점수</b>를 백분위 산정. 매니저 평가 시 AI 점수가 가이드라인으로 제시되며, 인재 예측 정확도 <b>95%</b> 달성으로 AI 점수 그대로 반영하는 비율 매우 높음.</div>
+</div>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">Amazon</span>
+<span class="case-tag">UPH 자동 등급</span>
+</div>
+<div class="case-desc">핸드 스캐너 기반 물품 처리 속도(UPH), 작업 중단 시간을 동료 평균과 비교하여 <b>성공/미달 등급 자동 분류</b>. 하위 5% 미달 등급 시 매니저 대면 없이 시스템이 해고 서류를 자동 발송. 현재는 인간 최종 검토 추가, 그러나 <b>등급 산정 자체는 100% AI</b>.</div>
+</div>
+
+</div>
+
+<!-- SLIDE 2: 국내 기업 사례 -->
+<div class="slide slide-body">
+<div class="bar"></div>
+<div class="label">Korea Cases</div>
+<span class="page-num">02</span>
+<h2>국내 기업 — AI 기반 피드백·평가 사례</h2>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">직방</span>
+<span class="case-tag">Jira 연동 AI 성과 측정</span>
+</div>
+<div class="case-desc">Jira 티켓 처리 속도, 코드 리뷰 참여, 문서 업데이트 빈도를 AI가 트래킹하여 <b>"목표 대비 실행 속도 우수/지연율 높음"</b> 리포트 자동 생성. 리더의 분기별 정량 평가 점수에 뼈대로 활용.</div>
+</div>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">현대자동차</span>
+<span class="case-tag">AI 정기평가 가이드</span>
+</div>
+<div class="case-desc">직원 성과 기술서 + 상사 평가 초안을 AI가 분석. 업무 정량 데이터(일정 준수율, 예산 절감률)가 높은데 상사가 낮은 등급 부여 시 <b>"업무 팩트 대비 평가 왜곡 가능성 경고"</b> 피드백으로 등급 보정 유도.</div>
+</div>
+
+<div class="case">
+<div class="case-head">
+<span class="case-name">SK그룹</span>
+<span class="case-tag">AI 기반 OKR 진척도</span>
+</div>
+<div class="case-desc">OKR Key Results 달성률 추이를 매주 AI 모니터링. 3주 연속 미업데이트 또는 하락 시 <b>"분기 말 목표 달성 확률 40% 미만, KR 조정 필요"</b> 경고 피드백 자동 발송. 주차별 데이터 누적치를 점수화하여 연말 OKR 달성 등급 기초 값으로 활용.</div>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -12,11 +12,14 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 @media print{
   html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  .page{margin:0!important;box-shadow:none!important}
+  .page{margin:0!important;box-shadow:none!important;height:auto!important;overflow:visible!important;page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  .fb-item{page-break-inside:avoid}
   .pdf-btn{display:none!important}
 }
-.page{width:210mm;height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;overflow:hidden;page-break-after:always}
+.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;page-break-after:always}
 .page:last-child{page-break-after:auto}
+.page-vcenter{display:flex;flex-direction:column;justify-content:center;height:297mm}
 .cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
 .cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
 .cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
@@ -35,7 +38,7 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 .fb-kr-list li{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:10px;color:#475569;border-bottom:1px solid #f1f5f9}
 .fb-kr-list li:last-child{border-bottom:none}
 .fb-kr-pct{font-weight:700;font-size:10px;color:#1e293b}
-.fb-text{font-size:11px;color:#334155;line-height:1.7;white-space:pre-wrap;border-top:1px solid #e2e8f0;padding-top:8px;margin-top:4px}
+.fb-text{font-size:11px;color:#334155;line-height:1.7;white-space:pre-wrap;border-top:1px solid #e2e8f0;padding-top:10px;margin-top:8px}
 .pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
 .pdf-btn:hover{background:#1e40af}
 </style>
@@ -54,7 +57,7 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 </div>
 
 <!-- 요약 -->
-<div class="page">
+<div class="page page-vcenter">
 <div class="st">팀장 피드백 요약</div>
 <p style="font-size:11px;color:#475569;margin-bottom:14px">평가 기간: 2026.04 ~ 2026.06 | 작성자: 박명수 (DX팀 팀장) | 작성일: 2026.07.06</p>
 <table style="width:100%;border-collapse:collapse;margin-top:10px">
@@ -91,11 +94,6 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 <div class="fb-item"><div class="fb-obj">O2. 기술·API 문서화를 통한 기술 부채 해소 및 개발 효율 향상</div><ul class="fb-kr-list"><li><span>KR1. 기술·API 문서화 체계 구축 및 완료율 80% 달성</span><span class="fb-kr-pct">75%</span></li><li><span>KR2. 중복 개발 제거 및 신규 작업 대응 속도 개선</span><span class="fb-kr-pct">20%</span></li></ul><div class="fb-text">이번 분기 기술 부채 해소와 개발 효율 향상을 위해 다방면으로 노력해 주셔서 감사하며, 현재 전체 달성률 63%를 기록 중인데 남은 기간 목표 달성을 위해 몇 가지 당부와 가이드를 드립니다. 우선 KR1(완료율 75%)과 관련하여, 실제 작성된 기술 및 API 문서화 내용은 단순 기록에 그치지 않고 당사 허브에 체계적으로 아카이빙될 수 있도록 최종 체크를 부탁드리며, 나아가 일회성 작업으로 끝나지 않도록 AI를 활용해 지속적으로 문서를 갱신하고 고도화하는 루프 디벨롭 프로세스를 고민해 주시기 바랍니다. 또한 KR2(진척률 50%)의 목적인 중복 및 불필요한 개발 방지를 위해 모든 개발 이력을 건바이건으로 명확히 남겨주시고, 이러한 히스토리가 조직의 유용한 기술 자산(스킬)으로 축적되어 향후 유사한 신규 작업 대응 속도를 획기적으로 개선하는 데 적극 활용될 수 있도록 신경 써주시면 좋겠습니다. 어려운 과제임에도 효율적인 개발 환경 구축을 위해 기반을 잘 다져주고 계신 만큼, 남은 기간 성공적인 마무리를 기대하고 응원하겠습니다.</div></div>
 <div class="fb-item"><div class="fb-obj">O3. 마케팅 물류 시딩 자동화를 통한 운영 생산성 극대화 및 커뮤니케이션 리드타임 혁신</div><ul class="fb-kr-list"><li><span>KR1. 시범운용 기간 주요 이슈 100% 해결 및 정식 서비스 구축</span><span class="fb-kr-pct">0%</span></li><li><span>KR2. 정식 오픈 이후 에러율 1% 이하 유지</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">이번 분기 담당자 변경 등의 리소스 이슈로 진척률(1%)을 올리기 어려운 상황이었음을 잘 이해하고 있습니다. 다만 향후 이처럼 프로젝트 도중 R&R 공백이 발생할 때는 혼자 안고 가기보다, '중간 체크인'을 통해 즉시 리더에게 점검을 요청하고 목표를 조정해 주시길 당부드립니다. 다음 분기에는 리소스 상황을 고려해 목표를 현실적으로 재조정(또는 제외)하되, 리스크 공유 체계를 적극 활용해 주시길 바랍니다.</div></div>
 <div class="fb-item"><div class="fb-obj">O4. 프론트 인터랙션 기술을 활용한 몰입형 이벤트 콘텐츠 개발</div><ul class="fb-kr-list"><li><span>KR1. 공통 컴포넌트·모션 시스템 구축</span><span class="fb-kr-pct">0%</span></li><li><span>KR2. 디바이스/브라우저 환경별 인터랙션 최적화</span><span class="fb-kr-pct">0%</span></li><li><span>KR3. 재사용 가능한 이벤트 구조 설계</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">이번 분기 관련 프로젝트가 전무하여 KR1을 진행할 수 없었던 상황은 이해합니다. 다만 해당 과제가 무산되었다면 '중간 체크인'을 통해 즉시 리더에게 공유하고 목표를 수정(또는 제외)했어야 하나, 진척률 1%로 방치된 점은 아쉽습니다. 프론트엔드 개발자로서 충분히 시도할 수 있었던 KR2(최적화)와 KR3(구조 설계)마저 무진척으로 끝난 만큼, 다음 분기에는 프로젝트 변동 시 능동적으로 목표를 조정하고 본인이 주도할 수 있는 태스크를 찾아 실행하는 적극성을 보여주시기 바랍니다.</div></div>
-</div>
-
-<!-- 김슬기 p2 -->
-<div class="page">
-<div class="ph"><div><div class="pn">김슬기 (계속)</div><div class="pr">프론트개발 · DX팀 · 멤버</div></div><div class="sb sb-vg">Very good</div></div>
 <div class="fb-item"><div class="fb-obj">O5. 핵심 사용자 경험 개선</div><ul class="fb-kr-list"><li><span>KR1. 가상피팅 서비스 구축 및 사용자 인터랙션 최적화</span><span class="fb-kr-pct">100%</span></li><li><span>KR2. 클래스 후기 시스템 구축</span><span class="fb-kr-pct">0%</span></li><li><span>KR3. 자사몰 카페24 대기화면 UI/UX 고도화</span><span class="fb-kr-pct">0%</span></li><li><span>KR4. 히크릿도어 인터랙션 이벤트 2회차 고도화</span><span class="fb-kr-pct">100%</span></li></ul><div class="fb-text">이번 분기 핵심 사용자 경험 개선을 위해 노력해 주신 결과, KR1(가상피팅 구축)과 KR4(히크릿도어 고도화)에서 100% 달성을 기록하며 전반적으로 훌륭한 성과를 보여주셨습니다. 다만 KR2와 KR3가 1%로 마무리된 점은 아쉬움이 남는데, 향후 특정 과제의 진행이 가로막힌다면 현업이나 운영 부서에 진행 여부를 선제적으로 확인한 뒤, 중간 체크인을 통해 목표를 가감하거나 수정하는 노력을 보여주시기 바랍니다. 다음 분기에는 리스크를 조기에 매니징하여 전체 KR의 밸런스를 균형 있게 채워가길 기대하며, 어려운 과제들을 멋지게 완수해 주셔서 고생 많으셨습니다.</div></div>
 <div class="fb-item"><div class="fb-obj">O6. AI 프로덕션 도입을 통한 패션 콘텐츠 제작 혁신</div><ul class="fb-kr-list"><li><span>KR1. 비주얼 제작 업무 내부 전환율 확대 및 비용 절감</span><span class="fb-kr-pct">50%</span></li><li><span>KR2. AI 비주얼 제작 환경 및 파이프라인 구축</span><span class="fb-kr-pct">50%</span></li></ul><div class="fb-text">디자인 퍼널의 부재라는 어려운 상황 속에서도 적극적인 지원을 통해 공백을 메꾸며 AI 제작 파이프라인(O6)을 구축하기 위해 진심으로 노력해 주신 점 감사드립니다. 인력 공백을 메워가며 주도적으로 비주얼 전환율 확대와 자동화 체계를 만들어가고 있는 과정 자체를 매우 높게 평가합니다. 디자인 리소스 부족으로 고군분투 중이신 만큼, 남은 기간 리드타임과 리스크를 잘 매니징하여 비즈니스 효율화라는 혁신적 성과로 이어질 수 있도록 노력해주시기 바랍니다.</div></div>
 <div class="fb-item"><div class="fb-obj">O7. 리소스 공백 대응 및 제작 업무 지원(6월)</div><ul class="fb-kr-list"><li><span>KR1. 웹디자인 및 UI/UX 업무 지원</span><span class="fb-kr-pct">100%</span></li><li><span>KR2. 서비스 운영 디자인 콘텐츠 제작 지원 (ODP, UO)</span><span class="fb-kr-pct">100%</span></li><li><span>KR3. 상품 이미지 및 썸네일 제작 지원 (코스트코)</span><span class="fb-kr-pct">100%</span></li></ul><div class="fb-text">이번 분기 인력 공백 상황 속에서 웹디자인, UI/UX, 운영 콘텐츠 및 상품 이미지 제작까지 다방면으로 업무를 전폭 지원해 주신 덕분에 O7의 모든 KR을 100% 완벽하게 달성해 주셨습니다. 리소스 부재를 메우며 조직에 실질적인 기여를 해준 점 깊이 감사드립니다. 다만 이 과제는 앞서 진행하신 AI 제작 혁신(O6) 과제와 긴밀히 연결되는 만큼, 별도 항목보다는 O6 Objective 하위의 구체적인 KR로 통합하여 관리했어도 좋았을 것이라는 생각이 듭니다. 어려운 환경에서도 책임감 있게 제작 업무 전반을 책임져 주셔서 정말 고생 많으셨습니다.</div></div>

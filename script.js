@@ -903,6 +903,28 @@ window.submitModifyRequest = function(id) {
             
             await GoalsAPI.update(id, updateData);
             
+            // 체크인 이력 저장
+            try {
+                const krSnapshot = goal.tempKeyResults || goal.keyResults || [];
+                await baserowFetch('/database/rows/table/2137/?user_field_names=true', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        checkin_id: 'chk-' + Date.now(),
+                        user_id: STATE.user.id,
+                        user_name: STATE.user.name,
+                        goal_id: String(id),
+                        goal_text: goal.text,
+                        type: edits.join(','),
+                        comment: comment,
+                        progress_snapshot: JSON.stringify(krSnapshot.map(kr => ({ text: kr.text, progress: kr.progress }))),
+                        created_at: new Date().toISOString(),
+                        period_value: goal.periodValue
+                    })
+                });
+            } catch (checkinErr) {
+                console.error('Checkin history save error:', checkinErr);
+            }
+
             goal.status = '승인 대기중';
             goal.requestType = edits.join(',');
             goal.comment = comment;

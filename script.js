@@ -3761,14 +3761,12 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedDataOrKey) 
         function buildModalContent(items) {
             let c = `<div class="space-y-4 max-h-[70vh] overflow-y-auto custom-scroll">`;
             items.forEach(a => {
-                const gradeClass = getGradeStyle(a.score);
                 const dateStr = a.created_at ? new Date(a.created_at).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
                 const isOwn = a.reviewer_id === STATE.user.id;
                 c += `
                     <div class="bg-surface-container rounded-xl p-5 border border-blue-50" id="fb-item-${a.id}">
-                        <div class="flex items-center justify-between mb-3">
+                        <div class="mb-3">
                             <p class="text-[13px] font-bold text-on-surface">${a.goal_text || 'OKR'}</p>
-                            <span class="text-[12px] font-black ${gradeClass} px-2.5 py-1 rounded-lg">${a.score || '-'}</span>
                         </div>
                         <div id="fb-content-${a.id}">
                             <p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${a.feedback || '피드백 없음'}</p>
@@ -3787,8 +3785,12 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedDataOrKey) 
             return c;
         }
 
+        // 그레이드는 첫 번째 assessment에서 가져옴 (전체 1개)
+        const overallGrade = assessments.length > 0 ? (assessments[0].score || '-') : '-';
+        const gradeClass = getGradeStyle(overallGrade);
         const content = buildModalContent(assessments);
-        openModal(memberName + ' - ' + reviewerType + ' 피드백', content, null, true);
+        const headerHtml = `<div class="flex items-center justify-between w-full"><span>${memberName} - ${reviewerType} 피드백</span><span class="text-[16px] font-black ${gradeClass} px-4 py-1.5 rounded-xl ml-4">${overallGrade}</span></div>`;
+        openModal(headerHtml, content, null, true);
     } catch (e) {
         console.error('Error showing feedback modal:', e);
     }

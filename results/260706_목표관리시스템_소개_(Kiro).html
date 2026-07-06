@@ -92,44 +92,38 @@ html,body{font-family:'Pretendard',sans-serif;background:#f0f0f0;color:#111;line
 </table>
 </div>
 
-<!-- SLIDE 3: 시스템 전체 구조 -->
+<!-- SLIDE 3: 시스템 플로우 -->
 <div class="slide slide-body">
 <div class="bar"></div>
-<div class="label">System Architecture</div>
+<div class="label">System Flow</div>
 <span class="page-num">03</span>
-<h2>시스템 전체 구조</h2>
-<div class="process" style="margin-bottom:24px">
-<div class="step step-highlight">목표관리 시스템 (Web)</div>
-<div class="arrow">→</div>
-<div class="step">Baserow DB (REST API)</div>
-<div class="arrow">→</div>
-<div class="step step-highlight">피드백 리포트 자동 생성</div>
+<h2>목표 및 피드백 전체 플로우</h2>
+<p class="lead">분기/연간 사이클로 목표 수립부터 피드백까지 하나의 루프로 운영됩니다.</p>
+<div class="process" style="margin-bottom:28px">
+<div class="step step-highlight">OKR 수립<br><span style="font-size:13px">+ R&R 합의</span></div><div class="arrow">→</div>
+<div class="step">실행<br><span style="font-size:13px">실시간 체크인</span></div><div class="arrow">→</div>
+<div class="step">진척률<br><span style="font-size:13px">수시 업데이트</span></div><div class="arrow">→</div>
+<div class="step step-highlight">분기 종료</div><div class="arrow">→</div>
+<div class="step">피드백<br><span style="font-size:13px">B/C + AI</span></div><div class="arrow">→</div>
+<div class="step">1:1 면담</div>
 </div>
 <div class="two-col">
 <div class="col">
-<h3>운영관리 시스템 기능</h3>
-<ul class="blist">
-<li>대시보드 (전사 진척률 실시간 조회)</li>
-<li>목표 설정 및 합의 (OKR 수립)</li>
-<li>내 목표 관리 (진척률 업데이트)</li>
-<li>직무기술 / R&R (역할 정의)</li>
-<li>요청 관리 (승인 워크플로우)</li>
-<li>주간업무 공유 (체크인)</li>
-<li>피드백 (B/C Level + AI)</li>
-</ul>
+<h3 style="font-size:22px">AI 피드백 리포트 (자동 생성)</h3>
+<div class="card" style="margin-top:10px">
+<div class="card-label">분기 종료 후 AI 모델(Claude)이 자동 생성</div>
+<div class="card-val" style="font-size:17px">참고 데이터:<br>• OKR + Key Results 진척률<br>• 직무기술서 / R&R<br>• 중간 체크인 코멘트<br>• 주간업무 공유 내역 (연동 강화 예정)</div>
+</div>
 </div>
 <div class="col">
-<h3>데이터베이스 구조</h3>
-<ul class="blist">
-<li><strong>members</strong> — 구성원 정보</li>
-<li><strong>goals</strong> — OKR 목표</li>
-<li><strong>key_results</strong> — KR + 진척률</li>
-<li><strong>rnr</strong> — 직무기술 / R&R</li>
-<li><strong>assessment</strong> — 피드백 데이터</li>
-<li><strong>weekly_report</strong> — 주간 업무</li>
-<li><strong>period_settings</strong> — 기간 설정</li>
-</ul>
-<p style="font-size:16px;color:#787878;margin-top:12px">* 주간업무공유 데이터를 AI 평가에 연동하여 정합성 강화 예정 · 업무 관리(Task) 기능은 향후 추가 예정</p>
+<h3 style="font-size:22px">OKR 피드백 (팀장/본부장)</h3>
+<div class="card" style="margin-top:10px">
+<div class="card-label">분기 종료 후 2주 이내 작성</div>
+<div class="card-val" style="font-size:17px">• B Level (팀장): Objective별 서술 + Grade<br>• C Level (본부장): Objective별 서술 + Grade<br>• C Level 완료 시 구성원에게 공개<br>• 업무 관리(Task) 기능은 향후 추가 예정</div>
+</div>
+</div>
+</div>
+</div>
 <div class="slide slide-body">
 <div class="bar"></div>
 <div class="label">OKR Framework</div>
@@ -161,30 +155,30 @@ html,body{font-family:'Pretendard',sans-serif;background:#f0f0f0;color:#111;line
 </div>
 </div>
 
-<!-- SLIDE 5: 12주 운영 사이클 -->
+<!-- SLIDE 5: 운영 사이클 -->
 <div class="slide slide-body">
 <div class="bar"></div>
 <div class="label">OKR Operation</div>
 <span class="page-num">05</span>
-<h2>12주 운영 사이클</h2>
+<h2>분기 운영 사이클</h2>
 <p class="lead">OKR이 실패하는 가장 큰 이유는 '작성 후 문서에 묻어두기'입니다.</p>
 <div class="process">
-<div class="step step-highlight">1~2주<br><span style="font-size:14px">계획 수립</span></div>
+<div class="step step-highlight">분기 초<br><span style="font-size:14px">OKR 수립 + 합의</span></div>
 <div class="arrow">→</div>
-<div class="step">3~10주<br><span style="font-size:14px">실행 + 주간 체크인</span></div>
+<div class="step">분기 중<br><span style="font-size:14px">실행 + 실시간 체크인</span></div>
 <div class="arrow">→</div>
-<div class="step">6~7주<br><span style="font-size:14px">중간 리뷰</span></div>
+<div class="step step-highlight">분기 종료<br><span style="font-size:14px">피드백 + 회고</span></div>
 <div class="arrow">→</div>
-<div class="step step-highlight">11~12주<br><span style="font-size:14px">회고 및 평가</span></div>
+<div class="step">다음 분기<br><span style="font-size:14px">목표 재수립</span></div>
 </div>
 <div class="callout" style="margin-top:28px">
-<div class="callout-label">주간 체크인 (Weekly Check-in)</div>
-<p style="font-size:18px">매주 15~20분 진행 상황 공유 | 체크인 준수 팀: <span class="highlight" style="color:#006EBE;font-weight:700">달성률 43% 상승</span></p>
+<div class="callout-label">실시간 체크인</div>
+<p style="font-size:20px">구성원이 진척률을 업데이트하면 즉시 체크인 — 리더는 실시간으로 상태 파악<br>주간업무 공유와 결합하여 업무 맥락 + 목표 진척을 동시에 추적</p>
 </div>
-<div class="cards" style="margin-top:20px">
-<div class="card"><div class="card-label">질문 1</div><div class="card-val">이번 주에 목표를 향해 무엇이 움직였는가?</div></div>
-<div class="card"><div class="card-label">질문 2</div><div class="card-val">지금 어디에 막혀(stuck) 있는가?</div></div>
-<div class="card"><div class="card-label">질문 3</div><div class="card-val">다음으로 집중할 것은 무엇인가?</div></div>
+<div class="cards" style="margin-top:24px">
+<div class="card"><div class="card-label">체크인 준수 효과</div><div class="card-val" style="font-size:28px;color:#006EBE">달성률 43% 상승</div></div>
+<div class="card"><div class="card-label">단독 오너십 효과</div><div class="card-val" style="font-size:28px;color:#006EBE">달성률 26% 상승</div></div>
+<div class="card"><div class="card-label">5분기 연속 운영</div><div class="card-val" style="font-size:28px;color:#006EBE">51% → 79%</div></div>
 </div>
 </div>
 
@@ -203,14 +197,7 @@ html,body{font-family:'Pretendard',sans-serif;background:#f0f0f0;color:#111;line
 <div class="step" style="background:#FEE2E2;color:#991B1B">거부 + 코멘트</div>
 </div>
 <div style="margin-top:28px">
-<h3>상태 전이</h3>
-<div class="process" style="margin-top:12px">
-<div class="step">작성중</div><div class="arrow">→</div>
-<div class="step">승인 대기중</div><div class="arrow">→</div>
-<div class="step step-highlight">합의 완료</div>
-</div>
-</div>
-<div class="two-col" style="margin-top:28px">
+<div class="two-col">
 <div class="col">
 <h3 style="font-size:22px">요청 유형</h3>
 <ul class="blist" style="font-size:18px">
@@ -246,9 +233,17 @@ html,body{font-family:'Pretendard',sans-serif;background:#f0f0f0;color:#111;line
 <ul class="blist">
 <li><strong>B Level — 팀장</strong><br>Objective별 서술 피드백 + Grade</li>
 <li><strong>C Level — 본부장</strong><br>Objective별 서술 피드백 + Grade</li>
-<li>Grade: Excellent / Very good / Good / Fair / Poor</li>
+<li>분기 종료 후 2주 이내 작성</li>
 <li>C Level 완료 시 구성원에게 공개</li>
 </ul>
+<h3 style="margin-top:20px;font-size:20px">Grade 체계</h3>
+<div style="display:flex;gap:8px;margin-top:10px">
+<div style="background:#16a34a;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700">Excellent</div>
+<div style="background:#22c55e;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700">Very good</div>
+<div style="background:#F59E0B;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700">Good</div>
+<div style="background:#f97316;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700">Fair</div>
+<div style="background:#DC2626;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700">Poor</div>
+</div>
 </div>
 <div class="col">
 <h3>AI 피드백 리포트 (자동)</h3>

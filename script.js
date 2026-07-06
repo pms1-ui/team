@@ -3193,7 +3193,8 @@ function renderMyReceivedFeedback(container) {
     let h = '<div class="max-w-3xl mx-auto">';
 
     // 기간 선택
-    h += '<div class="flex items-center gap-3 mb-6 flex-wrap">';
+    h += '<div class="flex items-center justify-between mb-6 flex-wrap">';
+    h += '<div class="flex items-center gap-3">';
     h += '<select onchange="STATE.feedbackPeriod = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[14px] px-4 py-2.5 outline-none focus:border-primary shadow-sm">';
     allPeriods.forEach(p => {
         h += `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`;
@@ -3201,6 +3202,10 @@ function renderMyReceivedFeedback(container) {
     h += '</select>';
     if (feedbackUnlocked && myFeedbacks.length > 0) {
         h += `<span class="text-[13px] font-bold text-success bg-success/10 px-3 py-1.5 rounded-full">${myFeedbacks.length}건의 피드백</span>`;
+    }
+    h += '</div>';
+    if (!feedbackUnlocked) {
+        h += '<button onclick="promptFeedbackPreviewPassword()" class="px-4 py-2 bg-gray-700 text-white font-bold text-[12px] rounded-lg hover:bg-gray-800 transition-all">미리보기</button>';
     }
     h += '</div>';
 
@@ -3234,7 +3239,6 @@ function renderMyReceivedFeedback(container) {
                     <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 (${openDateStr} ~ ${closeDateStr})</span>
                 </div>
             </div>
-            <button onclick="promptFeedbackPreviewPassword()" class="px-5 py-2.5 bg-gray-700 text-white font-bold text-[13px] rounded-lg hover:bg-gray-800 transition-all">미리보기 (관리자용)</button>
         </div>`;
     } else {
         // OKR별로 피드백 그룹핑

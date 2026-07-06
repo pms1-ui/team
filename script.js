@@ -3209,10 +3209,18 @@ function renderMyReceivedFeedback(container) {
     } else if (myFeedbacks.length === 0) {
         h += '<div class="bg-white/50 border border-dashed border-blue-200 h-40 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">아직 받은 피드백이 없습니다.</div>';
     } else if (!feedbackUnlocked) {
+        // 조회 가능 기간 표시
+        const openDateStr = periodSetting && periodSetting.feedback_open_date ? new Date(periodSetting.feedback_open_date).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) : '미설정';
+        const closeDateStr = periodSetting && periodSetting.feedback_cloase_date ? new Date(periodSetting.feedback_cloase_date).toLocaleString('ko-KR', {timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}) : '미설정';
+        const now = new Date();
+        const isInPeriod = periodSetting && periodSetting.feedback_visible && 
+            (!periodSetting.feedback_open_date || now >= new Date(periodSetting.feedback_open_date)) &&
+            (!periodSetting.feedback_cloase_date || now <= new Date(periodSetting.feedback_cloase_date));
+
         h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
             <div class="text-[40px] mb-4">🔒</div>
-            <p class="text-[15px] font-bold text-on-surface mb-4">피드백이 아직 공개되지 않았습니다</p>
-            <div class="flex items-center justify-center gap-4 mb-6">
+            <p class="text-[15px] font-bold text-on-surface mb-5">피드백이 아직 공개되지 않았습니다</p>
+            <div class="flex flex-col items-center gap-3 mb-5">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full ${hasBLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
                     <span class="text-[13px] ${hasBLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">B Level (팀장) ${hasBLevel ? '완료' : '대기중'}</span>
@@ -3221,8 +3229,12 @@ function renderMyReceivedFeedback(container) {
                     <span class="w-2.5 h-2.5 rounded-full ${hasCLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
                     <span class="text-[13px] ${hasCLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">C Level (본부장) ${hasCLevel ? '완료' : '대기중'}</span>
                 </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full ${isInPeriod ? 'bg-green-500' : 'bg-gray-300'}"></span>
+                    <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 ${isInPeriod ? '(현재 열람 가능)' : ''}</span>
+                </div>
             </div>
-            <p class="text-[12px] text-on-surface-variant mb-6">모든 레벨의 피드백이 완료된 후 공개됩니다.</p>
+            <p class="text-[12px] text-on-surface-variant mb-6">조회 기간: ${openDateStr} ~ ${closeDateStr}</p>
             <button onclick="promptFeedbackPreviewPassword()" class="px-5 py-2.5 bg-gray-700 text-white font-bold text-[13px] rounded-lg hover:bg-gray-800 transition-all">미리보기 (관리자용)</button>
         </div>`;
     } else {

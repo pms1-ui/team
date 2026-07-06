@@ -303,7 +303,6 @@ feedback/{팀명}_{분기}_{연도}_review.html
 - KR 리스트와 피드백 코멘트 사이에 여백+가로선으로 시각적 분리를 확보한다 (margin-top: 8px, padding-top: 10px)
 - 피드백 코멘트(feedback 필드)는 원문 그대로 반영하며, 가공·요약·축약하지 않는다
 - KR 리스트 형식: `KR1. [KR텍스트] — [진척률]%`
-- 요약 페이지(2페이지)는 세로 가운데 정렬한다 (page-vcenter)
 - 콘텐츠가 1페이지를 초과하는 경우 수동 분할하지 않고, 인쇄 시 자동 페이지 분할되도록 한다 (height: auto, page-break-inside: avoid on fb-item)
 - 본부장 피드백이 추가되면 동일 리포트에 병합 생성할 수 있음을 고려한다
 

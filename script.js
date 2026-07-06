@@ -4647,6 +4647,8 @@ function renderWeeklyReport(container) {
     h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>구성원 전체 현황</button>';
     h += '</div>';
 
+    h += '<p style="font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;animation:blink 1.5s ease-in-out infinite">주간업무는 해당주차 금요일 혹은 차주 월요일까지 입력하시는 것을 권장합니다.</p>';
+
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-6 flex items-center gap-3 flex-wrap">';
     h += '<svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
     h += '<select onchange="setWeeklyReportMonth(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';

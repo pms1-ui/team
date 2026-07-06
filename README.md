@@ -280,7 +280,8 @@ feedback/{팀명}_{분기}_{연도}_review.html
 - 피드백 리포트, 평가표 등 문서의 디자인 양식을 수정하거나 새로 만들 때는 반드시 `docs/DESIGN_REPORT.md`를 참조한다
 - 컬러, 폰트, 레이아웃, 표 스타일, 인쇄 규칙 등 모든 시각 요소는 해당 문서의 기준을 따른다
 - 생성되는 HTML 리포트에는 항상 우상단에 "PDF 내려받기" 버튼을 고정 배치하며, `window.print()`로 동작한다 (인쇄 시 버튼은 숨김 처리)
-- 각 `.page` div는 `width: 210mm; height: 297mm; overflow: hidden;`으로 고정하여 1페이지 = 1장이 되도록 한다
+- 각 `.page` div는 `width: 210mm; min-height: 297mm;`으로 설정하여, 콘텐츠가 1페이지를 초과하면 세로로 늘어나도록 한다 (overflow: hidden 사용 금지)
+- 인쇄 시 `height: auto; page-break-after: always; .eval-block { page-break-inside: avoid }` 적용으로 자동 분할한다
 - `@page { size: 210mm 297mm; margin: 0; }` 적용으로 브라우저 머릿말/꼬릿말/추가 여백을 제거한다
 - PDF 내려받기 시 인쇄 설정에서 여백 "없음", "머리글 및 바닥글" 해제를 안내한다
 

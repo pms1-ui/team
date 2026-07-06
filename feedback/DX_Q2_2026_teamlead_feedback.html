@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> </title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important}
+  .pdf-btn{display:none!important}
+}
+.page{width:210mm;height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;overflow:hidden;page-break-after:always}
+.page:last-child{page-break-after:auto}
+.cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
+.cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
+.cover h1{color:#fff;font-size:32px;font-weight:700;line-height:1.35;margin-bottom:16px}
+.cover .sub{color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;max-width:480px}
+.cover .foot{padding:0 28mm 20mm;color:rgba(255,255,255,.5);font-size:10px;margin-top:auto}
+.st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.ph{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+.pn{font-size:16px;font-weight:700}
+.pr{font-size:11px;color:#475569}
+.sb{margin-left:auto;padding:4px 12px;border-radius:16px;font-size:13px;font-weight:700}
+.sb-e{background:#dbeafe;color:#1e40af}.sb-vg{background:#dcfce7;color:#166534}.sb-g{background:#fef9c3;color:#854d0e}.sb-f{background:#f3e8ff;color:#7c3aed}.sb-p{background:#fee2e2;color:#991b1b}
+.fb-item{background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:8px}
+.fb-obj{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.fb-text{font-size:11px;color:#334155;line-height:1.7;white-space:pre-wrap}
+.fb-meta{font-size:10px;color:#94a3b8;margin-top:6px}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+</style>
+</head>
+<body>
+<button class="pdf-btn" onclick="document.title=' ';alert('인쇄 설정:\n1. 여백: 없음\n2. 배경 그래픽: 체크 ✓\n3. 머리글/바닥글: 해제');window.print()">📄 PDF 내려받기</button>
+
+<!-- 표지 -->
+<div class="page cover">
+<div class="cover-inner">
+<div class="logo">Childy</div>
+<h1>2026년 2분기<br>운영본부 DX팀<br>팀장 피드백 리포트</h1>
+<p class="sub">구성원들이 제출한 OKR, JD/R&R, 중간 체크인 데이터를 토대로 팀장(박명수)이 작성한 분기별 피드백 리포트입니다.</p>
+</div>
+<div class="foot">© childy.co.kr. All rights reserved</div>
+</div>
+
+<!-- 요약 -->
+<div class="page">
+<div class="st">팀장 피드백 요약</div>
+<p style="font-size:11px;color:#475569;margin-bottom:14px">평가 기간: 2026.04 ~ 2026.06 | 작성자: 박명수 (DX팀 팀장) | 작성일: 2026.07.06</p>
+<table style="width:100%;border-collapse:collapse;margin-top:10px">
+<thead><tr style="background:#2563EB;color:#fff;font-size:11px;font-weight:600"><th style="padding:9px 12px;text-align:left">구성원</th><th style="padding:9px 12px;text-align:center">직무</th><th style="padding:9px 12px;text-align:center">OKR 수</th><th style="padding:9px 12px;text-align:center">Grade</th></tr></thead>
+<tbody style="font-size:11px">
+<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:9px 12px;font-weight:600">김강모</td><td style="padding:9px 12px;text-align:center">프론트개발</td><td style="padding:9px 12px;text-align:center">5</td><td style="padding:9px 12px;text-align:center"><span class="sb sb-vg">Very good</span></td></tr>
+<tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc"><td style="padding:9px 12px;font-weight:600">김슬기</td><td style="padding:9px 12px;text-align:center">프론트개발</td><td style="padding:9px 12px;text-align:center">7</td><td style="padding:9px 12px;text-align:center"><span class="sb sb-vg">Very good</span></td></tr>
+<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:9px 12px;font-weight:600">이정현</td><td style="padding:9px 12px;text-align:center">백엔드개발</td><td style="padding:9px 12px;text-align:center">4</td><td style="padding:9px 12px;text-align:center"><span class="sb sb-vg">Very good</span></td></tr>
+<tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc"><td style="padding:9px 12px;font-weight:600">이지원</td><td style="padding:9px 12px;text-align:center">콘텐츠마케팅</td><td style="padding:9px 12px;text-align:center">4</td><td style="padding:9px 12px;text-align:center"><span class="sb sb-p">Poor</span></td></tr>
+<tr><td style="padding:9px 12px;font-weight:600">배우람</td><td style="padding:9px 12px;text-align:center">마케팅</td><td style="padding:9px 12px;text-align:center">3</td><td style="padding:9px 12px;text-align:center"><span class="sb sb-p">Poor</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 김강모 -->
+<div class="page">
+<div class="ph"><div><div class="pn">김강모</div><div class="pr">프론트개발 · DX팀 · 멤버</div></div><div class="sb sb-vg">Very good</div></div>
+<div class="fb-item"><div class="fb-obj">O1. 성공적인 앱 이관을 통한 개발효율 50% 개선, 기술 전환 및 안정성 확보</div><div class="fb-text">자발적인 올데이히로 및 ParcdeGLGK 멀티테넌시 구조 설계 제안 및 수행, 런칭까지 매끄럽게 진행해주셔서 감사합니다.
+이를 통해 월비용 절감 및 운영 효율화, 원소스 멀티유즈가 가능한 환경이 구축되었다고 판단합니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 도메인 별 서비스 고도화를 통한 핵심 사용자 경험 개선</div><div class="fb-text">가상 피팅 시스템의 경우 큰 무리 없이 런칭이 되었고, 당사 AI 그래픽 생성 솔루션과 함께 '패션 그래픽' 생성의 교두보 혹은 주춧돌을 마련한 계기였다고 생각합니다.
+3분기에는 브랜드별 대기 환경 UI 세팅 및 클래스 후기 작성 시스템을 같이 잘 진행해보면 좋을 것 같습니다.
+히크릿도어 또한 세심하게 신경써주신 덕분에 큰 사고 없이 오픈 및 2회차까지 운영이 잘 되었습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 지속 가능한 성장을 위한 개발 표준 정립 및 기술 자산의 체계적 고도화</div><div class="fb-text">개발 효율화의 경우 문서화되지 않으면 그 내용을 가시적으로 파악하기 어렵습니다.
+따라서, 협업에 대한 내용 및 디벨럽된 내용들은 상시 문서화하여 파악할 수 있도록 공유 부탁드립니다.
+문서화된 DB는 LLM 데이터베이스로 향후 AI를 통한 신속하고 파괴적인 디벨롭에 큰 도움이 될 것 같습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O4. 물류 시딩 워크플로우 시스템 최적화 및 고도화를 통한 운영 리드타임 단축</div><div class="fb-text">물류 시딩 시스템 또한 현업의 페인포인트를 감지하고 솔루션화까지 이루어졌다는 점에서, 그리고 현업이 실제 매우 편리하게 사용하고 있다는 점에서 훌륭한 성취포인트라고 판단됩니다. 고생 많으셨습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O5. AI 비주얼 프로덕션 시스템 구축 및 디자인 파트 공백 대응</div><div class="fb-text">AI 비주얼 프로덕션 시스템은 전 패션업계가 도입에 사활을 걸고 있는 분야입니다. 해당 프로젝트의 리드로서 당사 디자인 퍼널 공백 하에서도 비교적 우수한 산출물을 내주셨다는 점에서 감사드리며, 3분기에도 많은 지원 부탁드립니다.</div></div>
+</div>
+
+<!-- 김슬기 -->
+<div class="page">
+<div class="ph"><div><div class="pn">김슬기</div><div class="pr">프론트개발 · DX팀 · 멤버</div></div><div class="sb sb-vg">Very good</div></div>
+<div class="fb-item"><div class="fb-obj">O1. 네이티브 앱 이관을 통한 모바일 UX 도약 및 개발 생산성 극대화</div><div class="fb-text">성공적인 올데이히로 및 지엘지케이 앱 이관을 통해, 개발 확장성과 운영 안정성이 모두 확보되었습니다. 부가 비용 절감 및 자사 인프라와의 정합성도 증대된 것으로 확인됩니다. 향후 앱 유지 보수 및 개발에 많은 도움 부탁드립니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 기술·API 문서화를 통한 기술 부채 해소 및 개발 효율 향상</div><div class="fb-text">현재 전체 달성률 63%를 기록 중인데, 실제 작성된 문서화 내용은 단순 기록에 그치지 않고 당사 허브에 체계적으로 아카이빙될 수 있도록 최종 체크를 부탁드리며, AI를 활용해 지속적으로 문서를 갱신하고 고도화하는 루프 디벨롭 프로세스를 고민해 주시기 바랍니다. 모든 개발 이력을 건바이건으로 명확히 남겨주시고, 히스토리가 조직의 유용한 기술 자산으로 축적되도록 신경 써주시면 좋겠습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 마케팅 물류 시딩 자동화를 통한 운영 생산성 극대화</div><div class="fb-text">이번 분기 담당자 변경 등의 리소스 이슈로 진척률을 올리기 어려운 상황이었음을 이해합니다. 다만 향후 프로젝트 도중 R&R 공백이 발생할 때는 '중간 체크인'을 통해 즉시 리더에게 점검을 요청하고 목표를 조정해 주시길 당부드립니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O4. 프론트 인터랙션 기술을 활용한 몰입형 이벤트 콘텐츠 개발</div><div class="fb-text">관련 프로젝트가 전무하여 진행할 수 없었던 상황은 이해합니다. 다만 해당 과제가 무산되었다면 '중간 체크인'을 통해 즉시 공유하고 목표를 수정했어야 합니다. 프론트엔드 개발자로서 충분히 시도할 수 있었던 KR2(최적화)와 KR3(구조 설계)마저 무진척으로 끝난 점은 아쉽습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O5. 핵심 사용자 경험 개선</div><div class="fb-text">KR1(가상피팅)과 KR4(히크릿도어)에서 100% 달성을 기록하며 훌륭한 성과를 보여주셨습니다. 다만 KR2와 KR3가 미착수로 마무리된 점은 아쉬움이 남는데, 향후 진행이 가로막힌다면 현업에 선제적으로 확인한 뒤 중간 체크인을 통해 목표를 가감해 주시기 바랍니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O6. AI 프로덕션 도입을 통한 패션 콘텐츠 제작 혁신</div><div class="fb-text">디자인 퍼널의 부재라는 어려운 상황 속에서도 적극적인 지원을 통해 공백을 메꾸며 AI 제작 파이프라인을 구축하기 위해 노력해 주신 점 감사드립니다. 인력 공백을 메워가며 주도적으로 비주얼 전환율 확대와 자동화 체계를 만들어가고 있는 과정 자체를 매우 높게 평가합니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O7. 리소스 공백 대응 및 제작 업무 지원 (6월)</div><div class="fb-text">인력 공백 상황 속에서 웹디자인, UI/UX, 운영 콘텐츠 및 상품 이미지 제작까지 다방면으로 업무를 전폭 지원해 주신 덕분에 모든 KR을 100% 달성해 주셨습니다. 조직에 실질적인 기여를 해준 점 감사드립니다. 어려운 환경에서도 책임감 있게 제작 업무 전반을 책임져 주셔서 고생 많으셨습니다.</div></div>
+</div>
+
+<!-- 이정현 -->
+<div class="page">
+<div class="ph"><div><div class="pn">이정현</div><div class="pr">백엔드개발 · DX팀 · 멤버</div></div><div class="sb sb-vg">Very good</div></div>
+<div class="fb-item"><div class="fb-obj">O1. E2E QA 자동화 도입으로 수동 테스트 시간·인건비 절감</div><div class="fb-text">수동 테스트 비용 절감과 생산성 향상을 위해 E2E 자동화 인프라를 탄탄히 구축해 주셔서 감사합니다. 특히 KR1(80%)과 KR2(100%)에서 높은 성과를 내어 핵심 플로우의 안정성이 확보되었습니다. 다만 타 프로젝트 확장(KR3, 0%)은 진행이 막혔을 때 중간 체크인을 통해 목표를 조정하지 못하고 방치된 점이 아쉽습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. FinOps 실천으로 유지비 절감 — 레거시 전환 및 서버비용 최적화</div><div class="fb-text">핀옵스 과제가 진척률 0%로 마무리되어 비즈니스 임팩트 측면에서 아쉬움이 큽니다. 레거시 전환은 고정비 절감과 직결되는 중요한 업무인 만큼, 진행이 어려웠다면 중간 체크인을 통해 병목 원인을 공유하고 범위를 조정했어야 합니다. 3분기에는 서버비 최적화와 더불어 AI 토큰 비용·SaaS 비용 효율화까지 범위를 확장해 주시기 바랍니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. AI 에이전트 업무 대응 범위 확장 (SaaS 개발 및 활성화 추진)</div><div class="fb-text">AI 에이전트의 업무 대응 범위를 확장하여 현장 생산성 향상에 기여해 주신 점 감사드립니다. 다만 기능 추가(KR1, 70%)나 데이터 대상 확대(KR2, 50%) 같은 정성적 개발 목표에 치우친 점은 아쉽습니다. 다음 분기에는 실제 '즉시 답변율'이 얼마나 향상되었는지, 오답률을 얼마나 낮췄는지 등 비즈니스 가치와 직결되는 정량적 성과를 증명하는 데 집중해 주시기 바랍니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O4. 외부 연동을 통해 수작업 자동화 — 운영 고정비 절감</div><div class="fb-text">특히 KR2(카페24↔세원WMS 반품 연동)를 100% 완수하여 실질적인 운영 효율을 높여주신 점은 훌륭한 성과입니다. 다만 KR1(RFID 검수)이 회사 정책상 드랍되었다면 중간 체크인을 통해 즉시 목표를 수정했어야 합니다. 다음 분기에는 외부 변동 사항 발생 시 즉시 목표를 가감하는 매니징을 보여주시기 바라며, 에러율 최적화와 알림 체계를 보완하여 완전한 자동화를 완성해 주시기 바랍니다.</div></div>
+</div>
+
+<!-- 이지원 -->
+<div class="page">
+<div class="ph"><div><div class="pn">이지원</div><div class="pr">콘텐츠마케팅 · DX팀 · 멤버</div></div><div class="sb sb-p">Poor</div></div>
+<div class="fb-item"><div class="fb-obj">O1. 차일디 인스타 채널 오가닉 도달 극대화</div><div class="fb-text">비팔로워 도달 콘텐츠(100%)와 팔로워 이벤트 유입(100%)은 목표를 완수했습니다. 다만 이 업무의 실질 투입량은 주 2회 발행 기준 분기 12 M/D 수준으로 가용 60 M/D 대비 20%에 불과합니다. 오가닉 방문자 23.3% 증가는 주 2회 발행 루틴의 자연 성장 범주이며, 별도의 전략적 돌파를 통해 만들어진 성과로 보기 어렵습니다. 3분기에는 도달수를 매출 전환으로 연결하는 퍼널 설계까지 확장해주세요.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 데이터 기반 고효율 소재 발굴 및 CRM 최적화</div><div class="fb-text">ROAS 1000% 이상 4건(100%)은 기존 고효율 타겟 세그먼트 재활용 결과로 판단됩니다. 클릭률 50% 소재 3건 중 1건(33%), AI 툴 도입 미착수(0%). CRM 발송은 건당 30분, 월 48건 기준 분기 9 M/D로 오퍼레이션 자체는 크지 않으며, 소재 기획·카피 테스트·성과 분석 루프의 실행 흔적이 거의 없습니다. 이 OKR에 대해 분기 중 중간 보고·체크인이 단 한 건도 없었습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 인플루언서 협업 체계 고도화 및 브랜드 팬덤 구축</div><div class="fb-text">56명 리스트업(100%)과 히트 게시물 3건(100%)은 분기 내 가장 의미 있는 성과입니다. 투입량도 약 28 M/D로 상당하고, 키워드 상단 노출 1건은 브랜드 검색 유입에 직접 기여하는 비즈니스 임팩트입니다. 다만 56명 협업의 최종 비즈니스 임팩트(매출 전환)를 정량적으로 트래킹하지 못한 점은 아쉽습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O4. 인스타그램 콘텐츠 기반 OSMU 확장 — 타 플랫폼 오가닉 트래픽</div><div class="fb-text">4개 KR 전부 사실상 미착수(0%, 0%, 0%, 4%). 잔여 가용 시간 약 11 M/D로 착수에 충분한 여유가 있었습니다. 이 OKR 역시 중간 보고·체크인이 단 한 건도 없었습니다. 전반적으로 본인이 수립한 목표에 대해서는 지시를 기다리지 않고 자발적으로 진행 상황을 공유하고 피드백을 요청하는 자세가 필요합니다.</div></div>
+</div>
+
+<!-- 배우람 -->
+<div class="page">
+<div class="ph"><div><div class="pn">배우람</div><div class="pr">마케팅 · DX팀 · 멤버</div></div><div class="sb sb-p">Poor</div></div>
+<div class="fb-item"><div class="fb-obj">O1. 분기별 목표 매출 달성</div><div class="fb-text">ROAS 평균 330%로 목표 350% 대비 소폭 미달(59%)이며, 행사 이후 매출 방어(0%)는 미착수입니다. ROAS 330% 유지는 기존 퍼포먼스 광고 세팅을 그대로 운영한 결과이며, 행사 후 매출 방어를 위한 콘텐츠 투입 계획을 별도로 수립하거나 실행한 흔적이 없습니다. 이 OKR에 대한 중간 보고나 체크인도 부재했으며, 매출이라는 핵심 지표를 분기 내내 별도로 관리한 기록이 확인되지 않습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 유통망 다각화 및 대형 구좌 영업</div><div class="fb-text">3개 KR 전부 0%로 완전 미착수입니다. R&R에 '외부 몰 영업, 신규샵 조사'가 명시되어 있음에도 분기 내 단 1건의 컨택도 체크인되지 않았습니다. 영업 컨택은 건당 1~2시간이면 가능하므로 분기 내 20건은 총 5~10 M/D로 불가능한 볼륨이 아닙니다. 이 OKR 역시 중간 보고·체크인이 단 한 건도 없어 관리자가 상황을 파악할 기회가 전혀 없었습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 컨텐츠 제작 및 인플루언서 협업 극대화</div><div class="fb-text">인플루언서 시딩 20명 완료(100%)는 유일하게 달성된 KR입니다. 그러나 완판 캐리오버(0%)와 FW 콜라보 계약(0%)은 미착수. 시딩 20명은 반복 운영 업무(10 M/D)이며, 잔여 약 23 M/D가 영업·콜라보에 투입 가능했으나 활용되지 않았습니다. 전반적으로 본인이 수립한 목표에 대해서는 자발적으로 진행 상황을 공유해주시기 바랍니다. 반복 운영 업무만 수행하고 도전적 목표가 방치되는 패턴은 3분기에 반드시 개선이 필요합니다.</div></div>
+</div>
+
+</body>
+</html>

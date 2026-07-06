@@ -3167,7 +3167,11 @@ function renderMyReceivedFeedback(container) {
     });
     const hasBLevel = bLevelFeedbacks.length > 0;
     const hasCLevel = cLevelFeedbacks.length > 0;
-    const feedbackUnlocked = hasCLevel || STATE._feedbackPreviewUnlocked;
+
+    // 피드백 열람 가능 여부: period_settings의 feedback_visible 기준
+    const periodSetting = (STATE.periodSettings || []).find(p => p.period_value === selectedPeriod);
+    const isFeedbackVisible = periodSetting ? periodSetting.feedback_visible : false;
+    const feedbackUnlocked = isFeedbackVisible || STATE._feedbackPreviewUnlocked;
 
     // OKR 목록 (해당 기간)
     const isQuarterly = selectedPeriod.includes('Q');
@@ -4931,6 +4935,56 @@ function renderAdminSettings(container) {
     h += '</div>';
     
     h += '</div>';
+
+    // 피드백 열람 관리 박스
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">피드백 열람 관리</h3>';
+    h += '<p class="text-[13px] text-on-surface-variant mb-6">구성원이 피드백을 열람할 수 있는 기간을 설정합니다. 열람 가능을 켜면 해당 기간의 피드백이 구성원에게 공개됩니다.</p>';
+
+    function renderFeedbackRow(p) {
+        const visibleChecked = p.feedback_visible ? 'checked' : '';
+        const openDate = p.feedback_open_date ? p.feedback_open_date.split('T')[0] : '';
+        const closeDate = p.feedback_cloase_date ? p.feedback_cloase_date.split('T')[0] : '';
+        const statusText = p.feedback_visible ? '열람 가능' : '비공개';
+        const statusColor = p.feedback_visible ? 'text-success bg-success/10' : 'text-on-surface-variant bg-surface-container';
+        return `
+            <div class="bg-white rounded-xl border border-blue-50 shadow-sm px-5 py-4 mb-3">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-4">
+                        <span class="text-[14px] font-bold text-on-surface min-w-[120px]">${p.label}</span>
+                        <span class="text-[12px] font-bold ${statusColor} px-2.5 py-1 rounded-full">${statusText}</span>
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" ${visibleChecked} onchange="toggleFeedbackVisible(${p.id}, this.checked)" class="w-4 h-4 accent-primary">
+                        <span class="text-[13px] font-bold text-on-surface-variant">열람 가능</span>
+                    </label>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[12px] text-on-surface-variant">시작일</span>
+                        <input type="date" value="${openDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_open_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[12px] text-on-surface-variant">종료일</span>
+                        <input type="date" value="${closeDate}" onchange="updateFeedbackDate(${p.id}, 'feedback_cloase_date', this.value)" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    h += '<div class="mb-6">';
+    h += '<h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>분기별</h4>';
+    h += quarterlyPeriods.map(renderFeedbackRow).join('');
+    h += '</div>';
+
+    h += '<div>';
+    h += '<h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-500"></span>연간</h4>';
+    h += yearlyPeriods.map(renderFeedbackRow).join('');
+    h += '</div>';
+
+    h += '</div>';
+
     h += '</div>';
     container.innerHTML = h;
 }
@@ -4950,6 +5004,37 @@ window.togglePeriodSetting = async function(id, field, value) {
     } catch (e) {
         console.error('Error updating period setting:', e);
         alert('설정 변경 중 오류가 발생했습니다.');
+    }
+};
+
+window.toggleFeedbackVisible = async function(id, value) {
+    try {
+        await baserowFetch('/database/rows/table/2132/' + id + '/?user_field_names=true', {
+            method: 'PATCH',
+            body: JSON.stringify({ feedback_visible: value })
+        });
+        const ps = STATE.periodSettings.find(p => p.id === id);
+        if (ps) ps.feedback_visible = value;
+        renderCurrentView();
+    } catch (e) {
+        console.error('Error updating feedback visibility:', e);
+        alert('피드백 열람 설정 변경 중 오류가 발생했습니다.');
+    }
+};
+
+window.updateFeedbackDate = async function(id, field, value) {
+    try {
+        const updateData = {};
+        updateData[field] = value ? value + 'T00:00:00Z' : null;
+        await baserowFetch('/database/rows/table/2132/' + id + '/?user_field_names=true', {
+            method: 'PATCH',
+            body: JSON.stringify(updateData)
+        });
+        const ps = STATE.periodSettings.find(p => p.id === id);
+        if (ps) ps[field] = value ? value + 'T00:00:00Z' : null;
+    } catch (e) {
+        console.error('Error updating feedback date:', e);
+        alert('날짜 설정 변경 중 오류가 발생했습니다.');
     }
 };
 

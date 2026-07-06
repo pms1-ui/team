@@ -3137,19 +3137,31 @@ function renderMyReceivedFeedback(container) {
     const allPeriods = [...quarterlyOptions, ...yearlyOptions];
 
     if (!STATE.feedbackPeriod || !allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
-        STATE.feedbackPeriod = '2026-Q2';
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentQuarter = Math.ceil((now.getMonth() + 1) / 3);
+        STATE.feedbackPeriod = `${currentYear}-Q${currentQuarter}`;
+        if (!allPeriods.find(p => p.value === STATE.feedbackPeriod)) {
+            STATE.feedbackPeriod = '2026-Q2';
+        }
     }
     const selectedPeriod = STATE.feedbackPeriod;
 
     // 나에게 온 피드백 데이터
     const myFeedbacks = (STATE.assessmentData || []).filter(a => a.target_id === STATE.user.id && a.period_value === selectedPeriod);
 
-    // C Level 피드백 존재 여부 확인
-    const hasCLevelFeedback = myFeedbacks.some(f => {
+    // B Level / C Level 피드백 존재 여부 확인
+    const bLevelFeedbacks = myFeedbacks.filter(f => {
+        const reviewer = STATE.members.find(m => m.user_id === f.reviewer_id);
+        return reviewer && reviewer.position === '팀장';
+    });
+    const cLevelFeedbacks = myFeedbacks.filter(f => {
         const reviewer = STATE.members.find(m => m.user_id === f.reviewer_id);
         return reviewer && (reviewer.position === '본부장' || reviewer.position === '대표');
     });
-    const feedbackUnlocked = hasCLevelFeedback || STATE._feedbackPreviewUnlocked;
+    const hasBLevel = bLevelFeedbacks.length > 0;
+    const hasCLevel = cLevelFeedbacks.length > 0;
+    const feedbackUnlocked = hasCLevel || STATE._feedbackPreviewUnlocked;
 
     // OKR 목록 (해당 기간)
     const isQuarterly = selectedPeriod.includes('Q');
@@ -3169,7 +3181,7 @@ function renderMyReceivedFeedback(container) {
         h += `<option value="${p.value}" ${selectedPeriod === p.value ? 'selected' : ''}>${p.label}</option>`;
     });
     h += '</select>';
-    if (myFeedbacks.length > 0) {
+    if (feedbackUnlocked && myFeedbacks.length > 0) {
         h += `<span class="text-[13px] font-bold text-success bg-success/10 px-3 py-1.5 rounded-full">${myFeedbacks.length}건의 피드백</span>`;
     }
     h += '</div>';
@@ -3181,8 +3193,18 @@ function renderMyReceivedFeedback(container) {
     } else if (!feedbackUnlocked) {
         h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
             <div class="text-[40px] mb-4">🔒</div>
-            <p class="text-[15px] font-bold text-on-surface mb-2">피드백이 아직 공개되지 않았습니다</p>
-            <p class="text-[13px] text-on-surface-variant mb-6">C Level(본부장) 피드백이 완료된 후 열람 가능합니다.</p>
+            <p class="text-[15px] font-bold text-on-surface mb-4">피드백이 아직 공개되지 않았습니다</p>
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full ${hasBLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
+                    <span class="text-[13px] ${hasBLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">B Level (팀장) ${hasBLevel ? '완료' : '대기중'}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full ${hasCLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
+                    <span class="text-[13px] ${hasCLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">C Level (본부장) ${hasCLevel ? '완료' : '대기중'}</span>
+                </div>
+            </div>
+            <p class="text-[12px] text-on-surface-variant mb-6">모든 레벨의 피드백이 완료된 후 공개됩니다.</p>
             <button onclick="promptFeedbackPreviewPassword()" class="px-5 py-2.5 bg-gray-700 text-white font-bold text-[13px] rounded-lg hover:bg-gray-800 transition-all">미리보기 (관리자용)</button>
         </div>`;
     } else {

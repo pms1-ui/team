@@ -3220,7 +3220,7 @@ function renderMyReceivedFeedback(container) {
         h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
             <div class="text-[40px] mb-4">🔒</div>
             <p class="text-[15px] font-bold text-on-surface mb-5">피드백이 아직 공개되지 않았습니다</p>
-            <div class="flex flex-col items-center gap-3 mb-5">
+            <div class="inline-flex flex-col items-start gap-3 mb-5">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full ${hasBLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
                     <span class="text-[13px] ${hasBLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">B Level (팀장) ${hasBLevel ? '완료' : '대기중'}</span>

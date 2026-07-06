@@ -3231,10 +3231,9 @@ function renderMyReceivedFeedback(container) {
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full ${isInPeriod ? 'bg-green-500' : 'bg-gray-300'}"></span>
-                    <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 ${isInPeriod ? '(현재 열람 가능)' : ''}</span>
+                    <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 (${openDateStr} ~ ${closeDateStr})</span>
                 </div>
             </div>
-            <p class="text-[12px] text-on-surface-variant mb-6">조회 기간: ${openDateStr} ~ ${closeDateStr}</p>
             <button onclick="promptFeedbackPreviewPassword()" class="px-5 py-2.5 bg-gray-700 text-white font-bold text-[13px] rounded-lg hover:bg-gray-800 transition-all">미리보기 (관리자용)</button>
         </div>`;
     } else {

@@ -542,7 +542,12 @@ window.openModal = function(title, content, onConfirmAction = null, isWide = fal
 };
 window.closeModal = function() {
     STATE.modalData = null;
-    renderCurrentView();
+    const modalEl = document.getElementById('app-modal');
+    if (modalEl) {
+        modalEl.remove();
+    } else {
+        renderCurrentView();
+    }
 };
 
 // --- Logic Implementation ---

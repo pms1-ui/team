@@ -5378,7 +5378,7 @@ window.showJobExample = function() {
         onConfirm: null,
         isWide: true
     };
-    renderCurrentView();
+    renderModal(document.body);
 };
 
 // Show R&R example
@@ -5454,7 +5454,7 @@ window.showRnRExample = function() {
         onConfirm: null,
         isWide: true
     };
-    renderCurrentView();
+    renderModal(document.body);
 };
 
 window.requestRnRAgreement = async function() {

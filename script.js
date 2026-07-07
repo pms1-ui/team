@@ -5225,7 +5225,7 @@ function renderRnRBrowse(container) {
     const filteredRnR = (STATE.rnrBrowseTeamFilter === 'all'
         ? STATE.rnrData
         : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter))
-        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && activeUserIds.includes(r.user_id));
+        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && activeUserIds.includes(r.user_id) && r.status === '합의 완료');
     
     let h = '<div class="max-w-4xl mx-auto">';
     

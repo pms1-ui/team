@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> </title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important;height:auto!important;page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  .eval-block{page-break-inside:avoid}
+  .pdf-btn{display:none!important}
+}
+.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;page-break-after:always}
+.page:last-child{page-break-after:auto}
+
+/* COVER */
+.cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
+.cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
+.cover h1{color:#fff;font-size:32px;font-weight:700;line-height:1.35;margin-bottom:16px}
+.cover .sub{color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;max-width:480px}
+.cover .foot{padding:0 28mm 20mm;color:rgba(255,255,255,.5);font-size:10px;margin-top:auto}
+</style>
+</head>
+<body>
+<style>
+.st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.tbl{width:100%;border-collapse:collapse;margin-top:12px}
+.tbl th{background:#2563EB;color:#fff;font-weight:600;padding:9px 10px;font-size:11px;text-align:center}
+.tbl td{padding:9px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center}
+.tbl tr:nth-child(even){background:#f8fafc}
+.tbl td:first-child{font-weight:600;text-align:left}
+.person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.person-name{font-size:18px;font-weight:700}
+.person-role{font-size:12px;color:#475569}
+.score-badge{margin-left:auto;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600}
+.score-high{background:#dcfce7;color:#166534}.score-mid{background:#fef9c3;color:#854d0e}.score-low{background:#fee2e2;color:#991b1b}
+.scores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.score-box{background:#f8fafc;border-radius:8px;padding:12px;text-align:center}
+.score-box .label{font-size:11px;color:#64748b;margin-bottom:4px}
+.score-box .value{font-size:20px;font-weight:700}
+.section-title{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.okr-list{list-style:none;padding:0;margin:12px 0 18px}
+.okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.okr-list li:last-child{border-bottom:none}
+.okr-pct{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9}
+.eval-block{background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:10px}
+.eval-block .block-title{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.eval-block ul{padding-left:16px;margin:0}
+.eval-block li{font-size:12px;color:#334155;margin-bottom:3px}
+.eval-block p{font-size:12px;color:#334155;margin:0;line-height:1.7}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
+.tag-s{background:#dbeafe;color:#1e40af}.tag-i{background:#fef3c7;color:#92400e}
+.info-box{background:#f1f5f9;border-radius:8px;padding:14px;margin-top:16px}
+.info-box p{font-size:11px;color:#475569;line-height:1.7}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+<div class="person-header"><div><div class="person-name">이지원</div><div class="person-role">콘텐츠마케팅 · DX팀 · 멤버</div></div><div class="score-badge score-low">종합 5.8</div></div>
+<div class="scores-grid"><div class="score-box"><div class="label">직무적합성</div><div class="value">6.5</div></div><div class="score-box"><div class="label">역량</div><div class="value">5.5</div></div><div class="score-box"><div class="label">근면성실도</div><div class="value">5.5</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>인스타 오가닉 도달 극대화</span><span class="okr-pct">93%</span></li>
+<li><span>데이터 기반 고효율 소재 + CRM 최적화</span><span class="okr-pct">44%</span></li>
+<li><span>인플루언서 협업 체계 고도화</span><span class="okr-pct">78%</span></li>
+<li><span>OSMU 확장 — 타 플랫폼 트래픽</span><span class="okr-pct">1%</span></li>
+</ul>
+<div class="eval-block"><div class="block-title">▸ 업무량 (M/D)</div><ul>
+<li>인스타 주 2회 = 분기 12 M/D</li>
+<li>CRM 월 4~8건 = 분기 3~6 M/D</li>
+<li>인플루언서 56명 = 분기 14~20 M/D</li>
+<li>합산 29~38 M/D → <b>가용 60 M/D의 50~63%</b></li>
+</ul></div>
+<div class="eval-block"><div class="block-title">▸ 임팩트</div><ul>
+<li>오가닉 +23.3%(목표 30%) → 운영 루틴 자연 성장</li>
+<li>인플루언서 56명 + 키워드 노출 1건 → 매출 전환 미증명</li>
+<li>CRM 클릭률 50%+ 목표 3건 중 1건만</li>
+<li>ROAS 1000%+ 4건 → 기존 세그먼트 재활용</li>
+</ul></div>
+<div class="eval-block"><div class="block-title">▸ 미착수</div><ul>
+<li>OSMU 확장(스레드 3.69%) — 사실상 미착수 : O4 전체에 대한 체크인 기록이 0건. 타 플랫폼 확장 전략 자체가 수립되지 않은 상태로, 기존 인스타 운영에 안주하여 새로운 채널 개척 의지가 부재했던 것으로 추정.</li>
+<li>AI 툴 도입 — 0% : CRM 최적화를 위한 AI 도입이 O2의 핵심 KR이었으나 착수조차 하지 않음. O2에 대한 체크인도 0건으로, 새로운 기술 학습·적용에 대한 주도성 부족이 원인.</li>
+<li>타 매체 10만회 — 0% : 유튜브·틱톡 등 타 플랫폼 콘텐츠 제작 계획이 있었으나, 인스타 반복 운영에 시간을 소진하여 신규 매체 진입 시도 자체가 없었음.</li>
+<li>스레드 100명 팔로워 — 4% : 최소한의 계정 개설만 수행. 콘텐츠 전략·포스팅 루틴이 전혀 확보되지 않은 상태.</li>
+</ul></div>
+<div class="eval-block"><div class="block-title">▸ 종합 판단</div><p>투입량 산정: 인스타 주 2회(12 M/D) + CRM 월 4~8건(3~6 M/D) + 인플루언서 56명(14~20 M/D) = 합산 약 29~38 M/D. 가용 60 M/D 대비 49~63% 수준이며, 잔여 22~31 M/D가 미활용 상태. 이는 업무 밀도가 현저히 낮음을 의미.<br>
+비즈니스 임팩트 종합: O1 인스타 도달 93%는 양호하나, 이는 기존 루틴의 자연 성장분에 해당하여 '새로운 임팩트 창출'이라기보다 '기존 운영 유지'에 가까움. 인플루언서 56명 확보는 양적 성과이나 매출 전환(ROAS, 구매율)이 미증명. CRM ROAS 1000%+ 4건은 기존 세그먼트 재활용으로 신규 고객 확장과 무관.<br>
+미착수 원인 분석: O2(CRM AI), O4(OSMU) 모두 체크인 0건으로, 진척 시도 자체가 없었음. 이는 리소스 부족이 아닌 실행 의지·주도성 부족으로 판단. 가용 M/D의 38~51%가 비할당 상태였음에도 신규 과제에 투입하지 않은 점이 핵심 문제.<br>
+R&R 대비 정합성: 소셜 미디어 운영, CRM, 인플루언서 파트너십이라는 R&R 중 소셜 미디어(O1)와 인플루언서(O3)는 수행했으나, CRM 고도화(O2)와 채널 확장(O4)은 미실행. R&R의 50%만 이행.<br>
+반복 운영 vs 도전적 업무 비율: 반복 운영 85%(인스타 정기 포스팅, 기존 세그먼트 CRM, 루틴 시딩) / 도전적 업무 15%(인플루언서 신규 발굴 정도). 도전적 업무 비율이 극히 낮아 성장성·확장성에 의문.<br>
+3분기 방향성 제언: ① 업무 밀도 최소 80%(48 M/D) 이상으로 끌어올릴 것, ② OSMU 확장을 1순위로 배정하고 주간 체크인 필수, ③ AI 툴 도입을 구체적 마일스톤(예: 1주차 툴 선정, 2주차 파일럿, 4주차 정식 적용)으로 분해, ④ CRM은 신규 세그먼트 발굴 + A/B 테스트로 성과 범위 확장, ⑤ 인스타 운영 효율화(자동화)로 반복 공수 축소 후 잉여 M/D를 도전 과제에 재배분.</p></div>
+<div class="tags"><span class="tag tag-s">인플루언서 56명</span><span class="tag tag-s">ROAS 1000% 4건</span><span class="tag tag-i">밀도 부족</span><span class="tag tag-i">OSMU 미착수</span><span class="tag tag-i">AI 미실행</span></div>
+</body></html>

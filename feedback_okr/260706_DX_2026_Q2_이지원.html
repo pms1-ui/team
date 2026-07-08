@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> </title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important;height:auto!important;overflow:visible!important;page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  .fb-item{page-break-inside:avoid}
+  .pdf-btn{display:none!important}
+}
+.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;page-break-after:always}
+.page:last-child{page-break-after:auto}
+.page-vcenter{display:flex;flex-direction:column;justify-content:center;height:297mm}
+.cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
+.cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
+.cover h1{color:#fff;font-size:32px;font-weight:700;line-height:1.35;margin-bottom:16px}
+.cover .sub{color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;max-width:480px}
+.cover .foot{padding:0 28mm 20mm;color:rgba(255,255,255,.5);font-size:10px;margin-top:auto}
+.st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.ph{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+.pn{font-size:16px;font-weight:700}
+.pr{font-size:11px;color:#475569}
+.sb{margin-left:auto;padding:4px 12px;border-radius:16px;font-size:13px;font-weight:700}
+.sb-vg{background:#dcfce7;color:#166534}.sb-p{background:#fee2e2;color:#991b1b}
+.fb-item{background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:8px}
+.fb-obj{font-size:11px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.fb-kr-list{margin:6px 0 8px;padding:0;list-style:none}
+.fb-kr-list li{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:10px;color:#475569;border-bottom:1px solid #f1f5f9}
+.fb-kr-list li:last-child{border-bottom:none}
+.fb-kr-pct{font-weight:700;font-size:10px;color:#1e293b}
+.fb-text{font-size:11px;color:#334155;line-height:1.7;white-space:pre-wrap;border-top:1px solid #e2e8f0;padding-top:10px;margin-top:8px}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+</style>
+</head>
+<body>
+<button class="pdf-btn" onclick="document.title=' ';alert('인쇄 설정:\n1. 여백: 없음\n2. 배경 그래픽: 체크 ✓\n3. 머리글/바닥글: 해제');window.print()">📄 PDF 내려받기</button>
+
+<!-- 표지 -->
+<div class="page">
+<div class="ph"><div><div class="pn">이지원</div><div class="pr">콘텐츠마케팅 · DX팀 · 멤버</div></div></div>
+<div class="fb-item"><div class="fb-obj">O1. 차일디 인스타 채널 오가닉 도달 극대화</div><ul class="fb-kr-list"><li><span>KR1. 비팔로워 도달 비율 80% 이상 콘텐츠 월 3건 발굴</span><span class="fb-kr-pct">100%</span></li><li><span>KR2. 팔로워 참여형 이벤트 건당 30명 신규 팔로워 유입</span><span class="fb-kr-pct">100%</span></li><li><span>KR3. 신규 콘텐츠 발행 주 2회 확대, 오가닉 방문자 수 전분기 대비 30% 증대</span><span class="fb-kr-pct">78%</span></li></ul><div class="fb-text">체크인 해주신 부분 확인 시, 비팔로워 도달 콘텐츠(100%)와 팔로워 이벤트 유입(100%)은 목표를 완수했습니다. 다만 이 업무의 실질 투입량은 인스타 주 2회 발행 기준 분기 12 M/D 수준으로, 분기 가용 60 M/D 대비 20%에 불과합니다. 또한 오가닉 방문자 23.3% 증가는 주 2회 발행 루틴의 자연 성장 범주이며, 별도의 전략적 돌파(바이럴 콘텐츠 기획, 릴스 포맷 실험 등)를 통해 만들어진 성과로 보기 어렵습니다. 달성률은 높으나 업무 난이도와 비즈니스 임팩트 측면에서 "반복 운영 업무의 안정적 수행"으로 평가되며, 3분기에는 도달수를 매출 전환으로 연결하는 퍼널 설계까지 확장해주세요.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 데이터 기반 고효율 소재 발굴 및 CRM 최적화</div><ul class="fb-kr-list"><li><span>KR1. 후킹 카피 분석 앱푸쉬/알림톡 클릭률 50% 이상 소재 3건 발굴</span><span class="fb-kr-pct">33%</span></li><li><span>KR2. 고효율 타겟팅 ROAS 1,000% 이상 캠페인 3건 달성</span><span class="fb-kr-pct">100%</span></li><li><span>KR3. AI 툴 도입을 통한 소재 제작 업무 효율화 디자인 협업 공수 20% 절감</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">ROAS 1000% 이상 4건 달성(100%)은 수치상 성과이나, 기존 고효율 타겟 세그먼트 재활용에 의한 결과로 판단됩니다. 클릭률 50% 이상 소재는 3건 목표 중 1건(33%), AI 툴 도입은 완전 미착수(0%)입니다. CRM 발송 업무는 건당 30분 수준으로, 월 48건 발송 기준으로도 월 24시간(약 3 M/D) = 분기 9 M/D 정도의 투입량입니다. 이는 발송 "오퍼레이션" 자체는 크지 않다는 뜻이며, 진짜 공수가 들어야 할 영역은 소재 기획·카피 테스트·성과 분석 루프인데 이 부분에 대한 실행 흔적이 거의 없습니다. 더 우려되는 점은 이 OKR에 대해 분기 중 단 한 번의 중간 보고나 체크인도 없었다는 것입니다. 진척 상황을 공유하지 않았다는 것은 목표에 대한 주도적 관리 의지가 부족했음을 의미합니다. 3분기에는 발송 루틴과 별개로 주나 월단위 A/B 테스트 실험을 분리하여 관리하고, AI 소재 제작 도구를 자발적으로 도입 및 체크인해주시기 바랍니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 인플루언서 협업 체계 고도화 및 브랜드 팬덤 구축</div><ul class="fb-kr-list"><li><span>KR1. 브랜드 핏 키즈 인플루언서 50명 리스트업</span><span class="fb-kr-pct">100%</span></li><li><span>KR2. 인플루언서 발굴 건당 조회수 10만회 또는 좋아요 1천 이상 히트 게시물 3건</span><span class="fb-kr-pct">100%</span></li><li><span>KR3. 인플루언서 가이드라인 고도화 키워드 첫 페이지 상단 노출 캠페인당 3건</span><span class="fb-kr-pct">33%</span></li></ul><div class="fb-text">56명 리스트업(100%)과 히트 게시물 3건(100%)은 분기 내 가장 의미 있는 성과입니다. 투입량도 56명 × 건당 0.5일 = 약 28 M/D로 상당한 리소스가 들어갔고, 키워드 상단 노출 1건은 SEO 관점에서 브랜드 검색 유입에 직접 기여하는 비즈니스 임팩트입니다. 다만 키워드 상단 노출 3건 목표 대비 1건(33%)은 가이드라인의 키워드 전략 체계화가 아직 부족함을 시사합니다. 또한 56명 협업의 최종 비즈니스 임팩트(매출 전환, 신규 고객 유입 수)를 정량적으로 지속 트래킹되지 못하고 있는 점은 아쉽습니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O4. 인스타그램 콘텐츠 기반 OSMU 확장을 통한 타 플랫폼 오가닉 트래픽 확보</div><ul class="fb-kr-list"><li><span>KR1. OSMU 상시 운영 타 매체 통합 누적 조회수 10만회</span><span class="fb-kr-pct">0%</span></li><li><span>KR2. 타 매체 확장 자사몰 오가닉 신규 방문자 100명 추가</span><span class="fb-kr-pct">0%</span></li><li><span>KR3. 플랫폼별 알고리즘 최적화 인스타 동일 게시물 대비 조회수 30% 증대</span><span class="fb-kr-pct">0%</span></li><li><span>KR4. 스레드 동시 업로드를 통한 총합 도달수 20% 증대</span><span class="fb-kr-pct">4%</span></li></ul><div class="fb-text">4개 KR 전부 사실상 미착수(0%, 0%, 0%, 4%)입니다. OSMU는 기존 인스타 콘텐츠를 타 플랫폼에 재가공 없이 유통하는 것이므로 추가 제작 공수가 매우 낮음에도(예상 분기 5~8 M/D) 실행하지 못했습니다. 다른 3개 OKR의 실질 투입량을 재산정하면, O1 인스타 발행(분기 12 M/D) + O2 CRM 발송(분기 9 M/D) + O3 인플루언서 시딩(분기 28 M/D) = 약 49 M/D — 잔여 가용 시간이 약 11 M/D로 OSMU 착수에 충분한 여유가 있었습니다. 이 OKR 역시 분기 내 중간 보고·체크인·코멘트가 단 한 건도 없었습니다. 착수 자체를 하지 않은 목표에 대해 어떤 상황 공유도 없었다는 것은, 스스로 이 목표를 포기한 것과 다름없으며 관리자 입장에서는 진행 여부를 파악할 수단이 전혀 없었습니다. OKR은 작성 후 방치하는 문서가 아니라, 주간 체크인을 통해 살아 움직여야 하는 도구입니다. 3분기에 이 OKR을 유지한다면 주 1회 OSMU 업로드를 캘린더에 고정하고 격주 체크인에 진척을 반드시 보고해주세요. 전반적으로, 본인이 수립한 목표에 대해서는 지시를 기다리지 않고 자발적으로 진행 상황을 공유하고 피드백을 요청하는 자세가 필요합니다.</div></div>
+</div>
+
+<!-- 배우람 -->
+<div class="page">
+<div class="ph"><div><div class="pn">배우람</div><div class="pr">마케팅 · DX팀 · 멤버</div></div></div>
+<div class="fb-item"><div class="fb-obj">O1. 분기별 목표 매출 달성</div><ul class="fb-kr-list"><li><span>KR1. 통합 마케팅 채널 평균 ROAS 350% 기준 전분기 대비 30% 이상 상승</span><span class="fb-kr-pct">59%</span></li><li><span>KR2. 큰 행사 이후 매출 하락 10% 이내 방어</span><span class="fb-kr-pct">0%</span></li><li><span>KR3. (빈 KR)</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">ROAS 평균 330%로 목표 350% 대비 소폭 미달(59%)이며, 행사 이후 매출 방어(0%)는 체크인되지 않았거나 미착수입니다. 마케팅 직군의 핵심 존재 이유는 매출 기여인데, "목표 매출 달성"이라는 가장 본질적인 OKR에서 KR 2개가 0%라는 것은 심각한 상황입니다. ROAS 330% 유지는 기존 퍼포먼스 광고 세팅을 그대로 운영한 결과이며, 행사 후 매출 방어를 위한 오가닉/유가 콘텐츠 투입 계획을 별도로 수립하거나 실행한 흔적이나 코멘트가 없습니다. 이 OKR에 대한 중간 보고나 체크인도 부재했으며, 매출이라는 핵심 지표를 분기 내내 별도로 관리한 기록이 확인되지 않습니다. 3분기에는 주간 단위 매출·ROAS 트래킹을 필수로 수행하고, 행사 전후 콘텐츠 투입 캘린더를 사전에 수립해주세요.</div></div>
+<div class="fb-item"><div class="fb-obj">O2. 유통망 다각화 및 대형 구좌 영업</div><ul class="fb-kr-list"><li><span>KR1. 신규 샵 컨택 포인트 20개 이상 확보, 최소 1개 홀세일 거래 계약</span><span class="fb-kr-pct">0%</span></li><li><span>KR2. 29CM, 무신사 메인 구좌 노출 분기 2회 이상</span><span class="fb-kr-pct">0%</span></li><li><span>KR3. 무신사 스냅 50건 이상 + 브랜드 LIKE 1만</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">3개 KR 전부 0%로 완전 미착수입니다. 신규 샵 컨택 20개(0%), 메인 구좌 노출 2회(0%), 무신사 스냅 50건+LIKE 1만(0%) — R&R에 외부 몰 영업, 신규샵 조사가 명시되어 있음에도 분기 내 단 1건의 컨택도 체크인되지 않았습니다. 업무 투입량 측면에서 영업 컨택은 건당 12시간이면 가능하므로 분기 내 20건은 총 510 M/D로 결코 불가능한 볼륨이 아닙니다. 이 OKR 역시 중간 보고·체크인이 단 한 건도 없어, 관리자가 상황을 파악하거나 방향을 조정할 기회가 전혀 없었습니다. 3분기에는 목표를 유지한다면 주 단위 영업 활동 로그를 반드시 공유하고, 격주 체크인에서 진척을 주간업무공유 혹은 Key Results의 체크인 코멘트에 반드시 넣어주시기 바랍니다.</div></div>
+<div class="fb-item"><div class="fb-obj">O3. 컨텐츠 제작 및 인플루언서 협업 극대화</div><ul class="fb-kr-list"><li><span>KR1. 시즌 내 완판으로 캐리오버 아이템 발굴 (1SKU)</span><span class="fb-kr-pct">0%</span></li><li><span>KR2. 브랜드 무드 부합 인플루언서 시딩(20명) UGC 게시물 50% 증대</span><span class="fb-kr-pct">100%</span></li><li><span>KR3. FW 콜라보 계약 체결 (1건)</span><span class="fb-kr-pct">0%</span></li></ul><div class="fb-text">인플루언서 시딩 20명 완료(100%)는 유일하게 달성된 KR입니다. 그러나 완판 캐리오버 아이템 발굴(0%)과 FW 콜라보 계약(0%)은 미착수입니다. 시딩 20명은 R&R의 인스타그램 운영 및 시딩에 해당하는 반복 운영 업무이며, 투입량은 20명 × 건당 0.5일 = 분기 10 M/D 수준입니다. 반면 캐리오버 아이템이나 콜라보 계약은 MD·기획·외부 브랜드와의 협업이 필요한 도전적 목표인데, 착수 흔적이 없습니다. 분기 가용 60 M/D 대비 실질 투입량 — O1 광고 운영(분기 15 M/D) + O3 시딩(10 M/D) + 인스타 운영(12 M/D) = 약 37 M/D — 잔여 약 23 M/D가 영업·콜라보·콘텐츠 기획에 투입 가능했으나 활용되지 않았습니다. 전반적으로, 본인이 수립한 목표에 대해서는 지시를 기다리지 않고 자발적으로 진행 상황을 공유해주시기 바랍니다. 반복 운영 업무만 수행하고 도전적 목표가 방치되는 패턴은 3분기에 반드시 개선이 필요합니다.</div></div>
+</div>
+
+</body></html>

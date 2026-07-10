@@ -944,6 +944,44 @@ window.submitModifyRequest = function(id) {
     }, false);
 };
 
+// 삭제 요청
+window.requestDeleteOKR = function(id) {
+    const goal = STATE.allGoals.find(g => g.id == id);
+    if (!goal) return;
+    
+    const mBody = `
+        <p class="text-[14px] text-on-surface mb-4">아래 OKR의 삭제를 요청합니다. 관리자 승인 후 삭제됩니다.</p>
+        <div class="bg-surface-container rounded-lg p-4 mb-4">
+            <p class="text-[13px] font-bold text-on-surface">${goal.text}</p>
+        </div>
+        <label class="block text-[13px] font-bold text-on-surface-variant mb-2">삭제 사유</label>
+        <textarea id="delete-reason" class="w-full bg-surface-container-lowest border border-blue-50 focus:border-primary rounded px-4 py-3 text-[14px] font-medium outline-none min-h-[80px] shadow-sm resize-none placeholder:text-on-surface-variant/40" placeholder="삭제 요청 사유를 입력하세요..."></textarea>
+    `;
+    openModal('OKR 삭제 요청', mBody, async () => {
+        const reason = document.getElementById('delete-reason').value;
+        if (!reason.trim()) { alert('삭제 사유를 입력해주세요.'); return; }
+        try {
+            await GoalsAPI.update(id, {
+                status: '승인 대기중',
+                request_type: '삭제 요청',
+                comment: reason,
+                is_processed: false,
+                request_date: new Date().toISOString()
+            });
+            goal.status = '승인 대기중';
+            goal.requestType = '삭제 요청';
+            goal.comment = reason;
+            goal.isProcessed = false;
+            closeModal();
+            renderCurrentView();
+            updateNavigation();
+        } catch (e) {
+            console.error('Error requesting OKR delete:', e);
+            alert('삭제 요청 중 오류가 발생했습니다.');
+        }
+    }, false);
+};
+
 
 // --- 알림 웹훅 발송 ---
 function sendNotificationWebhook(params) {
@@ -1048,6 +1086,22 @@ window.approveAdminRequest = async function(id) {
             // Clear temp data
             goal.tempText = undefined;
             goal.tempKeyResults = undefined;
+            
+            // 삭제 요청인 경우 실제 삭제 처리
+            if (goal.requestType === '삭제 요청') {
+                // KR 삭제
+                const krsToDelete = await KeyResultsAPI.listByGoalId(id);
+                for (const kr of krsToDelete) {
+                    await KeyResultsAPI.delete(kr.id);
+                }
+                // Goal 삭제
+                await GoalsAPI.delete(id);
+                STATE.allGoals = STATE.allGoals.filter(g => g.id != id);
+                renderCurrentView();
+                updateNavigation();
+                return;
+            }
+            
             goal.status = '합의 완료';
             goal.requestType = null;
             goal.isProcessed = true;
@@ -1845,7 +1899,7 @@ function renderGoalsManage(container) {
                                 `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
                                 isRejected ?
                                 `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button>` :
-                                `${isPeriodClosed ? "<button disabled class=\"w-full bg-surface-container text-on-surface-variant py-2 rounded-lg text-[13px] font-bold cursor-not-allowed\">마감됨</button>" : "<button onclick=\"submitModifyRequest('" + g.id + "')\" class=\"w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all\">체크인</button>"}`
+                                `${isPeriodClosed ? "<button disabled class=\"w-full bg-surface-container text-on-surface-variant py-2 rounded-lg text-[13px] font-bold cursor-not-allowed\">마감됨</button>" : "<button onclick=\"submitModifyRequest('" + g.id + "')\" class=\"w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all\">체크인</button><button onclick=\"requestDeleteOKR('" + g.id + "')\" class=\"w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all mt-2\">삭제 요청</button>"}`
                             }
                         </div>
                     </td>

@@ -3989,7 +3989,10 @@ window.showFeedbackModal = function(memberName, reviewerType, encodedDataOrKey) 
         const overallGrade = assessments.length > 0 ? (assessments[0].score || '-') : '-';
         const gradeClass = getGradeStyle(overallGrade);
         const content = buildModalContent(assessments);
-        const headerHtml = `<div class="flex items-center justify-between w-full"><span>${memberName} - ${reviewerType} 피드백</span><span class="text-[16px] font-black ${gradeClass} px-4 py-1.5 rounded-xl ml-4">${overallGrade}</span></div>`;
+        // Grade 뱃지 클릭 시 변경 가능 (본인 작성분만)
+        const isOwnFeedback = assessments.length > 0 && assessments[0].reviewer_id === STATE.user.id;
+        const gradeClickAttr = isOwnFeedback ? `onclick="changeGrade('${assessments[0].target_id}', '${assessments[0].period_value}', '${assessments[0].reviewer_id}')" style="cursor:pointer" title="클릭하여 Grade 변경"` : '';
+        const headerHtml = `<div class="flex items-center justify-between w-full"><span>${memberName} - ${reviewerType} 피드백</span><span class="text-[16px] font-black ${gradeClass} px-4 py-1.5 rounded-xl ml-4" ${gradeClickAttr}>${overallGrade}</span></div>`;
         openModal(headerHtml, content, null, true);
     } catch (e) {
         console.error('Error showing feedback modal:', e);
@@ -4006,13 +4009,6 @@ window.inlineEditFeedback = function(id) {
     contentDiv.innerHTML = `
         <textarea id="edit-fb-text-${id}" rows="3" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[13px] text-on-surface outline-none focus:border-primary resize-none mb-2">${item.feedback || ''}</textarea>
         <div class="flex items-center gap-2">
-            <select id="edit-fb-score-${id}" class="bg-white border border-blue-100 rounded-lg px-2 py-1 text-[12px] font-bold text-primary outline-none">
-                <option value="Excellent" ${item.score==='Excellent'?'selected':''}>Excellent</option>
-                <option value="Very good" ${item.score==='Very good'?'selected':''}>Very good</option>
-                <option value="Good" ${item.score==='Good'?'selected':''}>Good</option>
-                <option value="Fair" ${item.score==='Fair'?'selected':''}>Fair</option>
-                <option value="Poor" ${item.score==='Poor'?'selected':''}>Poor</option>
-            </select>
             <button onclick="saveInlineEdit(${id})" class="px-3 py-1 bg-primary text-white font-bold text-[11px] rounded-lg">저장</button>
             <button onclick="cancelInlineEdit(${id})" class="px-3 py-1 bg-white border border-blue-100 text-on-surface-variant font-bold text-[11px] rounded-lg">취소</button>
         </div>
@@ -4031,46 +4027,36 @@ window.cancelInlineEdit = function(id) {
 
 window.saveInlineEdit = async function(id) {
     const textarea = document.getElementById('edit-fb-text-' + id);
-    const scoreSelect = document.getElementById('edit-fb-score-' + id);
-    if (!textarea || !scoreSelect) return;
+    if (!textarea) return;
     const newText = textarea.value.trim();
-    const newScore = scoreSelect.value;
     try {
-        // 현재 항목의 target_id와 period_value를 가져와서 같은 구성원의 같은 기간 모든 assessment score를 일괄 업데이트
-        const item = STATE.assessmentData.find(a => a.id === id);
-        await AssessmentAPI.update(id, { feedback: newText, score: newScore });
-        
-        // 같은 구성원/기간/리뷰어의 모든 assessment score 일괄 업데이트
-        if (item) {
-            const relatedItems = STATE.assessmentData.filter(a => 
-                a.target_id === item.target_id && 
-                a.period_value === item.period_value && 
-                a.reviewer_id === item.reviewer_id &&
-                a.id !== id
-            );
-            for (const rel of relatedItems) {
-                await AssessmentAPI.update(rel.id, { score: newScore });
-                rel.score = newScore;
-            }
-        }
-        
+        await AssessmentAPI.update(id, { feedback: newText });
         const idx = STATE.assessmentData.findIndex(a => a.id === id);
         if (idx !== -1) {
             STATE.assessmentData[idx].feedback = newText;
-            STATE.assessmentData[idx].score = newScore;
         }
-        // 모달 안에서 해당 항목만 갱신
         const contentDiv = document.getElementById('fb-content-' + id);
         if (contentDiv) {
             contentDiv.innerHTML = `<p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${newText || '피드백 없음'}</p>`;
         }
-        // 모달 헤더 Grade 뱃지 갱신
-        const modalHeader = document.querySelector('#app-modal h3');
-        if (modalHeader) {
-            const badge = modalHeader.querySelector('span');
-            if (badge) badge.textContent = newScore;
-        }
     } catch (e) { console.error(e); alert("수정 중 오류 발생"); }
+};
+
+// Grade 일괄 변경
+window.changeGrade = function(targetId, periodValue, reviewerId) {
+    const newGrade = prompt('Grade를 선택하세요:\nExcellent / Very good / Good / Fair / Poor');
+    if (!newGrade || !['Excellent', 'Very good', 'Good', 'Fair', 'Poor'].includes(newGrade)) {
+        if (newGrade !== null) alert('올바른 Grade를 입력하세요: Excellent, Very good, Good, Fair, Poor');
+        return;
+    }
+    const relatedItems = STATE.assessmentData.filter(a => 
+        a.target_id === targetId && a.period_value === periodValue && a.reviewer_id === reviewerId
+    );
+    Promise.all(relatedItems.map(a => AssessmentAPI.update(a.id, { score: newGrade }))).then(() => {
+        relatedItems.forEach(a => { a.score = newGrade; });
+        closeModal();
+        renderCurrentView();
+    }).catch(e => { console.error(e); alert('Grade 변경 중 오류'); });
 };
 
 // 인라인 삭제 - 모달 안에서 항목 제거

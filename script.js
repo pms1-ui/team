@@ -4044,11 +4044,27 @@ window.saveInlineEdit = async function(id) {
 
 // Grade 일괄 변경
 window.changeGrade = function(targetId, periodValue, reviewerId) {
-    const newGrade = prompt('Grade를 선택하세요:\nExcellent / Very good / Good / Fair / Poor');
-    if (!newGrade || !['Excellent', 'Very good', 'Good', 'Fair', 'Poor'].includes(newGrade)) {
-        if (newGrade !== null) alert('올바른 Grade를 입력하세요: Excellent, Very good, Good, Fair, Poor');
-        return;
-    }
+    const relatedItems = STATE.assessmentData.filter(a => 
+        a.target_id === targetId && a.period_value === periodValue && a.reviewer_id === reviewerId
+    );
+    const currentGrade = relatedItems.length > 0 ? (relatedItems[0].score || 'Good') : 'Good';
+    
+    // 모달 헤더의 뱃지를 드롭다운으로 교체
+    const modalHeader = document.querySelector('#app-modal h3');
+    if (!modalHeader) return;
+    const badge = modalHeader.querySelector('span:last-child');
+    if (!badge) return;
+    
+    badge.outerHTML = `<select id="grade-select" onchange="confirmGradeChange('${targetId}','${periodValue}','${reviewerId}', this.value)" class="text-[14px] font-bold text-primary bg-white border border-blue-100 rounded-lg px-3 py-1.5 outline-none focus:border-primary ml-4">
+        <option value="Excellent" ${currentGrade==='Excellent'?'selected':''}>Excellent</option>
+        <option value="Very good" ${currentGrade==='Very good'?'selected':''}>Very good</option>
+        <option value="Good" ${currentGrade==='Good'?'selected':''}>Good</option>
+        <option value="Fair" ${currentGrade==='Fair'?'selected':''}>Fair</option>
+        <option value="Poor" ${currentGrade==='Poor'?'selected':''}>Poor</option>
+    </select>`;
+};
+
+window.confirmGradeChange = function(targetId, periodValue, reviewerId, newGrade) {
     const relatedItems = STATE.assessmentData.filter(a => 
         a.target_id === targetId && a.period_value === periodValue && a.reviewer_id === reviewerId
     );

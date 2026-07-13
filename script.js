@@ -2177,12 +2177,10 @@ function renderRequests(container) {
                 <option value="rejected" ${STATE.requestsFilter === 'rejected' ? 'selected' : ''}>거부된 항목</option>
             </select>
         </div>
-        <div class="mb-4 w-full">
+        <div class="mb-4 w-full flex items-center gap-3 flex-wrap">
             <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
             </select>
-        </div>
-        <div class="mb-4 w-full flex items-center gap-3 flex-wrap">
             <select onchange="STATE.requestsDivisionFilter=this.value;STATE.requestsTeamFilter='all';renderCurrentView();" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 <option value="all" ${STATE.requestsDivisionFilter==='all'?'selected':''}>전체 본부</option>
                 ${STATE.divisions.map(d=>`<option value="${d.name}" ${STATE.requestsDivisionFilter===d.name?'selected':''}>${d.name}</option>`).join('')}

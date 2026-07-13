@@ -1982,6 +1982,18 @@ function renderRequests(container) {
         return (aProcessed === bProcessed) ? 0 : aProcessed ? 1 : -1;
     });
 
+    // Apply division/team filter
+    if (STATE.requestsDivisionFilter !== 'all' || STATE.requestsTeamFilter !== 'all') {
+        combinedList = combinedList.filter(item => {
+            const userId = item.type === 'okr' ? item.data.userId : item.data.user_id;
+            const member = STATE.members.find(m => m.user_id === userId);
+            if (!member) return true;
+            if (STATE.requestsDivisionFilter !== 'all' && member.division !== STATE.requestsDivisionFilter) return false;
+            if (STATE.requestsTeamFilter !== 'all' && member.team !== STATE.requestsTeamFilter) return false;
+            return true;
+        });
+    }
+
     let rowsHtml = '';
     if(combinedList.length === 0) {
         rowsHtml = `<tr><td colspan="8" class="py-24 text-center text-on-surface-variant font-bold text-[14px]">불러올 수 있는 요청 데이터가 없습니다.</td></tr>`;
@@ -2168,6 +2180,16 @@ function renderRequests(container) {
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
+            </select>
+        </div>
+        <div class="mb-4 w-full flex items-center gap-3 flex-wrap">
+            <select onchange="STATE.requestsDivisionFilter=this.value;STATE.requestsTeamFilter='all';renderCurrentView();" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                <option value="all" ${STATE.requestsDivisionFilter==='all'?'selected':''}>전체 본부</option>
+                ${STATE.divisions.map(d=>`<option value="${d.name}" ${STATE.requestsDivisionFilter===d.name?'selected':''}>${d.name}</option>`).join('')}
+            </select>
+            <select onchange="STATE.requestsTeamFilter=this.value;renderCurrentView();" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                <option value="all" ${STATE.requestsTeamFilter==='all'?'selected':''}>전체 팀</option>
+                ${(STATE.requestsDivisionFilter==='all'?STATE.teams:STATE.teams.filter(t=>t.division===STATE.requestsDivisionFilter)).map(t=>`<option value="${t.name}" ${STATE.requestsTeamFilter===t.name?'selected':''}>${t.name}</option>`).join('')}
             </select>
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">

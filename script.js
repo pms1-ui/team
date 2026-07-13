@@ -4036,7 +4036,24 @@ window.saveInlineEdit = async function(id) {
     const newText = textarea.value.trim();
     const newScore = scoreSelect.value;
     try {
+        // 현재 항목의 target_id와 period_value를 가져와서 같은 구성원의 같은 기간 모든 assessment score를 일괄 업데이트
+        const item = STATE.assessmentData.find(a => a.id === id);
         await AssessmentAPI.update(id, { feedback: newText, score: newScore });
+        
+        // 같은 구성원/기간/리뷰어의 모든 assessment score 일괄 업데이트
+        if (item) {
+            const relatedItems = STATE.assessmentData.filter(a => 
+                a.target_id === item.target_id && 
+                a.period_value === item.period_value && 
+                a.reviewer_id === item.reviewer_id &&
+                a.id !== id
+            );
+            for (const rel of relatedItems) {
+                await AssessmentAPI.update(rel.id, { score: newScore });
+                rel.score = newScore;
+            }
+        }
+        
         const idx = STATE.assessmentData.findIndex(a => a.id === id);
         if (idx !== -1) {
             STATE.assessmentData[idx].feedback = newText;
@@ -4047,11 +4064,11 @@ window.saveInlineEdit = async function(id) {
         if (contentDiv) {
             contentDiv.innerHTML = `<p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-all">${newText || '피드백 없음'}</p>`;
         }
-        // Grade 뱃지 갱신
-        const itemDiv = document.getElementById('fb-item-' + id);
-        if (itemDiv) {
-            const badge = itemDiv.querySelector('span[class*="font-black"]');
-            if (badge) { badge.textContent = newScore; }
+        // 모달 헤더 Grade 뱃지 갱신
+        const modalHeader = document.querySelector('#app-modal h3');
+        if (modalHeader) {
+            const badge = modalHeader.querySelector('span');
+            if (badge) badge.textContent = newScore;
         }
     } catch (e) { console.error(e); alert("수정 중 오류 발생"); }
 };

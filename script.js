@@ -16,6 +16,8 @@ const STATE = {
     requestsTab: 'quarterly',
     requestsPeriodValue: '',
     requestsFilter: 'pending', // 'pending' | 'approved' | 'rejected'
+    requestsDivisionFilter: 'all',
+    requestsTeamFilter: 'all',
     
     // Feedback State
     feedbackSelectedMember: '',
@@ -1187,14 +1189,23 @@ window.rejectAdminRequest = async function(id) {
     }
 };
 
-window.undoApproval = function(id) {
-    const goal = STATE.allGoals.find(g => g.id === id);
+window.undoApproval = async function(id) {
+    const goal = STATE.allGoals.find(g => g.id == id);
     if(goal) {
-        // Need to undo? Technically complex since data was overwritten.
-        // As a mock feature, we just mark it unprocessed. In real DB, we'd need history.
-        goal.isProcessed = false;
-        renderCurrentView();
-        updateNavigation();
+        try {
+            await GoalsAPI.update(id, {
+                status: '승인 대기중',
+                is_processed: false
+            });
+            goal.status = '승인 대기중';
+            goal.isProcessed = false;
+            alert('승인이 취소되었습니다.');
+            renderCurrentView();
+            updateNavigation();
+        } catch (error) {
+            console.error('Error undoing OKR approval:', error);
+            alert('승인 취소 중 오류가 발생했습니다.');
+        }
     }
 };
 
@@ -3138,6 +3149,18 @@ renderRequests = function(container) {
         const bProcessed = b.type === 'okr' ? b.data.isProcessed : (b.data.status === '합의 완료');
         return (aProcessed === bProcessed) ? 0 : aProcessed ? 1 : -1;
     });
+
+    // Apply division/team filter
+    if (STATE.requestsDivisionFilter !== 'all' || STATE.requestsTeamFilter !== 'all') {
+        combinedList = combinedList.filter(item => {
+            const userId = item.type === 'okr' ? item.data.userId : item.data.user_id;
+            const member = STATE.members.find(m => m.user_id === userId);
+            if (!member) return true;
+            if (STATE.requestsDivisionFilter !== 'all' && member.division !== STATE.requestsDivisionFilter) return false;
+            if (STATE.requestsTeamFilter !== 'all' && member.team !== STATE.requestsTeamFilter) return false;
+            return true;
+        });
+    }
     
     const isMobile = window.innerWidth < 1024;
     
@@ -3156,6 +3179,16 @@ renderRequests = function(container) {
         <div class="mb-4 w-full">
             <select onchange="setPeriod('requests', this.value)" class="w-full lg:w-auto bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.requestsTab, STATE.requestsPeriodValue)}
+            </select>
+        </div>
+        <div class="mb-4 w-full flex items-center gap-3 flex-wrap">
+            <select onchange="STATE.requestsDivisionFilter=this.value;STATE.requestsTeamFilter='all';renderCurrentView();" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                <option value="all" ${STATE.requestsDivisionFilter==='all'?'selected':''}>전체 본부</option>
+                ${STATE.divisions.map(d=>'<option value="'+d.name+'" '+(STATE.requestsDivisionFilter===d.name?'selected':'')+'>'+d.name+'</option>').join('')}
+            </select>
+            <select onchange="STATE.requestsTeamFilter=this.value;renderCurrentView();" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
+                <option value="all" ${STATE.requestsTeamFilter==='all'?'selected':''}>전체 팀</option>
+                ${(STATE.requestsDivisionFilter==='all'?STATE.teams:STATE.teams.filter(t=>t.division===STATE.requestsDivisionFilter)).map(t=>'<option value="'+t.name+'" '+(STATE.requestsTeamFilter===t.name?'selected':'')+'>'+t.name+'</option>').join('')}
             </select>
         </div>
     `;

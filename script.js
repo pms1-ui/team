@@ -1781,6 +1781,7 @@ function renderGoalsSet(container) {
             opHtml = `
                 <div class="flex flex-col items-center gap-2 px-1">
                     <span class="text-error font-black text-[13px]">거부됨</span>
+                    ${g.reject_comment ? `<p class="text-[11px] text-error/80 bg-error/5 border border-error/20 rounded-md px-2 py-1.5 w-full text-left leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>` : ''}
                     <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">재요청</button>
                 </div>
             `;
@@ -1903,6 +1904,7 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-3">
                             <span class="text-[13px] font-black ${g.status === '작성중' ? 'text-on-surface-variant' : isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${g.status === '작성중' ? '작성중' : isRejected ? '거부됨' : g.status}</span>
+                            ${isRejected && g.reject_comment ? `<p class="text-[11px] text-error/80 bg-error/5 border border-error/20 rounded-md px-2 py-1.5 w-full text-left leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>` : ''}
                             ${g.status === '작성중' ?
                                 `<button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">승인 요청</button>
                                 <button onclick="removeOKR('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">삭제</button>` :

@@ -165,8 +165,16 @@ const GoalsAPI = {
 // Key Results API
 const KeyResultsAPI = {
     async listAll() {
-        const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.keyResults}/?user_field_names=true&size=200`);
-        return data.results;
+        let allResults = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+            const data = await baserowFetch(`/database/rows/table/${BASEROW_CONFIG.tables.keyResults}/?user_field_names=true&size=200&page=${page}`);
+            allResults = allResults.concat(data.results);
+            hasNext = !!data.next;
+            page++;
+        }
+        return allResults;
     },
 
     async listByGoalId(goalId) {

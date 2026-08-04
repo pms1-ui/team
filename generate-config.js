@@ -13,7 +13,8 @@ const BASEROW_CONFIG = {
         keyResults: ${process.env.TABLE_KEY_RESULTS || 1944},
         rnr: ${process.env.TABLE_RNR || 1945},
         poll: ${process.env.TABLE_POLL || 1955},
-        assessment: ${process.env.TABLE_ASSESSMENT || 1981}
+        assessment: ${process.env.TABLE_ASSESSMENT || 1981},
+        ganttTasks: ${process.env.TABLE_GANTT_TASKS || 2319}
     }
 };
 `;

@@ -348,3 +348,28 @@ const PeriodSettingsAPI = {
         });
     }
 };
+
+// Gantt Tasks API (table id: 2319)
+const GanttAPI = {
+    async listByTeam(team) {
+        const data = await baserowFetch(`/database/rows/table/2319/?user_field_names=true&size=200&filter__team__equal=${team}`);
+        return data.results;
+    },
+    async create(task) {
+        return await baserowFetch(`/database/rows/table/2319/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(task)
+        });
+    },
+    async update(id, task) {
+        return await baserowFetch(`/database/rows/table/2319/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(task)
+        });
+    },
+    async delete(id) {
+        return await baserowFetch(`/database/rows/table/2319/${id}/`, {
+            method: 'DELETE'
+        });
+    }
+};

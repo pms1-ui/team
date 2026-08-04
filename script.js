@@ -5268,22 +5268,30 @@ function renderTeamGoals(container) {
 }
 
 // --- Team Goals DX (Gantt Chart) ---
-function renderTeamGoalsDX(container) {
-    // 2026 하반기 + 2027 상반기 = 약 52주
-    if (!STATE.ganttData) {
-        STATE.ganttData = [
-            { id: 'g1', name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 4, duration: 6, color: '#006EBE' },
-            { id: 'g2', name: 'BI 플랫폼 컨버전', owner: '김강모', start: 5, duration: 8, color: '#7c3aed' },
-            { id: 'g3', name: '가상피팅 시스템 고도화', owner: '김강모', start: 8, duration: 5, color: '#7c3aed' },
-            { id: 'g4', name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 4, duration: 4, color: '#059669' },
-            { id: 'g5', name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 9, duration: 3, color: '#0891b2' },
-            { id: 'g6', name: 'CI/CD 배포 최적화', owner: '이정현', start: 14, duration: 3, color: '#475569' },
-            { id: 'g7', name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 5, duration: 7, color: '#dc2626' },
-            { id: 'g8', name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 26, color: '#ea580c' },
-            { id: 'g9', name: '보안 점검 자동화', owner: '이정현', start: 18, duration: 4, color: '#64748b' },
-            { id: 'g10', name: 'CutMaker 기능 추가', owner: '김강모', start: 16, duration: 6, color: '#7c3aed' }
-        ];
+async function renderTeamGoalsDX(container) {
+    // DB에서 로드 (첫 진입 시)
+    if (!STATE.ganttLoaded) {
+        container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
+        try {
+            const rows = await GanttAPI.listByTeam('DX');
+            STATE.ganttData = rows.filter(r => r.task_id).map(r => ({
+                dbId: r.id,
+                id: r.task_id,
+                name: r.name || '',
+                owner_id: r.owner_id || '',
+                owner: r.owner_name || '',
+                start: parseInt(r.start_week) || 0,
+                duration: parseInt(r.duration) || 0,
+                color: r.color || '#006EBE'
+            }));
+            STATE.ganttLoaded = true;
+        } catch(e) {
+            console.error('Gantt load error:', e);
+            STATE.ganttData = [];
+            STATE.ganttLoaded = true;
+        }
     }
+    if (!STATE.ganttData) STATE.ganttData = [];
 
     const months = [
         {name:'7월',weeks:5},{name:'8월',weeks:4},{name:'9월',weeks:5},{name:'10월',weeks:4},{name:'11월',weeks:4},{name:'12월',weeks:5},
@@ -5297,6 +5305,8 @@ function renderTeamGoalsDX(container) {
     // DX팀원 확인
     const dxMembers = STATE.members.filter(m => m.team === 'DX' && !m.is_hidden && m.is_approved);
     const isDXMember = dxMembers.some(m => m.user_id === STATE.user.id) || STATE.user.role === 'admin';
+    const isAdmin = STATE.user.role === 'admin';
+    const canEdit = (item) => isAdmin || item.owner_id === STATE.user.id;
 
     let ganttRows = '';
     STATE.ganttData.forEach((item, idx) => {
@@ -5307,25 +5317,31 @@ function renderTeamGoalsDX(container) {
             const isLast = i === item.start + item.duration - 1;
             const radius = isFirst && isLast ? 'border-radius:5px' : isFirst ? 'border-radius:5px 0 0 5px' : isLast ? 'border-radius:0 5px 5px 0' : '';
             if (isDXMember) {
-                cells += `<td class="py-1 px-0 border-r border-blue-50/30 cursor-pointer hover:bg-blue-50/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                const canEditThis = canEdit(item);
+                if (canEditThis) {
+                    cells += `<td class="py-1 px-0 border-r border-blue-50/30 cursor-pointer hover:bg-blue-50/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                } else {
+                    cells += `<td class="py-1 px-0 border-r border-blue-50/30" style="width:22px;min-width:22px"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                }
             } else {
                 cells += `<td class="py-1 px-0 border-r border-blue-50/30" style="width:22px;min-width:22px"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
             }
         }
 
-        const colorDot = `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0 cursor-pointer" style="background:${item.color}" onclick="cycleGanttColor('${item.id}')"></span>`;
+        const isEditable = canEdit(item);
+        const colorDot = `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0 ${isEditable ? 'cursor-pointer' : ''}" style="background:${item.color}" ${isEditable ? `onclick="cycleGanttColor('${item.id}')"` : ''}></span>`;
 
         ganttRows += `
             <tr class="border-b border-blue-50/50 hover:bg-blue-50/20 group">
                 <td class="py-2 px-2 border-r border-blue-100" style="min-width:240px;width:240px">
                     <div class="flex items-center gap-1.5">
-                        ${isDXMember ? colorDot : `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0" style="background:${item.color}"></span>`}
-                        ${isDXMember ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[11px] font-bold text-on-surface bg-transparent border-none outline-none w-full truncate focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 py-0.5">` : `<span class="text-[11px] font-bold text-on-surface truncate">${item.name}</span>`}
+                        ${colorDot}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[11px] font-bold text-on-surface bg-transparent border-none outline-none w-full truncate focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 py-0.5">` : `<span class="text-[11px] font-bold text-on-surface truncate">${item.name}</span>`}
                     </div>
                 </td>
                 <td class="py-2 px-1 text-[10px] text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">${item.owner}</td>
                 ${cells}
-                ${isDXMember ? `<td class="py-2 px-1 w-6"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : ''}
+                ${isEditable ? `<td class="py-2 px-1 w-6"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6"></td>'}
             </tr>
         `;
     });
@@ -5355,7 +5371,7 @@ function renderTeamGoalsDX(container) {
                         <p class="text-[12px] text-on-surface-variant">2026 하반기 ~ 2027 상반기</p>
                     </div>
                 </div>
-                ${isDXMember ? `<button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button>` : ''}
+                ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse min-w-[1100px]">
@@ -5425,9 +5441,32 @@ window.removeGanttItem = function(itemId) {
 };
 
 window.addGanttItem = function() {
-    const newId = 'g' + Date.now();
-    STATE.ganttData.push({ id: newId, name: '새 일감', owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE' });
+    const newId = 'g-' + Date.now();
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE', isNew: true });
     renderCurrentView();
+};
+
+window.saveGantt = async function() {
+    try {
+        const myItems = STATE.ganttData.filter(g => g.owner_id === STATE.user.id || STATE.user.role === 'admin');
+        for (const item of myItems) {
+            const row = { task_id: item.id, team: 'DX', name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, updated_at: new Date().toISOString() };
+            if (item.dbId) { await GanttAPI.update(item.dbId, row); }
+            else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
+        }
+        alert('저장되었습니다.');
+    } catch(e) { console.error('Gantt save error:', e); alert('저장 중 오류가 발생했습니다.'); }
+};
+
+window.removeGanttItem = async function(itemId) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (!item) return;
+    if (!confirm('일감을 삭제하시겠습니까?')) return;
+    try {
+        if (item.dbId) await GanttAPI.delete(item.dbId);
+        STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
+        renderCurrentView();
+    } catch(e) { console.error('Gantt delete error:', e); alert('삭제 중 오류가 발생했습니다.'); }
 };
 
 // --- Admin Settings View ---

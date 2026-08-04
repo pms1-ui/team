@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Q2 AI 피드백 — 김강모</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{
+  html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  .page{margin:0!important;box-shadow:none!important;height:auto!important}
+  .eval-block{page-break-inside:avoid}
+  .pdf-btn{display:none!important}
+}
+.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.person-name{font-size:18px;font-weight:700}
+.person-role{font-size:12px;color:#475569}
+.okr-list{list-style:none;padding:0;margin:12px 0 18px}
+.okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.okr-list li:last-child{border-bottom:none}
+.okr-pct{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9}
+.eval-block{background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:10px}
+.eval-block .block-title{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.eval-block ul{padding-left:16px;margin:0}
+.eval-block li{font-size:12px;color:#334155;margin-bottom:3px}
+.eval-block p{font-size:12px;color:#334155;margin:0;line-height:1.7}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
+.tag-s{background:#dbeafe;color:#1e40af}.tag-i{background:#fef3c7;color:#92400e}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+</style>
+</head>
+<body>
+
+<button class="pdf-btn" onclick="window.print()">📄 PDF 내려받기</button>
+
+<div class="page">
+<div class="person-header"><div><div class="person-name">김강모</div><div class="person-role">프론트개발 · DX팀 · 멤버</div></div></div>
+
+<div class="st">OKR 달성 현황</div>
+<ul class="okr-list">
+<li><span>앱 이관 — 개발효율 50% 개선</span><span class="okr-pct">95%</span></li>
+<li><span>도메인별 서비스 고도화 — 핵심 UX</span><span class="okr-pct">50%</span></li>
+<li><span>개발 표준 정립 및 기술 자산 고도화</span><span class="okr-pct">42%</span></li>
+<li><span>물류 시딩 워크플로우 최적화</span><span class="okr-pct">44%</span></li>
+<li><span>AI 비주얼 프로덕션 시스템 구축</span><span class="okr-pct">38%</span></li>
+</ul>
+<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>
+<li>멀티 테넌시 구조 설계 — <b>100%</b> : 복수 브랜드(Childy, 히크릿도어 등)를 단일 코드베이스로 운영 가능한 아키텍처 설계 완료. 향후 신규 브랜드 추가 시 개발 공수를 80% 이상 절감하는 확장성 확보.</li>
+<li>앱-웹 브릿지 + 푸시 최적화 — <b>100%</b> : 네이티브↔웹뷰 간 통신 안정화 및 푸시 도달률 향상. 앱 사용자 경험의 기술적 기반을 완성하여 마케팅 채널 확장(앱푸시)에 직접 기여.</li>
+<li>렌더링 최적화 — <b>85%</b> : FCP/LCP 등 Core Web Vitals 개선으로 사용자 이탈률 감소 기대. 프론트 성능 최적화는 기술 난이도가 높은 영역으로 꾸준한 프로파일링과 리팩토링 필요.</li>
+<li>가상 피팅 시스템 — <b>100%</b> : AI 모델 연동 + 실시간 렌더링이라는 높은 기술 난이도를 돌파하여 브랜드 차별화 서비스 구현. 전환율 향상과 반품률 감소에 직결되는 핵심 기능.</li>
+<li>히크릿도어 기술 고도화 — <b>100%</b> : VIP몰의 프론트 전체를 단독 구현. 브랜드 신규 매출 채널의 기술 완성도를 보장.</li>
+</ul></div>
+
+<div class="eval-block"><div class="block-title">▸ 미착수</div><ul>
+<li>클래스 후기 시스템 — 0% : 가상피팅·히크릿도어 등 비즈니스 우선순위가 높은 프로젝트에 리소스 집중 배분. 후기 시스템은 기획 확정이 늦어진 점도 원인.</li>
+<li>카페24 대기화면 UI — 0% : 카페24 측 API/정책 확정 대기 상태로, 외부 의존성에 의한 미착수. 내부적으로 통제 불가.</li>
+<li>API 명세 시스템 통합 — 0% : 문서화 작업은 개발 완료 후 정리 단계에서 수행되는 것이 일반적이나, 5개 OKR 동시 추진으로 정리 시간 확보 실패.</li>
+<li>물류 시딩 UI — <b>35%</b> : BI 이식 전환 의사결정 이후 기존 UI 개발분을 폐기하고 BI 기반 재설계로 전환. 의사결정 자체는 적절하나 진척률에 영향.</li>
+</ul></div>
+<div class="eval-block"><div class="block-title">▸ 종합 판단</div><p>투입량 산정: 5개 OKR × 평균 12 M/D = 약 60 M/D. 분기 가용 60 M/D와 정확히 일치하여 잔여 시간 0에 가까운 풀 가동 상태. 물류 시딩 BI 전환 의사결정으로 인한 재작업 공수(약 5 M/D)까지 고려하면 실질 65 M/D 투입 추정.<br>
+비즈니스 임팩트 종합: 멀티 테넌시(확장성), 가상피팅(전환율), 히크릿도어(신규 매출), 앱 이관(운영 효율) 등 각 성과가 모두 비즈니스 지표에 직접 연결. 특히 O1 앱 이관 95%는 프론트 아키텍처 전면 재설계 수준의 대형 프로젝트로, 단독 수행한 점에서 높은 역량.<br>
+미착수 원인 분석: 후기 0%, 카페24 대기 0%, API 명세 0%는 각각 기획 지연, 외부 의존성, 시간 부족으로 원인이 상이. 공통적으로 5개 OKR 동시 추진이라는 과다 목표 설정이 근본 원인. 물류 시딩 BI 전환은 전략적 판단으로 미착수와 성격이 다름.<br>
+R&R 대비 정합성: 프론트 아키텍처, 멀티 브랜드 웹앱, 성능 최적화라는 R&R에 부합하는 성과(O1, O2)가 핵심 성과의 대부분. O4 물류 시딩, O5 AI 비주얼은 R&R 확장 영역으로 도전적이나 완성도가 상대적으로 낮음.<br>
+반복 운영 vs 도전적 업무 비율: 반복 운영 15%(기존 앱 유지보수, 버그 수정) / 도전적 업무 85%(멀티 테넌시 신규 설계, 가상피팅, AI 비주얼). 5개 OKR 전체가 신규 구축·고도화에 해당하여 도전 비율 극히 높음.<br>
+3분기 방향성 제언: ① OKR 수를 3개 이내로 축소하여 집중도 확보, ② 문서화·API 명세를 1순위로 배치(기술 부채 해소), ③ 물류 시딩 BI 전환 완료 후 안정화, ④ 렌더링 최적화 85→100% 마무리, ⑤ AI 비주얼은 파이프라인 안정화 후 내부 전환율 지표 측정 병행.</p></div>
+
+<div class="tags"><span class="tag tag-s">앱 이관 완수</span><span class="tag tag-s">멀티 테넌시</span><span class="tag tag-s">성능 최적화</span><span class="tag tag-i">문서화 미완</span><span class="tag tag-i">KR 미착수</span></div>
+</div>
+
+</body>
+</html>

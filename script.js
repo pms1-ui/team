@@ -3978,12 +3978,12 @@ function renderFeedbackDashboard(container) {
             ? (canView 
                 ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
                 : `<span class="text-[12px] font-bold text-white bg-gray-700 px-3 py-1 rounded-full">피드백 완료</span>`)
-            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
+            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">피드백 전</span>`;
         const dirFeedbackHtml = directorAssessments.length > 0 
             ? (canView 
                 ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[12px] font-bold text-white bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded-full transition-all cursor-pointer">피드백 확인</button>`
                 : `<span class="text-[12px] font-bold text-white bg-gray-700 px-3 py-1 rounded-full">피드백 완료</span>`)
-            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">평가 전</span>`;
+            : `<span class="text-[12px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">피드백 전</span>`;
 
         return `
             <tr class="hover:bg-surface-container-lowest transition-colors border-b border-blue-50/50">
@@ -4047,7 +4047,7 @@ function renderFeedbackDashboard(container) {
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">팀장 피드백</p>
                         ${teamLeaderAssessments.length > 0 
                             ? (canViewM ? `<button onclick="showFeedbackModal('${m.name}', '팀장', '${tlCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>` : `<span class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 완료</span>`)
-                            : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
+                            : `<span class="text-[11px] text-on-surface-variant">피드백 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">B Level</p>
@@ -4057,7 +4057,7 @@ function renderFeedbackDashboard(container) {
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">본부장 피드백</p>
                         ${directorAssessments.length > 0 
                             ? (canViewM ? `<button onclick="showFeedbackModal('${m.name}', '본부장', '${dirCacheKey}')" class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 확인</button>` : `<span class="text-[11px] font-bold text-white bg-gray-700 px-2 py-0.5 rounded-full">피드백 완료</span>`)
-                            : `<span class="text-[11px] text-on-surface-variant">평가 전</span>`}
+                            : `<span class="text-[11px] text-on-surface-variant">피드백 전</span>`}
                     </div>
                     <div class="bg-surface-container rounded-lg p-3 text-center">
                         <p class="text-[11px] font-bold text-on-surface-variant mb-1">C Level</p>
@@ -4306,7 +4306,7 @@ window.submitFeedback = async function() {
     
     const validScores = ['Excellent', 'Very good', 'Good', 'Fair', 'Poor'];
     if (!validScores.includes(score)) {
-        alert('평가 등급을 선택해 주세요.');
+        alert('피드백 등급을 선택해 주세요.');
         return;
     }
 
@@ -6233,8 +6233,8 @@ function renderAIPoll(container) {
                             placeholder="예: Claude, Cursor, Notion AI 등" maxlength="100">
                     </div>
 
-                    <!-- Q4: AI 도구 효과성 평가 (5점 척도) -->
-                    <!-- Q4: AI 도구 효과성 평가 (5점 척도) -->
+                    <!-- Q4: AI 도구 효과성 (5점 척도) -->
+                    <!-- Q4: AI 도구 효과성 (5점 척도) -->
                     <div class="bg-surface-container rounded-xl p-4 lg:p-6">
                         <label class="block text-[13px] lg:text-[14px] font-bold text-on-surface mb-3">
                             Q4. 업무 중 사용한 AI 도구가 실제 효과적이라고 느끼는 정도는 어느 정도인가요? (5점 척도) <span class="text-error">*</span>
@@ -6454,7 +6454,7 @@ async function submitAIPoll() {
             return;
         }
         if (!q4_effectiveness) {
-            alert('AI 도구 효과성을 평가해주세요.');
+            alert('AI 도구 효과성을 선택해주세요.');
             return;
         }
         if (q5_benefit.length === 0) {

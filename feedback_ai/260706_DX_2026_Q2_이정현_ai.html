@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> </title>
+<title>2026 Q2 AI 피드백 — 이정현</title>
 <style>
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -19,34 +19,10 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 }
 .page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative;page-break-after:always}
 .page:last-child{page-break-after:auto}
-
-/* COVER */
-.cover{padding:0;display:flex;flex-direction:column;background:#2563EB}
-.cover-inner{padding:28mm 28mm 0;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
-.cover .logo{font-size:20px;font-weight:700;color:#fff;margin-bottom:40mm}
-.cover h1{color:#fff;font-size:32px;font-weight:700;line-height:1.35;margin-bottom:16px}
-.cover .sub{color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;max-width:480px}
-.cover .foot{padding:0 28mm 20mm;color:rgba(255,255,255,.5);font-size:10px;margin-top:auto}
-</style>
-</head>
-<body>
-<style>
 .st{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
-.tbl{width:100%;border-collapse:collapse;margin-top:12px}
-.tbl th{background:#2563EB;color:#fff;font-weight:600;padding:9px 10px;font-size:11px;text-align:center}
-.tbl td{padding:9px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center}
-.tbl tr:nth-child(even){background:#f8fafc}
-.tbl td:first-child{font-weight:600;text-align:left}
 .person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
 .person-name{font-size:18px;font-weight:700}
 .person-role{font-size:12px;color:#475569}
-.score-badge{margin-left:auto;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600}
-.score-high{background:#dcfce7;color:#166534}.score-mid{background:#fef9c3;color:#854d0e}.score-low{background:#fee2e2;color:#991b1b}
-.scores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.score-box{background:#f8fafc;border-radius:8px;padding:12px;text-align:center}
-.score-box .label{font-size:11px;color:#64748b;margin-bottom:4px}
-.score-box .value{font-size:20px;font-weight:700}
-.section-title{color:#2563EB;font-size:16px;font-weight:700;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
 .okr-list{list-style:none;padding:0;margin:12px 0 18px}
 .okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
 .okr-list li:last-child{border-bottom:none}
@@ -59,13 +35,14 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
 .tag-s{background:#dbeafe;color:#1e40af}.tag-i{background:#fef3c7;color:#92400e}
-.info-box{background:#f1f5f9;border-radius:8px;padding:14px;margin-top:16px}
-.info-box p{font-size:11px;color:#475569;line-height:1.7}
 .pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
 .pdf-btn:hover{background:#1e40af}
 </style>
+</head>
+<body>
 
-<button class="pdf-btn" onclick="document.title=' ';alert('인쇄 설정에서:\n1. 여백: 없음\n2. 배경 그래픽: 체크 ✓\n3. 머리글 및 바닥글: 해제');window.print()">📄 PDF 내려받기</button>
+<button class="pdf-btn" onclick="window.print()">📄 PDF 내려받기</button>
+
 <div class="page">
 <div class="person-header"><div><div class="person-name">이정현</div><div class="person-role">백엔드개발 · DX팀 · 멤버</div></div></div>
 
@@ -76,6 +53,7 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 <li><span>AI 에이전트 업무 대응 범위 확장</span><span class="okr-pct">50%</span></li>
 <li><span>외부 연동 수작업 자동화</span><span class="okr-pct">40%</span></li>
 </ul>
+
 <div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>
 <li>Playwright E2E 셋업 + CI 연동 — <b>80%</b> : QA 자동화 기반을 0에서 구축한 기술 난이도 높은 작업. 향후 배포 안정성 확보와 수동 QA 비용 절감(추정 월 3~5 M/D)에 직결.</li>
 <li>BI 핵심 시나리오 10개 자동화 — <b>100%</b> : 발주·생산·재고 등 전사 핵심 업무 플로우의 회귀 테스트를 자동화하여 장애 사전 감지 체계 완성. 운영 안정성에 대한 조직 기여도 높음.</li>
@@ -83,19 +61,23 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 <li>카페24↔세원WMS 반품 자동화 — <b>100%</b> : 수작업 반품 처리(월 40~60건)를 완전 자동화하여 물류팀 공수 절감 + 오류율 제로화. 외부 시스템 연동의 복잡성을 단독 해결.</li>
 <li>AI 자연어 데이터 조회 확대 — <b>50%</b> : 비개발자가 자연어로 매출·재고·주문 데이터를 조회할 수 있는 인터페이스 구축 진행 중. 완료 시 전사 데이터 민주화 효과 기대.</li>
 </ul></div>
+
 <div class="eval-block"><div class="block-title">▸ 미착수</div><ul>
 <li>레거시 EC2→ECS 전환 — 0% : 20개+ MSA 운영과 신규 개발 병행 상황에서 인프라 마이그레이션까지 수행할 물리적 시간 부재. 단독 수행자의 가용 M/D 초과가 근본 원인.</li>
 <li>PHP 크론잡→Lambda 전환 — 0% : EC2 전환과 동일한 리소스 제약. 현재 크론잡이 정상 동작 중이므로 긴급도 낮다는 판단 하에 후순위 배치.</li>
 <li>타 프로젝트 QA 확대 — 0% : BI 시나리오 자동화 완료 후 확대 예정이었으나, AI 에이전트·외부연동 등 비즈니스 우선순위 높은 과제에 리소스를 재배분.</li>
 <li>API 안정성 모니터링 — 0% : 외부 연동 자동화(반품 100%) 달성 후 착수 예정이었으나, RFID 연동 등 선행 과제가 완료되지 않아 미착수.</li>
 </ul></div>
+
 <div class="eval-block"><div class="block-title">▸ 종합 판단</div><p>투입량 산정: 20개+ MSA 유지보수(월 8~10 M/D) + 4개 OKR 신규 개발(약 50 M/D) + 돌발 장애 대응(약 5~8 M/D) = 분기 합산 약 70~78 M/D. 가용 60 M/D를 약 20~30% 초과하는 과부하 상태이며, 잔여 시간은 사실상 0.<br>
 비즈니스 임팩트 종합: QA 자동화(운영 안정성), AI 에이전트(데이터 민주화), 반품 자동화(물류 효율화) 등 조직 전반의 운영 효율을 끌어올리는 인프라성 성과를 단독으로 창출. 단기 매출 기여보다 중장기 생산성 기반 구축에 해당.<br>
 미착수 원인 분석: O2 FinOps(EC2 전환, PHP 크론잡) 전량 미착수는 명확히 리소스 부족이 원인. 1인이 백엔드·인프라·AI·모바일을 모두 담당하는 구조에서 비긴급 최적화 과제는 물리적으로 착수 불가. O2에 대한 체크인 기록이 없는 점도 이를 방증.<br>
 R&R 대비 정합성: 백엔드 개발자이나 실질적으로 풀스택 + DevOps + AI + 모바일을 수행. R&R 범위가 일반적 백엔드 개발자의 3~4배에 달하며, 이에 비례하는 성과를 산출 중.<br>
 반복 운영 vs 도전적 업무 비율: 반복 운영 30%(MSA 유지보수, 장애 대응, 인프라 관리) / 도전적 업무 70%(E2E QA 신규 도입, AI 에이전트 구축, 외부 시스템 연동). 단독 수행임에도 도전적 업무 비중이 높은 것은 역량 우위의 증거.<br>
 3분기 방향성 제언: ① FinOps는 분기 초 2주를 집중 스프린트로 배정하여 EC2 전환 최소 50% 달성, ② AI 에이전트 고도화(자연어 조회 100%, 모니터링) 완료, ③ 장기적으로 백엔드 인력 1명 충원 또는 일부 업무 외주화를 통한 SPOF(Single Point of Failure) 리스크 해소 필수.</p></div>
+
 <div class="tags"><span class="tag tag-s">풀스택 단독</span><span class="tag tag-s">AI 에이전트</span><span class="tag tag-s">외부 연동</span><span class="tag tag-i">FinOps 미착수</span></div>
 </div>
 
-</body></html>
+</body>
+</html>

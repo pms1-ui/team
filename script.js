@@ -318,6 +318,7 @@ function ensureTempStructures(goal) {
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
+    { id: 'team_goals', label: '팀별 목표', icon: '<path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.5 4.5h-11L5 14.5m14 0H5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/team-goals', subItems: [{id: 'team_goals_dx', label: 'DX팀'}] },
 
     { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
@@ -330,7 +331,16 @@ const MENU_ITEMS = [
 
 // --- URL Routing ---
 function navigateTo(viewId, updateHistory = true) {
-    const menuItem = MENU_ITEMS.find(m => m.id === viewId);
+    let menuItem = MENU_ITEMS.find(m => m.id === viewId);
+    // Check subItems if not found at top level
+    if (!menuItem) {
+        for (const item of MENU_ITEMS) {
+            if (item.subItems) {
+                const sub = item.subItems.find(s => s.id === viewId);
+                if (sub) { menuItem = { ...item, id: viewId, label: sub.label, path: item.path + '/' + sub.id.replace(item.id + '_', '') }; break; }
+            }
+        }
+    }
     if (!menuItem) {
         console.error('Invalid view:', viewId);
         return;
@@ -1519,6 +1529,21 @@ function updateNavigation() {
             navigateTo(item.id);
         };
         nav.appendChild(btn);
+
+        // Sub-items 렌더링
+        if (item.subItems && !isRestricted) {
+            const subContainer = document.createElement('div');
+            subContainer.className = 'ml-8 mt-1 flex flex-col gap-1';
+            item.subItems.forEach(sub => {
+                const subBtn = document.createElement('button');
+                const isSubActive = STATE.currentView === sub.id;
+                subBtn.className = `flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-bold transition-all w-full ${isSubActive ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`;
+                subBtn.innerHTML = `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg> ${sub.label}`;
+                subBtn.onclick = () => navigateTo(sub.id);
+                subContainer.appendChild(subBtn);
+            });
+            nav.appendChild(subContainer);
+        }
     });
 }
 
@@ -1598,6 +1623,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'feedback') renderFeedback(content);
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
+    else if (STATE.currentView === "team_goals_dx") renderTeamGoalsDX(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -5217,6 +5243,26 @@ function renderOrgChart(container) {
     h += '</div>'; // grid
     h += '</div>'; // max-w wrapper
     container.innerHTML = h;
+}
+
+// --- Team Goals DX View ---
+function renderTeamGoalsDX(container) {
+    container.innerHTML = `
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-[18px] font-bold text-on-surface">DX팀 목표</h2>
+                    <p class="text-[13px] text-on-surface-variant">준비 중인 기능입니다.</p>
+                </div>
+            </div>
+            <div class="bg-white/50 border border-dashed border-blue-200 h-64 rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[14px]">
+                추후 업데이트 예정
+            </div>
+        </div>
+    `;
 }
 
 // --- Admin Settings View ---

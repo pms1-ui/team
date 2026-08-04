@@ -5356,7 +5356,7 @@ async function renderTeamGoalsDX(container) {
                 </td>
                 ${ownerCell}
                 ${cells}
-                ${isEditable ? `<td class="py-2 px-1 w-6"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6"></td>'}
+                ${isEditable ? `<td class="py-2 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
             </tr>
         `;
     });
@@ -5402,13 +5402,13 @@ async function renderTeamGoalsDX(container) {
                             <th class="py-2 px-2 text-[11px] font-bold text-on-surface-variant text-left border-r border-blue-100" style="min-width:240px;width:240px">일감</th>
                             <th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
                             ${monthHeaders}
-                            ${isDXMember ? '<th class="w-6"></th>' : ''}
+                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-surface-container"></th>' : ''}
                         </tr>
                         <tr class="border-b border-blue-50">
                             <th class="border-r border-blue-100 h-3"></th>
                             <th class="border-r border-blue-100"></th>
                             ${weekHeaders}
-                            ${isDXMember ? '<th></th>' : ''}
+                            ${isDXMember ? '<th class="sticky right-0 bg-surface-container"></th>' : ''}
                         </tr>
                     </thead>
                     <tbody>${ganttRows}</tbody>

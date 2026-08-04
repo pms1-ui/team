@@ -5395,7 +5395,7 @@ async function renderTeamGoalsDX(container) {
                         <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-[18px] font-bold text-on-surface">DX팀 일감 간트차트</h2>
+                        <h2 class="text-[18px] font-bold text-on-surface">DX팀 메인 마일스톤 간트차트</h2>
                         <p class="text-[12px] text-on-surface-variant">2026 하반기 ~ 2027 상반기</p>
                     </div>
                 </div>

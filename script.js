@@ -5269,26 +5269,28 @@ function renderTeamGoals(container) {
 
 // --- Team Goals DX (Gantt Chart) ---
 function renderTeamGoalsDX(container) {
-    // 3분기(8~9월) + 4분기(10~12월) = W1~W22 정도
+    // 2026 하반기 + 2027 상반기 = 약 52주
     if (!STATE.ganttData) {
         STATE.ganttData = [
-            { id: 'g1', name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 0, duration: 6, color: '#006EBE' },
-            { id: 'g2', name: 'BI 플랫폼 컨버전', owner: '김강모', start: 1, duration: 8, color: '#7c3aed' },
-            { id: 'g3', name: '가상피팅 시스템 고도화', owner: '김강모', start: 3, duration: 5, color: '#7c3aed' },
-            { id: 'g4', name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 0, duration: 4, color: '#059669' },
-            { id: 'g5', name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 4, duration: 3, color: '#0891b2' },
-            { id: 'g6', name: 'CI/CD 배포 최적화', owner: '이정현', start: 8, duration: 3, color: '#475569' },
-            { id: 'g7', name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 1, duration: 7, color: '#dc2626' },
-            { id: 'g8', name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 20, color: '#ea580c' },
-            { id: 'g9', name: '보안 점검 자동화', owner: '이정현', start: 10, duration: 4, color: '#64748b' },
-            { id: 'g10', name: 'CutMaker 기능 추가', owner: '김강모', start: 9, duration: 6, color: '#7c3aed' }
+            { id: 'g1', name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 4, duration: 6, color: '#006EBE' },
+            { id: 'g2', name: 'BI 플랫폼 컨버전', owner: '김강모', start: 5, duration: 8, color: '#7c3aed' },
+            { id: 'g3', name: '가상피팅 시스템 고도화', owner: '김강모', start: 8, duration: 5, color: '#7c3aed' },
+            { id: 'g4', name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 4, duration: 4, color: '#059669' },
+            { id: 'g5', name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 9, duration: 3, color: '#0891b2' },
+            { id: 'g6', name: 'CI/CD 배포 최적화', owner: '이정현', start: 14, duration: 3, color: '#475569' },
+            { id: 'g7', name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 5, duration: 7, color: '#dc2626' },
+            { id: 'g8', name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 26, color: '#ea580c' },
+            { id: 'g9', name: '보안 점검 자동화', owner: '이정현', start: 18, duration: 4, color: '#64748b' },
+            { id: 'g10', name: 'CutMaker 기능 추가', owner: '김강모', start: 16, duration: 6, color: '#7c3aed' }
         ];
     }
 
-    const totalWeeks = 22; // 8월 W1 ~ 12월 W22
-    const weekLabels = [];
-    const months = [{name:'8월', weeks:5},{name:'9월', weeks:4},{name:'10월', weeks:5},{name:'11월', weeks:4},{name:'12월', weeks:4}];
-    months.forEach(m => { for(let i=1;i<=m.weeks;i++) weekLabels.push(m.name.charAt(0)+m.name.charAt(1)+' W'+i); });
+    const months = [
+        {name:'7월',weeks:5},{name:'8월',weeks:4},{name:'9월',weeks:5},{name:'10월',weeks:4},{name:'11월',weeks:4},{name:'12월',weeks:5},
+        {name:'1월',weeks:4},{name:'2월',weeks:4},{name:'3월',weeks:5},{name:'4월',weeks:4},{name:'5월',weeks:4},{name:'6월',weeks:4}
+    ];
+    let totalWeeks = 0;
+    months.forEach(m => totalWeeks += m.weeks); // 52
 
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
@@ -5328,11 +5330,15 @@ function renderTeamGoalsDX(container) {
         `;
     });
 
-    // 월 헤더
+    // 월 헤더 (7~12월 = 2026, 1~6월 = 2027)
     let monthHeaders = '';
-    months.forEach(m => { monthHeaders += `<th colspan="${m.weeks}" class="py-1.5 text-[11px] font-bold text-primary text-center border-r border-blue-100 bg-primary/5">${m.name}</th>`; });
+    months.forEach((m, i) => {
+        const yearTag = (i === 0) ? '<span class="text-[8px] text-on-surface-variant">2026</span> ' : (i === 6) ? '<span class="text-[8px] text-on-surface-variant">2027</span> ' : '';
+        monthHeaders += `<th colspan="${m.weeks}" class="py-1.5 text-[10px] font-bold text-primary text-center border-r border-blue-100 bg-primary/5">${yearTag}${m.name}</th>`;
+    });
 
-    let weekHeaders = weekLabels.map((w,i) => `<th class="py-1.5 px-0 text-[9px] font-bold text-on-surface-variant text-center border-r border-blue-50/30">${i+1}</th>`).join('');
+    let weekHeaders = '';
+    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1 px-0 text-[8px] font-bold text-on-surface-variant/50 text-center border-r border-blue-50/20">${i+1}</th>`; }
 
     container.innerHTML = `
         <div class="max-w-full mx-auto">
@@ -5346,7 +5352,7 @@ function renderTeamGoalsDX(container) {
                     </div>
                     <div>
                         <h2 class="text-[18px] font-bold text-on-surface">DX팀 일감 간트차트</h2>
-                        <p class="text-[12px] text-on-surface-variant">2026년 3~4분기 (8월~12월)</p>
+                        <p class="text-[12px] text-on-surface-variant">2026 하반기 ~ 2027 상반기</p>
                     </div>
                 </div>
                 ${isDXMember ? `<button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button>` : ''}
@@ -5370,7 +5376,7 @@ function renderTeamGoalsDX(container) {
                     <tbody>${ganttRows}</tbody>
                 </table>
             </div>
-            <p class="mt-4 text-[11px] text-on-surface-variant text-center">셀 클릭으로 일정 추가/제거 · 색상 원 클릭으로 색상 변경 · 일감명 직접 편집 가능</p>
+            <p class="mt-4 text-[11px] text-on-surface-variant text-center">드래그로 일정 추가/제거 · 색상 원 클릭으로 색상 변경 · 일감명 직접 편집 가능</p>
         </div>
     `;
 }
@@ -5380,18 +5386,45 @@ window.toggleGanttCell = function(itemId, weekIdx) {
     if (!item) return;
     const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
     if (isActive) {
-        // 셀 제거: 해당 위치가 시작이면 start를 뒤로, 끝이면 duration 줄이기
         if (weekIdx === item.start) { item.start++; item.duration--; }
         else if (weekIdx === item.start + item.duration - 1) { item.duration--; }
-        else { item.duration = weekIdx - item.start; } // 중간이면 앞쪽만 유지
+        else { item.duration = weekIdx - item.start; }
     } else {
-        // 셀 추가: 범위 확장
         if (item.duration === 0) { item.start = weekIdx; item.duration = 1; }
         else if (weekIdx < item.start) { item.duration += item.start - weekIdx; item.start = weekIdx; }
         else { item.duration = weekIdx - item.start + 1; }
     }
     renderCurrentView();
 };
+
+// 드래그 지원
+(function() {
+    let isDragging = false, dragMode = null, dragItemId = null;
+    document.addEventListener('mousedown', function(e) {
+        const cell = e.target.closest('.gantt-cell') || (e.target.parentElement && e.target.parentElement.classList.contains('gantt-cell') ? e.target.parentElement : null);
+        if (!cell || !cell.dataset.item) return;
+        isDragging = true;
+        dragItemId = cell.dataset.item;
+        const weekIdx = parseInt(cell.dataset.week);
+        const item = STATE.ganttData.find(g => g.id === dragItemId);
+        if (!item) return;
+        const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
+        dragMode = isActive ? 'remove' : 'add';
+        window.toggleGanttCell(dragItemId, weekIdx);
+    });
+    document.addEventListener('mouseover', function(e) {
+        if (!isDragging) return;
+        const cell = e.target.closest('.gantt-cell') || (e.target.parentElement && e.target.parentElement.classList.contains('gantt-cell') ? e.target.parentElement : null);
+        if (!cell || !cell.dataset.item || cell.dataset.item !== dragItemId) return;
+        const weekIdx = parseInt(cell.dataset.week);
+        const item = STATE.ganttData.find(g => g.id === dragItemId);
+        if (!item) return;
+        const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
+        if (dragMode === 'add' && !isActive) window.toggleGanttCell(dragItemId, weekIdx);
+        else if (dragMode === 'remove' && isActive) window.toggleGanttCell(dragItemId, weekIdx);
+    });
+    document.addEventListener('mouseup', function() { isDragging = false; dragMode = null; dragItemId = null; });
+})();
 
 window.cycleGanttColor = function(itemId) {
     const colors = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
@@ -5414,7 +5447,7 @@ window.removeGanttItem = function(itemId) {
 
 window.addGanttItem = function() {
     const newId = 'g' + Date.now();
-    STATE.ganttData.push({ id: newId, name: '새 일감', owner: STATE.user.name, start: 0, duration: 0, color: '#006EBE' });
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE' });
     renderCurrentView();
 };
 

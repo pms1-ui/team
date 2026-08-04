@@ -5352,15 +5352,15 @@ async function renderTeamGoalsDX(container) {
         const owners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
         const ownerBadges = owners.map(o => `<span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded">${o}</span>`).join('');
         const ownerCell = isEditable 
-            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50" style="min-width:80px;width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-wrap gap-0.5">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
-            : `<td class="py-2 px-1 border-r border-gray-100" style="min-width:80px;width:80px"><div class="flex flex-wrap gap-0.5">${ownerBadges}</div></td>`;
+            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px;width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-wrap gap-0.5 justify-center">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
+            : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px;width:80px"><div class="flex flex-wrap gap-0.5 justify-center">${ownerBadges}</div></td>`;
 
         ganttRows += `
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">
                 <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px">
                     <div class="flex items-center gap-2">
                         ${colorDot}
-                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5">` : `<span class="text-[12px] font-medium text-gray-800">${item.name}</span>`}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5" style="min-width:200px">` : `<span class="text-[12px] font-medium text-gray-800" style="white-space:nowrap">${item.name}</span>`}
                     </div>
                 </td>
                 ${ownerCell}
@@ -5408,7 +5408,7 @@ async function renderTeamGoalsDX(container) {
                             ${yearHeaders}
                         </tr>
                         <tr class="border-b border-gray-100 bg-gray-50/50">
-                            <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100" style="min-width:240px;width:240px">일감</th>
+                            <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100" style="min-width:240px">일감</th>
                             <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap" style="min-width:80px;width:80px">담당</th>
                             ${monthHeaders}
                             ${isDXMember ? '<th class="w-6 sticky right-0 bg-gray-50/50"></th>' : ''}

@@ -1781,7 +1781,7 @@ function renderGoalsSet(container) {
             opHtml = `
                 <div class="flex flex-col items-center gap-2 px-1">
                     <span class="text-error font-black text-[13px]">거부됨</span>
-                    ${g.reject_comment ? `<button onclick="openModal('거부 사유', '<div class=\\'p-5 bg-surface-container-lowest rounded-xl text-[14px] leading-relaxed text-on-surface border border-blue-100\\'>${g.reject_comment.replace(/'/g, "\\'").replace(/\n/g, '<br/>')}</div>', null, true)" class="w-full text-[11px] text-error/70 underline hover:text-error font-bold py-1">사유 보기</button>` : ''}
+                    ${g.reject_comment ? `<button onclick="openModal('거부 사유', '<div class=\\'p-5 bg-surface-container-lowest rounded-xl text-[14px] leading-relaxed text-on-surface border border-blue-100\\'>${g.reject_comment.replace(/'/g, "\\'").replace(/\n/g, '<br/>')}</div>', null, true)" class="w-full bg-error text-white py-1.5 rounded-lg text-[12px] font-bold hover:bg-error/90 transition-all">사유 보기</button>` : ''}
                     <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">재요청</button>
                     <button onclick="removeOKR('${g.id}')" class="w-full bg-surface-container text-on-surface-variant py-2 px-2 rounded-lg text-[13px] font-bold hover:bg-error hover:text-white transition-colors border border-blue-50">삭제</button>
                 </div>
@@ -1905,7 +1905,7 @@ function renderGoalsManage(container) {
                     <td class="py-6 px-4 text-center align-middle w-28">
                         <div class="flex flex-col items-center gap-1.5">
                             <span class="text-[13px] font-black ${g.status === '작성중' ? 'text-on-surface-variant' : isPending ? 'text-warning' : isRejected ? 'text-error' : 'text-success'}">${g.status === '작성중' ? '작성중' : isRejected ? '거부됨' : g.status}</span>
-                            ${isRejected && g.reject_comment ? `<button onclick="openModal('거부 사유', '<div class=\\'p-5 bg-surface-container-lowest rounded-xl text-[14px] leading-relaxed text-on-surface border border-blue-100\\'>${g.reject_comment.replace(/'/g, "\\'").replace(/\n/g, '<br/>')}</div>', null, true)" class="w-full text-[11px] text-error/70 underline hover:text-error font-bold py-0.5">사유 보기</button>` : ''}
+                            ${isRejected && g.reject_comment ? `<button onclick="openModal('거부 사유', '<div class=\\'p-5 bg-surface-container-lowest rounded-xl text-[14px] leading-relaxed text-on-surface border border-blue-100\\'>${g.reject_comment.replace(/'/g, "\\'").replace(/\n/g, '<br/>')}</div>', null, true)" class="w-full bg-error text-white py-1.5 rounded-lg text-[12px] font-bold hover:bg-error/90 transition-all">사유 보기</button>` : ''}
                             ${g.status === '작성중' ?
                                 `<button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">승인 요청</button>
                                 <button onclick="removeOKR('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-1.5 rounded-lg text-[12px] font-bold transition-all">삭제</button>` :

@@ -5529,12 +5529,24 @@ function renderRnRBrowse(container) {
     // 숨김 처리할 구성원 (베이스로우 데이터는 보존)
     const HIDDEN_MEMBERS = ['이다영', '이보란'];
     
-    // Filter by team and exclude hidden/deleted members
+    // 기본값: 운영본부/DX팀
+    if (!STATE.rnrBrowseDivisionFilter) STATE.rnrBrowseDivisionFilter = '운영본부';
+    if (!STATE.rnrBrowseTeamFilter || STATE.rnrBrowseTeamFilter === 'all') STATE.rnrBrowseTeamFilter = 'DX';
+    
+    // Filter by division + team and exclude hidden/deleted members
     const activeUserIds = STATE.members.filter(m => !m.is_hidden).map(m => m.user_id);
-    const filteredRnR = (STATE.rnrBrowseTeamFilter === 'all'
-        ? STATE.rnrData
-        : STATE.rnrData.filter(r => r.team === STATE.rnrBrowseTeamFilter))
-        .filter(r => !HIDDEN_MEMBERS.includes(r.name) && activeUserIds.includes(r.user_id) && r.status === '합의 완료');
+    let filteredRnR = STATE.rnrData.filter(r => !HIDDEN_MEMBERS.includes(r.name) && activeUserIds.includes(r.user_id) && r.status === '합의 완료');
+    
+    if (STATE.rnrBrowseDivisionFilter !== 'all') {
+        const divMembers = STATE.members.filter(m => m.division === STATE.rnrBrowseDivisionFilter).map(m => m.user_id);
+        filteredRnR = filteredRnR.filter(r => divMembers.includes(r.user_id));
+    }
+    if (STATE.rnrBrowseTeamFilter !== 'all') {
+        filteredRnR = filteredRnR.filter(r => r.team === STATE.rnrBrowseTeamFilter);
+    }
+    
+    // 본부에 따른 팀 목록
+    const filteredTeams = STATE.rnrBrowseDivisionFilter === 'all' ? STATE.teams : STATE.teams.filter(t => t.division === STATE.rnrBrowseDivisionFilter);
     
     let h = '<div class="max-w-4xl mx-auto">';
     
@@ -5544,10 +5556,16 @@ function renderRnRBrowse(container) {
     h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>';
     h += '내 JD / R&R 작성으로 돌아가기';
     h += '</button>';
-    h += '<select onchange="setRnrBrowseTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
-    h += '<option value="all"' + (STATE.rnrBrowseTeamFilter === 'all' ? ' selected' : '') + '>전체 팀</option>';
-    STATE.teams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.rnrBrowseTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
+    h += '<div class="flex items-center gap-2">';
+    h += '<select onchange="STATE.rnrBrowseDivisionFilter = this.value; STATE.rnrBrowseTeamFilter = \'all\'; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
+    h += '<option value="all"' + (STATE.rnrBrowseDivisionFilter === 'all' ? ' selected' : '') + '>전체 본부</option>';
+    STATE.divisions.forEach(function(d) { h += '<option value="' + d.name + '"' + (STATE.rnrBrowseDivisionFilter === d.name ? ' selected' : '') + '>' + d.name + '</option>'; });
     h += '</select>';
+    h += '<select onchange="STATE.rnrBrowseTeamFilter = this.value; renderCurrentView();" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
+    h += '<option value="all"' + (STATE.rnrBrowseTeamFilter === 'all' ? ' selected' : '') + '>전체 팀</option>';
+    filteredTeams.forEach(function(team) { h += '<option value="' + team.name + '"' + (STATE.rnrBrowseTeamFilter === team.name ? ' selected' : '') + '>' + team.name + '</option>'; });
+    h += '</select>';
+    h += '</div>';
     h += '</div>';
     
     // 구성원 목록

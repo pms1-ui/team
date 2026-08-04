@@ -648,6 +648,99 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
     }
 };
 
+window.openImportOKRModal = function() {
+    const currentTab = STATE.goalsSetTab;
+    const currentPeriod = STATE.goalsSetPeriodValue;
+    
+    // 현재 사용자의 다른 기간 OKR 목록 가져오기
+    const otherPeriodGoals = STATE.allGoals.filter(g => 
+        g.userId === STATE.user.id && 
+        g.periodType === currentTab && 
+        g.periodValue !== currentPeriod &&
+        (g.status === '합의 완료' || g.status === '승인 대기중' || g.status === '작성중')
+    );
+    
+    // 기간별 그룹핑
+    const periods = {};
+    otherPeriodGoals.forEach(g => {
+        if (!periods[g.periodValue]) periods[g.periodValue] = [];
+        periods[g.periodValue].push(g);
+    });
+    
+    if (Object.keys(periods).length === 0) {
+        alert('가져올 수 있는 다른 기간의 OKR이 없습니다.');
+        return;
+    }
+    
+    let optionsHtml = Object.keys(periods).sort().reverse().map(pv => {
+        const label = currentTab === 'quarterly' 
+            ? pv.replace(/(\d{4})-Q(\d)/, '$1년 $2분기')
+            : pv + '년';
+        const count = periods[pv].length;
+        return `<option value="${pv}">${label} (${count}개 목표)</option>`;
+    }).join('');
+    
+    STATE.modalData = {
+        title: 'OKR 가져오기',
+        content: `
+            <div class="space-y-4">
+                <p class="text-[14px] text-on-surface-variant">다른 기간의 OKR을 현재 기간으로 가져옵니다.</p>
+                <select id="import-period-select" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[14px] text-on-surface outline-none focus:border-primary">
+                    ${optionsHtml}
+                </select>
+                <div id="import-preview" class="mt-3 max-h-[300px] overflow-y-auto"></div>
+            </div>
+        `,
+        onConfirm: () => {
+            const selectedPeriod = document.getElementById('import-period-select')?.value;
+            if (!selectedPeriod) return;
+            
+            const goalsToImport = periods[selectedPeriod];
+            const currentGoals = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === currentTab && g.periodValue === currentPeriod);
+            
+            let msg = `${selectedPeriod}에서 ${goalsToImport.length}개 목표를 가져옵니다.`;
+            if (currentGoals.length > 0) {
+                msg += `\n\n⚠️ 현재 기간에 작성된 ${currentGoals.length}개 목표는 초기화됩니다.`;
+            }
+            msg += '\n\n진행하시겠습니까?';
+            
+            if (!confirm(msg)) return;
+            
+            // 기존 목표 제거 (로컬만 — temp 상태인 것들)
+            STATE.allGoals = STATE.allGoals.filter(g => !(g.userId === STATE.user.id && g.periodType === currentTab && g.periodValue === currentPeriod && String(g.id).startsWith('temp-')));
+            
+            // 가져오기 — 새 ID로 복사
+            goalsToImport.forEach((g, i) => {
+                const newId = 'temp-' + Date.now() + i;
+                const newKRs = g.keyResults.map(kr => ({
+                    id: 'kr-' + Date.now() + Math.random().toString(36),
+                    text: kr.text,
+                    progress: 0
+                }));
+                STATE.allGoals.push({
+                    id: newId,
+                    userId: STATE.user.id,
+                    periodType: currentTab,
+                    periodValue: currentPeriod,
+                    text: g.text,
+                    keyResults: newKRs,
+                    status: '작성중',
+                    requestType: null,
+                    comment: '',
+                    isProcessed: false,
+                    isLocalOnly: true,
+                    reject_comment: null
+                });
+            });
+            
+            STATE.modalData = null;
+            renderCurrentView();
+        },
+        isWide: false
+    };
+    renderCurrentView();
+};
+
 window.addOKR = function(timestamp_salt = 0) {
     // Create OKR only in local STATE, not in Baserow yet
     const newId = 'temp-' + Date.now() + timestamp_salt;
@@ -1839,6 +1932,10 @@ function renderGoalsSet(container) {
                 <button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-primary font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     새 OKR 추가
+                </button>
+                <button onclick="openImportOKRModal()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-on-surface-variant font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    가져오기
                 </button>
             </div>
         </div>

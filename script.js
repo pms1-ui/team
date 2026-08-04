@@ -5384,15 +5384,23 @@ function renderTeamGoalsDX(container) {
 window.toggleGanttCell = function(itemId, weekIdx) {
     const item = STATE.ganttData.find(g => g.id === itemId);
     if (!item) return;
-    const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
-    if (isActive) {
-        if (weekIdx === item.start) { item.start++; item.duration--; }
-        else if (weekIdx === item.start + item.duration - 1) { item.duration--; }
-        else { item.duration = weekIdx - item.start; }
+    
+    // 상태머신: 첫 클릭 = 시작주 설정, 두번째 클릭 = 종료주 설정
+    if (!item._selecting) {
+        // 첫 클릭: 시작주 설정
+        item.start = weekIdx;
+        item.duration = 1;
+        item._selecting = true;
     } else {
-        if (item.duration === 0) { item.start = weekIdx; item.duration = 1; }
-        else if (weekIdx < item.start) { item.duration += item.start - weekIdx; item.start = weekIdx; }
-        else { item.duration = weekIdx - item.start + 1; }
+        // 두번째 클릭: 종료주 설정
+        if (weekIdx >= item.start) {
+            item.duration = weekIdx - item.start + 1;
+        } else {
+            // 종료주가 시작주보다 앞이면 swap
+            item.duration = item.start - weekIdx + 1;
+            item.start = weekIdx;
+        }
+        item._selecting = false;
     }
     renderCurrentView();
 };

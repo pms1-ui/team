@@ -5374,12 +5374,12 @@ async function renderTeamGoalsDX(container) {
     // 연도 헤더 (별도 행)
     const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0); // 2026: 8~12월
     const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0); // 2027: 1~4월
-    let yearHeaders = `<th class="border-r border-blue-100" style="min-width:240px"></th><th class="border-r border-blue-100" style="min-width:48px"></th><th colspan="${h1Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center border-r border-blue-200 bg-blue-50">2026</th><th colspan="${h2Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center bg-blue-50">2027</th><th class="sticky right-0 bg-blue-50"></th>`;
+    let yearHeaders = `<th class="border-r border-blue-100" style="min-width:240px"></th><th class="border-r border-blue-100" style="min-width:48px"></th><th colspan="${h1Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center border-r border-blue-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
 
     // 월 헤더
     let monthHeaders = '';
     months.forEach((m) => {
-        monthHeaders += `<th colspan="${m.weeks}" class="py-2 text-[11px] font-bold text-primary text-center border-r border-blue-100 bg-white">${m.name}</th>`;
+        monthHeaders += `<th colspan="${m.weeks}" class="py-2.5 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 bg-surface-container">${m.name}</th>`;
     });
 
     let weekHeaders = '';
@@ -5405,14 +5405,14 @@ async function renderTeamGoalsDX(container) {
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse min-w-[1100px]">
                     <thead>
-                        <tr class="border-b border-blue-200 bg-blue-50">
+                        <tr class="border-b border-blue-200 bg-white">
                             ${yearHeaders}
                         </tr>
-                        <tr class="border-b border-blue-100 bg-white">
-                            <th class="py-2 px-3 text-[11px] font-bold text-on-surface text-left border-r border-blue-100" style="min-width:240px;width:240px">일감</th>
-                            <th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
+                        <tr class="border-b border-blue-100 bg-surface-container">
+                            <th class="py-2.5 px-3 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100" style="min-width:240px;width:240px">일감</th>
+                            <th class="py-2.5 px-1 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
                             ${monthHeaders}
-                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-white"></th>' : ''}
+                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-surface-container"></th>' : ''}
                         </tr>
                         <tr class="border-b border-blue-50 bg-surface-container-lowest">
                             <th class="border-r border-blue-100 h-5"></th>

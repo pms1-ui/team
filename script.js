@@ -5333,16 +5333,15 @@ async function renderTeamGoalsDX(container) {
             const isActive = i >= item.start && i < item.start + item.duration;
             const isFirst = i === item.start;
             const isLast = i === item.start + item.duration - 1;
-            const radius = isFirst && isLast ? 'border-radius:5px' : isFirst ? 'border-radius:5px 0 0 5px' : isLast ? 'border-radius:0 5px 5px 0' : '';
             if (isDXMember) {
                 const canEditThis = canEdit(item);
                 if (canEditThis) {
-                    cells += `<td class="py-1 px-0 border-r border-blue-50/30 cursor-pointer hover:bg-blue-50/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                    cells += `<td class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 } else {
-                    cells += `<td class="py-1 px-0 border-r border-blue-50/30" style="width:22px;min-width:22px"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                    cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 }
             } else {
-                cells += `<td class="py-1 px-0 border-r border-blue-50/30" style="width:22px;min-width:22px"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
             }
         }
 
@@ -5352,38 +5351,38 @@ async function renderTeamGoalsDX(container) {
         // 담당자 셀: 같은 담당자 첫 행에만 rowspan으로 표시
         let ownerCell = '';
         if (item.owner !== prevOwner) {
-            ownerCell = `<td class="py-2 px-1 text-[10px] text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap bg-surface-container-lowest" style="min-width:48px;width:48px" rowspan="${ownerGroups[item.owner]}">${item.owner}</td>`;
+            ownerCell = `<td class="py-2.5 px-1 text-[11px] font-medium text-gray-500 text-center border-r border-gray-100 whitespace-nowrap bg-white" style="min-width:48px;width:48px" rowspan="${ownerGroups[item.owner]}">${item.owner}</td>`;
             prevOwner = item.owner;
         }
 
         ganttRows += `
-            <tr class="border-b border-blue-50/50 hover:bg-blue-50/20 group">
-                <td class="py-2 px-2 border-r border-blue-100" style="min-width:240px;width:240px">
-                    <div class="flex items-center gap-1.5">
+            <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">
+                <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px;width:240px">
+                    <div class="flex items-center gap-2">
                         ${colorDot}
-                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[11px] font-bold text-on-surface bg-transparent border-none outline-none w-full truncate focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 py-0.5">` : `<span class="text-[11px] font-bold text-on-surface truncate">${item.name}</span>`}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full truncate focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5">` : `<span class="text-[12px] font-medium text-gray-800 truncate">${item.name}</span>`}
                     </div>
                 </td>
                 ${ownerCell}
                 ${cells}
-                ${isEditable ? `<td class="py-2 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
+                ${isEditable ? `<td class="py-2.5 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
             </tr>
         `;
     });
 
     // 연도 헤더 (별도 행)
-    const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0); // 2026: 8~12월
-    const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0); // 2027: 1~4월
-    let yearHeaders = `<th class="border-r border-blue-100" style="min-width:240px"></th><th class="border-r border-blue-100" style="min-width:48px"></th><th colspan="${h1Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center border-r border-blue-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-2 text-[12px] font-black text-on-surface text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
+    const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0);
+    const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0);
+    let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:48px"></th><th colspan="${h1Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center border-r border-gray-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
 
     // 월 헤더
     let monthHeaders = '';
     months.forEach((m) => {
-        monthHeaders += `<th colspan="${m.weeks}" class="py-2.5 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 bg-surface-container">${m.name}</th>`;
+        monthHeaders += `<th colspan="${m.weeks}" class="py-2 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100">${m.name}</th>`;
     });
 
     let weekHeaders = '';
-    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-bold text-on-surface-variant/60 text-center border-r border-blue-50/40 bg-surface-container-lowest">${i+1}</th>`; }
+    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50">${i+1}</th>`; }
 
     container.innerHTML = `
         <div class="max-w-full mx-auto">
@@ -5402,23 +5401,23 @@ async function renderTeamGoalsDX(container) {
                 </div>
                 ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button></div>` : ''}
             </div>
-            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse min-w-[1100px]">
                     <thead>
-                        <tr class="border-b border-blue-200 bg-white">
+                        <tr class="border-b border-gray-100">
                             ${yearHeaders}
                         </tr>
-                        <tr class="border-b border-blue-100 bg-surface-container">
-                            <th class="py-2.5 px-3 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100" style="min-width:240px;width:240px">일감</th>
-                            <th class="py-2.5 px-1 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
+                        <tr class="border-b border-gray-100 bg-gray-50/50">
+                            <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100" style="min-width:240px;width:240px">일감</th>
+                            <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
                             ${monthHeaders}
-                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-surface-container"></th>' : ''}
+                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-gray-50/50"></th>' : ''}
                         </tr>
-                        <tr class="border-b border-blue-50 bg-surface-container-lowest">
-                            <th class="border-r border-blue-100 h-5"></th>
-                            <th class="border-r border-blue-100"></th>
+                        <tr class="border-b border-gray-50">
+                            <th class="border-r border-gray-100 h-5 bg-white"></th>
+                            <th class="border-r border-gray-100 bg-white"></th>
                             ${weekHeaders}
-                            ${isDXMember ? '<th class="sticky right-0 bg-surface-container-lowest"></th>' : ''}
+                            ${isDXMember ? '<th class="sticky right-0 bg-white"></th>' : ''}
                         </tr>
                     </thead>
                     <tbody>${ganttRows}</tbody>

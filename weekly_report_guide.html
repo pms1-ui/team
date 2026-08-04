@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주간업무 공유 자동화 안내</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+.header { text-align: center; margin-bottom: 48px; }
+.header h1 { font-size: 28px; font-weight: 800; color: #006EBE; margin-bottom: 8px; }
+.header p { font-size: 15px; color: #64748b; }
+.timeline { position: relative; padding-left: 40px; }
+.timeline::before { content: ''; position: absolute; left: 16px; top: 20px; bottom: 20px; width: 3px; background: linear-gradient(to bottom, #006EBE, #0053db); border-radius: 2px; }
+.step { position: relative; margin-bottom: 36px; }
+.step::before { content: ''; position: absolute; left: -28px; top: 8px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #006EBE; background: #fff; }
+.step.warn::before { border-color: #dc2626; }
+.step.success::before { border-color: #16a34a; background: #16a34a; }
+.step-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.step-card.warn { border-color: #fecaca; background: #fef2f2; }
+.step-card.success { border-color: #bbf7d0; background: #f0fdf4; }
+.step-time { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: #006EBE; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+.step-card.warn .step-time { background: #dc2626; }
+.step-card.success .step-time { background: #16a34a; }
+.step-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.step-desc { font-size: 14px; color: #475569; line-height: 1.7; }
+.step-desc strong { color: #1e293b; }
+.recipients { margin-top: 12px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #64748b; }
+.recipients span { font-weight: 700; color: #1e293b; }
+.note { margin-top: 48px; padding: 20px 24px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; font-size: 13px; color: #1e40af; line-height: 1.7; }
+.note strong { display: block; margin-bottom: 6px; font-size: 14px; }
+.footer { text-align: center; margin-top: 48px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📋 주간업무 공유 자동화 안내</h1>
+    <p>매주 자동으로 발송되는 메일 스케줄입니다</p>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-card">
+        <span class="step-time">매주 금요일 10:00</span>
+        <h3 class="step-title">📝 주간업무 작성 요청</h3>
+        <p class="step-desc">이번 주 수행한 업무 내역을 작성해달라는 안내 메일이 발송됩니다. <strong>해당 주차 금요일 ~ 차주 월요일</strong>까지 작성을 권장합니다.</p>
+        <div class="recipients">수신: <span>DX팀, CX팀 구성원 전체</span> (본부장/대표 제외)</div>
+      </div>
+    </div>
+
+    <div class="step warn">
+      <div class="step-card warn">
+        <span class="step-time">차주 월요일 10:00</span>
+        <h3 class="step-title">⚠️ 미작성 리마인드</h3>
+        <p class="step-desc">이전 주차 주간업무를 <strong>아직 작성하지 않은 구성원</strong>에게만 리마인드 메일이 발송됩니다. 이미 작성한 분들에게는 발송되지 않습니다.</p>
+        <div class="recipients">수신: <span>미작성자만</span> (DX팀, CX팀)</div>
+      </div>
+    </div>
+
+    <div class="step success">
+      <div class="step-card success">
+        <span class="step-time">차주 월요일 14:00</span>
+        <h3 class="step-title">📊 주간업무 보고서 발송</h3>
+        <p class="step-desc">이전 주차에 작성된 DX팀 전원의 주간업무를 <strong>AI가 정리·요약</strong>하여 보고서 형태로 발송합니다. 팀 전체 총평, 구성원별 업무 내역, 제출/미제출 현황이 포함됩니다.</p>
+        <div class="recipients">수신: <span>DX팀 전체 + 이경구 본부장</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>💡 참고사항</strong>
+    • 주간업무 내역은 분기 AI 평가 리포트의 참고 데이터로 활용됩니다.<br>
+    • 상세하게 작성할수록 더 정확한 피드백이 산출됩니다.<br>
+    • 주간업무 작성은 <a href="https://dt-team.netlify.app/weekly-report" style="color:#006EBE;font-weight:700;text-decoration:none;">운영관리 시스템 → 주간업무공유</a> 에서 할 수 있습니다.
+  </div>
+
+  <p class="footer">차일디 운영관리 시스템 · DX팀</p>
+</div>
+</body>
+</html>

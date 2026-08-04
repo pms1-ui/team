@@ -5294,11 +5294,11 @@ async function renderTeamGoalsDX(container) {
     if (!STATE.ganttData) STATE.ganttData = [];
 
     const months = [
-        {name:'7월',weeks:5},{name:'8월',weeks:4},{name:'9월',weeks:5},{name:'10월',weeks:4},{name:'11월',weeks:4},{name:'12월',weeks:5},
-        {name:'1월',weeks:4},{name:'2월',weeks:4},{name:'3월',weeks:5},{name:'4월',weeks:4},{name:'5월',weeks:4},{name:'6월',weeks:4}
+        {name:'8월',weeks:5},{name:'9월',weeks:4},{name:'10월',weeks:5},{name:'11월',weeks:4},{name:'12월',weeks:4},
+        {name:'1월',weeks:5},{name:'2월',weeks:4},{name:'3월',weeks:4},{name:'4월',weeks:5}
     ];
     let totalWeeks = 0;
-    months.forEach(m => totalWeeks += m.weeks); // 52
+    months.forEach(m => totalWeeks += m.weeks); // 40
 
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
@@ -5362,8 +5362,8 @@ async function renderTeamGoalsDX(container) {
     });
 
     // 연도 헤더 (별도 행)
-    const h1Weeks = months.slice(0, 6).reduce((s, m) => s + m.weeks, 0); // 2026 하반기
-    const h2Weeks = months.slice(6).reduce((s, m) => s + m.weeks, 0); // 2027 상반기
+    const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0); // 2026: 8~12월
+    const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0); // 2027: 1~4월
     let yearHeaders = `<th colspan="2" class="border-r border-blue-100"></th><th colspan="${h1Weeks}" class="py-1 text-[11px] font-bold text-on-surface text-center border-r border-blue-100 bg-blue-50/50">2026</th><th colspan="${h2Weeks}" class="py-1 text-[11px] font-bold text-on-surface text-center border-r border-blue-100 bg-blue-50/50">2027</th><th></th>`;
 
     // 월 헤더

@@ -5320,12 +5320,7 @@ async function renderTeamGoalsDX(container) {
 
     let ganttRows = '';
     // 담당자 가나다순 정렬
-    const sortedData = [...STATE.ganttData].sort((a, b) => a.owner.localeCompare(b.owner, 'ko'));
-    
-    // 담당자별 그룹핑 (rowspan 계산)
-    const ownerGroups = {};
-    sortedData.forEach(item => { if (!ownerGroups[item.owner]) ownerGroups[item.owner] = 0; ownerGroups[item.owner]++; });
-    let prevOwner = '';
+    const sortedData = [...STATE.ganttData].sort((a, b) => (a.owner || '').localeCompare(b.owner || '', 'ko'));
     
     sortedData.forEach((item, idx) => {
         let cells = '';
@@ -5348,19 +5343,19 @@ async function renderTeamGoalsDX(container) {
         const isEditable = canEdit(item);
         const colorDot = `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0 ${isEditable ? 'cursor-pointer' : ''}" style="background:${item.color}" ${isEditable ? `onclick="cycleGanttColor('${item.id}')"` : ''}></span>`;
 
-        // 담당자 셀: 같은 담당자 첫 행에만 rowspan으로 표시
-        let ownerCell = '';
-        if (item.owner !== prevOwner) {
-            ownerCell = `<td class="py-2.5 px-1 text-[11px] font-medium text-gray-500 text-center border-r border-gray-100 whitespace-nowrap bg-white" style="min-width:48px;width:48px" rowspan="${ownerGroups[item.owner]}">${item.owner}</td>`;
-            prevOwner = item.owner;
-        }
+        // 담당자: 클릭하면 모달로 추가/삭제
+        const owners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
+        const ownerBadges = owners.map(o => `<span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded">${o}</span>`).join('');
+        const ownerCell = isEditable 
+            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50" style="min-width:80px;width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-wrap gap-0.5">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
+            : `<td class="py-2 px-1 border-r border-gray-100" style="min-width:80px;width:80px"><div class="flex flex-wrap gap-0.5">${ownerBadges}</div></td>`;
 
         ganttRows += `
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">
-                <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px;width:240px">
+                <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px">
                     <div class="flex items-center gap-2">
                         ${colorDot}
-                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full truncate focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5">` : `<span class="text-[12px] font-medium text-gray-800 truncate">${item.name}</span>`}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5">` : `<span class="text-[12px] font-medium text-gray-800">${item.name}</span>`}
                     </div>
                 </td>
                 ${ownerCell}
@@ -5373,7 +5368,7 @@ async function renderTeamGoalsDX(container) {
     // 연도 헤더 (별도 행)
     const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0);
     const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0);
-    let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:48px"></th><th colspan="${h1Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center border-r border-gray-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
+    let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:80px"></th><th colspan="${h1Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center border-r border-gray-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
 
     // 월 헤더
     let monthHeaders = '';
@@ -5409,7 +5404,7 @@ async function renderTeamGoalsDX(container) {
                         </tr>
                         <tr class="border-b border-gray-100 bg-gray-50/50">
                             <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100" style="min-width:240px;width:240px">일감</th>
-                            <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
+                            <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap" style="min-width:80px;width:80px">담당</th>
                             ${monthHeaders}
                             ${isDXMember ? '<th class="w-6 sticky right-0 bg-gray-50/50"></th>' : ''}
                         </tr>
@@ -5500,6 +5495,46 @@ window.removeGanttItem = async function(itemId) {
         STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
         renderCurrentView();
     } catch(e) { console.error('Gantt delete error:', e); alert('삭제 중 오류가 발생했습니다.'); }
+};
+
+window.openGanttOwnerModal = function(itemId) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (!item) return;
+    const ganttTeam = STATE._ganttTeam || 'DX';
+    const teamMembers = STATE.members.filter(m => m.team === ganttTeam && !m.is_hidden && m.is_approved);
+    const currentOwners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
+
+    let membersHtml = teamMembers.map(m => {
+        const isSelected = currentOwners.includes(m.name);
+        return `<button onclick="toggleGanttOwner('${itemId}','${m.name}')" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${m.name}</button>`;
+    }).join('');
+
+    STATE.modalData = {
+        title: '담당자 설정',
+        content: `<div class="space-y-3"><p class="text-[13px] text-gray-500">클릭하여 담당자를 추가/제거합니다.</p><div id="gantt-owner-list" class="flex flex-wrap gap-2">${membersHtml}</div></div>`,
+        onConfirm: () => { STATE.modalData = null; renderCurrentView(); },
+        isWide: false
+    };
+    renderCurrentView();
+};
+
+window.toggleGanttOwner = function(itemId, name) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (!item) return;
+    let owners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
+    if (owners.includes(name)) {
+        owners = owners.filter(o => o !== name);
+    } else {
+        owners.push(name);
+    }
+    item.owner = owners.join(', ');
+    // owner_id도 업데이트 (첫 번째 담당자 기준)
+    if (owners.length > 0) {
+        const firstMember = STATE.members.find(m => m.name === owners[0]);
+        if (firstMember) item.owner_id = firstMember.user_id;
+    }
+    // 모달 내 버튼 상태 갱신
+    openGanttOwnerModal(itemId);
 };
 
 // --- Team Goals Generic (CX 등) ---

@@ -3362,9 +3362,24 @@ function renderMyReceivedFeedback(container) {
             (!periodSetting.feedback_open_date || now >= new Date(periodSetting.feedback_open_date)) &&
             (!periodSetting.feedback_cloase_date || now <= new Date(periodSetting.feedback_cloase_date));
 
+        // 기간 만료 여부 판단
+        const isPeriodExpired = periodSetting && periodSetting.feedback_visible && periodSetting.feedback_cloase_date && now > new Date(periodSetting.feedback_cloase_date);
+        const isNotYetOpen = periodSetting && periodSetting.feedback_visible && periodSetting.feedback_open_date && now < new Date(periodSetting.feedback_open_date);
+        const isVisibleOff = !periodSetting || !periodSetting.feedback_visible;
+
+        let lockIcon = '🔒';
+        let lockMessage = '피드백이 아직 공개되지 않았습니다';
+        if (isPeriodExpired) {
+            lockIcon = '⏰';
+            lockMessage = '조회가 마감된 기간입니다';
+        } else if (isVisibleOff) {
+            lockIcon = '🔒';
+            lockMessage = '피드백 열람이 비공개 상태입니다';
+        }
+
         h += `<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
-            <div class="text-[40px] mb-4">🔒</div>
-            <p class="text-[15px] font-bold text-on-surface mb-5">피드백이 아직 공개되지 않았습니다</p>
+            <div class="text-[40px] mb-4">${lockIcon}</div>
+            <p class="text-[15px] font-bold text-on-surface mb-5">${lockMessage}</p>
             <div class="inline-flex flex-col items-start gap-3 mb-5">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full ${hasBLevel ? 'bg-green-500' : 'bg-gray-300'}"></span>
@@ -3375,8 +3390,8 @@ function renderMyReceivedFeedback(container) {
                     <span class="text-[13px] ${hasCLevel ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">C Level (본부장) ${hasCLevel ? '완료' : '대기중'}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full ${isInPeriod ? 'bg-green-500' : 'bg-gray-300'}"></span>
-                    <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 (${openDateStr} ~ ${closeDateStr})</span>
+                    <span class="w-2.5 h-2.5 rounded-full ${isInPeriod ? 'bg-green-500' : isPeriodExpired ? 'bg-red-400' : 'bg-gray-300'}"></span>
+                    <span class="text-[13px] ${isInPeriod ? 'text-green-600 font-bold' : isPeriodExpired ? 'text-red-500 font-bold' : 'text-on-surface-variant'}">조회 가능 기간 (${openDateStr} ~ ${closeDateStr})${isPeriodExpired ? ' — 마감됨' : ''}</span>
                 </div>
             </div>
         </div>`;

@@ -698,42 +698,55 @@ window.openImportOKRModal = function() {
             const goalsToImport = periods[selectedPeriod];
             const currentGoals = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === currentTab && g.periodValue === currentPeriod);
             
-            let msg = `${selectedPeriod}에서 ${goalsToImport.length}개 목표를 가져옵니다.`;
+            // 첫 번째 모달 닫고, 확인 모달 열기
+            const periodLabel = currentTab === 'quarterly' 
+                ? selectedPeriod.replace(/(\d{4})-Q(\d)/, '$1년 $2분기')
+                : selectedPeriod + '년';
+            
+            let confirmHtml = `<div class="space-y-3">`;
+            confirmHtml += `<p class="text-[14px] text-on-surface"><strong>${periodLabel}</strong>에서 <strong>${goalsToImport.length}개</strong> 목표를 가져옵니다.</p>`;
             if (currentGoals.length > 0) {
-                msg += `\n\n⚠️ 현재 기간에 작성된 ${currentGoals.length}개 목표는 초기화됩니다.`;
+                confirmHtml += `<p class="text-[14px] text-error font-bold">⚠️ 현재 기간에 작성된 ${currentGoals.length}개 목표는 초기화됩니다.</p>`;
             }
-            msg += '\n\n진행하시겠습니까?';
+            confirmHtml += `<p class="text-[13px] text-on-surface-variant">진행하시겠습니까?</p>`;
+            confirmHtml += `</div>`;
             
-            if (!confirm(msg)) return;
-            
-            // 기존 목표 제거 (로컬만 — temp 상태인 것들)
-            STATE.allGoals = STATE.allGoals.filter(g => !(g.userId === STATE.user.id && g.periodType === currentTab && g.periodValue === currentPeriod && String(g.id).startsWith('temp-')));
-            
-            // 가져오기 — 새 ID로 복사
-            goalsToImport.forEach((g, i) => {
-                const newId = 'temp-' + Date.now() + i;
-                const newKRs = g.keyResults.map(kr => ({
-                    id: 'kr-' + Date.now() + Math.random().toString(36),
-                    text: kr.text,
-                    progress: 0
-                }));
-                STATE.allGoals.push({
-                    id: newId,
-                    userId: STATE.user.id,
-                    periodType: currentTab,
-                    periodValue: currentPeriod,
-                    text: g.text,
-                    keyResults: newKRs,
-                    status: '작성중',
-                    requestType: null,
-                    comment: '',
-                    isProcessed: false,
-                    isLocalOnly: true,
-                    reject_comment: null
-                });
-            });
-            
-            STATE.modalData = null;
+            STATE.modalData = {
+                title: 'OKR 가져오기 확인',
+                content: confirmHtml,
+                onConfirm: () => {
+                    // 기존 목표 제거 (로컬만 — temp 상태인 것들)
+                    STATE.allGoals = STATE.allGoals.filter(g => !(g.userId === STATE.user.id && g.periodType === currentTab && g.periodValue === currentPeriod && String(g.id).startsWith('temp-')));
+                    
+                    // 가져오기 — 새 ID로 복사
+                    goalsToImport.forEach((g, i) => {
+                        const newId = 'temp-' + Date.now() + i;
+                        const newKRs = g.keyResults.map(kr => ({
+                            id: 'kr-' + Date.now() + Math.random().toString(36),
+                            text: kr.text,
+                            progress: 0
+                        }));
+                        STATE.allGoals.push({
+                            id: newId,
+                            userId: STATE.user.id,
+                            periodType: currentTab,
+                            periodValue: currentPeriod,
+                            text: g.text,
+                            keyResults: newKRs,
+                            status: '작성중',
+                            requestType: null,
+                            comment: '',
+                            isProcessed: false,
+                            isLocalOnly: true,
+                            reject_comment: null
+                        });
+                    });
+                    
+                    STATE.modalData = null;
+                    renderCurrentView();
+                },
+                isWide: false
+            };
             renderCurrentView();
         },
         isWide: false

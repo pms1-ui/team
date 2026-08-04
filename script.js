@@ -631,8 +631,13 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
     if(goal) {
         if(isTempObj) {
             ensureTempStructures(goal);
-            if(goal.tempKeyResults.length > 1) {
-                goal.tempKeyResults = goal.tempKeyResults.filter(k => k.id != krId);
+            const target = goal.tempKeyResults || goal.keyResults;
+            if(target.length > 1) {
+                if(goal.tempKeyResults) {
+                    goal.tempKeyResults = goal.tempKeyResults.filter(k => k.id != krId);
+                } else {
+                    goal.keyResults = goal.keyResults.filter(k => k.id != krId);
+                }
             }
         } else {
             if(goal.keyResults.length > 1) {

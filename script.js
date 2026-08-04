@@ -1783,6 +1783,7 @@ function renderGoalsSet(container) {
                     <span class="text-error font-black text-[13px]">거부됨</span>
                     ${g.reject_comment ? `<p class="text-[11px] text-error/80 bg-error/5 border border-error/20 rounded-md px-2 py-1.5 w-full text-left leading-relaxed whitespace-pre-wrap">${g.reject_comment}</p>` : ''}
                     <button onclick="submitOKRRequest('${g.id}')" class="w-full bg-primary text-white py-2 px-2 rounded-lg text-[13px] font-bold shadow-sm hover:scale-[1.02] transition-transform">재요청</button>
+                    <button onclick="removeOKR('${g.id}')" class="w-full bg-surface-container text-on-surface-variant py-2 px-2 rounded-lg text-[13px] font-bold hover:bg-error hover:text-white transition-colors border border-blue-50">삭제</button>
                 </div>
             `;
         } else if(isEditable) {
@@ -1911,7 +1912,7 @@ function renderGoalsManage(container) {
                             isPending ? 
                                 `<button onclick="console.log('Cancel clicked for:', '${g.id}'); cancelOKRRequest('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">요청 취소</button>` : 
                                 isRejected ?
-                                `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button>` :
+                                `<button onclick="console.log('Resubmit clicked for:', '${g.id}'); submitModifyRequest('${g.id}')" class="w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all">재요청</button><button onclick="removeOKR('${g.id}')" class="w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all mt-2">삭제</button>` :
                                 `${isPeriodClosed ? "<button disabled class=\"w-full bg-surface-container text-on-surface-variant py-2 rounded-lg text-[13px] font-bold cursor-not-allowed\">마감됨</button>" : "<button onclick=\"submitModifyRequest('" + g.id + "')\" class=\"w-full bg-primary text-white py-2 rounded-lg text-[13px] font-bold hover:bg-primary-dim shadow transition-all\">체크인</button><button onclick=\"requestDeleteOKR('" + g.id + "')\" class=\"w-full border border-error text-error hover:bg-error/10 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all mt-2\">삭제 요청</button>"}`
                             }
                         </div>

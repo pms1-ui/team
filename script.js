@@ -5269,43 +5269,73 @@ function renderTeamGoals(container) {
 
 // --- Team Goals DX (Gantt Chart) ---
 function renderTeamGoalsDX(container) {
-    const weeks = ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'];
-    const ganttData = [
-        { name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 0, duration: 6, color: '#006EBE' },
-        { name: 'BI 플랫폼 컨버전', owner: '김강모', start: 1, duration: 8, color: '#0053db' },
-        { name: '가상피팅 시스템 고도화', owner: '김강모', start: 2, duration: 5, color: '#7c3aed' },
-        { name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 0, duration: 4, color: '#059669' },
-        { name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 3, duration: 3, color: '#0891b2' },
-        { name: 'CI/CD 배포 최적화', owner: '이정현', start: 5, duration: 2, color: '#64748b' },
-        { name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 1, duration: 7, color: '#dc2626' },
-        { name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 12, color: '#ea580c' },
-        { name: '주간 보안 점검 자동화', owner: '이정현', start: 6, duration: 4, color: '#475569' },
-        { name: 'CutMaker 기능 추가', owner: '김강모', start: 4, duration: 5, color: '#7c3aed' }
-    ];
+    // 3분기(8~9월) + 4분기(10~12월) = W1~W22 정도
+    if (!STATE.ganttData) {
+        STATE.ganttData = [
+            { id: 'g1', name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 0, duration: 6, color: '#006EBE' },
+            { id: 'g2', name: 'BI 플랫폼 컨버전', owner: '김강모', start: 1, duration: 8, color: '#7c3aed' },
+            { id: 'g3', name: '가상피팅 시스템 고도화', owner: '김강모', start: 3, duration: 5, color: '#7c3aed' },
+            { id: 'g4', name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 0, duration: 4, color: '#059669' },
+            { id: 'g5', name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 4, duration: 3, color: '#0891b2' },
+            { id: 'g6', name: 'CI/CD 배포 최적화', owner: '이정현', start: 8, duration: 3, color: '#475569' },
+            { id: 'g7', name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 1, duration: 7, color: '#dc2626' },
+            { id: 'g8', name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 20, color: '#ea580c' },
+            { id: 'g9', name: '보안 점검 자동화', owner: '이정현', start: 10, duration: 4, color: '#64748b' },
+            { id: 'g10', name: 'CutMaker 기능 추가', owner: '김강모', start: 9, duration: 6, color: '#7c3aed' }
+        ];
+    }
+
+    const totalWeeks = 22; // 8월 W1 ~ 12월 W22
+    const weekLabels = [];
+    const months = [{name:'8월', weeks:5},{name:'9월', weeks:4},{name:'10월', weeks:5},{name:'11월', weeks:4},{name:'12월', weeks:4}];
+    months.forEach(m => { for(let i=1;i<=m.weeks;i++) weekLabels.push(m.name.charAt(0)+m.name.charAt(1)+' W'+i); });
+
+    const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
+
+    // DX팀원 확인
+    const dxMembers = STATE.members.filter(m => m.team === 'DX' && !m.is_hidden && m.is_approved);
+    const isDXMember = dxMembers.some(m => m.user_id === STATE.user.id) || STATE.user.role === 'admin';
 
     let ganttRows = '';
-    ganttData.forEach(item => {
+    STATE.ganttData.forEach((item, idx) => {
         let cells = '';
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < totalWeeks; i++) {
             const isActive = i >= item.start && i < item.start + item.duration;
             const isFirst = i === item.start;
             const isLast = i === item.start + item.duration - 1;
-            const radius = isFirst && isLast ? 'border-radius:6px' : isFirst ? 'border-radius:6px 0 0 6px' : isLast ? 'border-radius:0 6px 6px 0' : '';
-            cells += `<td class="py-2 px-0.5 border-r border-blue-50/50"><div style="height:24px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+            const radius = isFirst && isLast ? 'border-radius:5px' : isFirst ? 'border-radius:5px 0 0 5px' : isLast ? 'border-radius:0 5px 5px 0' : '';
+            if (isDXMember) {
+                cells += `<td class="py-1.5 px-0 border-r border-blue-50/30 cursor-pointer hover:bg-blue-50/50" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+            } else {
+                cells += `<td class="py-1.5 px-0 border-r border-blue-50/30"><div style="height:20px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+            }
         }
+
+        const colorDot = `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0 cursor-pointer" style="background:${item.color}" onclick="cycleGanttColor('${item.id}')"></span>`;
+
         ganttRows += `
-            <tr class="border-b border-blue-50/50 hover:bg-blue-50/20">
-                <td class="py-3 px-3 text-[12px] font-bold text-on-surface whitespace-nowrap border-r border-blue-100 w-56">${item.name}</td>
-                <td class="py-3 px-2 text-[11px] text-on-surface-variant whitespace-nowrap border-r border-blue-100 w-16 text-center">${item.owner}</td>
+            <tr class="border-b border-blue-50/50 hover:bg-blue-50/20 group">
+                <td class="py-2 px-2 border-r border-blue-100 w-52">
+                    <div class="flex items-center gap-1.5">
+                        ${isDXMember ? colorDot : `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0" style="background:${item.color}"></span>`}
+                        ${isDXMember ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[11px] font-bold text-on-surface bg-transparent border-none outline-none w-full truncate focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 py-0.5">` : `<span class="text-[11px] font-bold text-on-surface truncate">${item.name}</span>`}
+                    </div>
+                </td>
+                <td class="py-2 px-1 text-[10px] text-on-surface-variant text-center border-r border-blue-100 w-14">${item.owner}</td>
                 ${cells}
+                ${isDXMember ? `<td class="py-2 px-1 w-6"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : ''}
             </tr>
         `;
     });
 
-    let weekHeaders = weeks.map(w => `<th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-50/50 w-[calc((100%-288px)/12)]">${w}</th>`).join('');
+    // 월 헤더
+    let monthHeaders = '';
+    months.forEach(m => { monthHeaders += `<th colspan="${m.weeks}" class="py-1.5 text-[11px] font-bold text-primary text-center border-r border-blue-100 bg-primary/5">${m.name}</th>`; });
+
+    let weekHeaders = weekLabels.map((w,i) => `<th class="py-1.5 px-0 text-[9px] font-bold text-on-surface-variant text-center border-r border-blue-50/30">${i+1}</th>`).join('');
 
     container.innerHTML = `
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-full mx-auto">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <button onclick="STATE.currentView='team_goals'; renderCurrentView();" class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
@@ -5316,26 +5346,77 @@ function renderTeamGoalsDX(container) {
                     </div>
                     <div>
                         <h2 class="text-[18px] font-bold text-on-surface">DX팀 일감 간트차트</h2>
-                        <p class="text-[12px] text-on-surface-variant">2026년 3분기 (8~9월)</p>
+                        <p class="text-[12px] text-on-surface-variant">2026년 3~4분기 (8월~12월)</p>
                     </div>
                 </div>
+                ${isDXMember ? `<button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
-                <table class="w-full border-collapse min-w-[900px]">
+                <table class="w-full border-collapse min-w-[1100px]">
                     <thead class="bg-surface-container">
                         <tr class="border-b border-blue-100">
-                            <th class="py-3 px-3 text-[12px] font-bold text-on-surface-variant text-left border-r border-blue-100 w-56">일감</th>
-                            <th class="py-3 px-2 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 w-16">담당</th>
+                            <th class="py-2 px-2 text-[11px] font-bold text-on-surface-variant text-left border-r border-blue-100 w-52">일감</th>
+                            <th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-100 w-14">담당</th>
+                            ${monthHeaders}
+                            ${isDXMember ? '<th class="w-6"></th>' : ''}
+                        </tr>
+                        <tr class="border-b border-blue-50">
+                            <th class="border-r border-blue-100"></th>
+                            <th class="border-r border-blue-100"></th>
                             ${weekHeaders}
+                            ${isDXMember ? '<th></th>' : ''}
                         </tr>
                     </thead>
                     <tbody>${ganttRows}</tbody>
                 </table>
             </div>
-            <p class="mt-4 text-[11px] text-on-surface-variant text-center">* 더미 데이터입니다. 실제 일감 데이터 연동 예정.</p>
+            <p class="mt-4 text-[11px] text-on-surface-variant text-center">셀 클릭으로 일정 추가/제거 · 색상 원 클릭으로 색상 변경 · 일감명 직접 편집 가능</p>
         </div>
     `;
 }
+
+window.toggleGanttCell = function(itemId, weekIdx) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (!item) return;
+    const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
+    if (isActive) {
+        // 셀 제거: 해당 위치가 시작이면 start를 뒤로, 끝이면 duration 줄이기
+        if (weekIdx === item.start) { item.start++; item.duration--; }
+        else if (weekIdx === item.start + item.duration - 1) { item.duration--; }
+        else { item.duration = weekIdx - item.start; } // 중간이면 앞쪽만 유지
+    } else {
+        // 셀 추가: 범위 확장
+        if (item.duration === 0) { item.start = weekIdx; item.duration = 1; }
+        else if (weekIdx < item.start) { item.duration += item.start - weekIdx; item.start = weekIdx; }
+        else { item.duration = weekIdx - item.start + 1; }
+    }
+    renderCurrentView();
+};
+
+window.cycleGanttColor = function(itemId) {
+    const colors = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (!item) return;
+    const idx = colors.indexOf(item.color);
+    item.color = colors[(idx + 1) % colors.length];
+    renderCurrentView();
+};
+
+window.updateGanttName = function(itemId, value) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (item) item.name = value;
+};
+
+window.removeGanttItem = function(itemId) {
+    STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
+    renderCurrentView();
+};
+
+window.addGanttItem = function() {
+    const newId = 'g' + Date.now();
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner: STATE.user.name, start: 0, duration: 0, color: '#006EBE' });
+    renderCurrentView();
+};
 
 // --- Admin Settings View ---
 function renderAdminSettings(container) {

@@ -3959,6 +3959,11 @@ function renderFeedbackDashboard(container) {
     const dashIsDivHead = dashMyPosition === '본부장';
     const dashIsTeamLeader = dashMyPosition === '팀장';
 
+    // 팀장은 본인 팀만 조회 가능
+    if (dashIsTeamLeader && !dashIsCEO && !dashIsDivHead) {
+        sortedMembers = sortedMembers.filter(m => m.team === dashMyTeam);
+    }
+
     function canViewFeedback(memberObj) {
         if (dashIsCEO) return true;
         if (dashIsDivHead) return memberObj.division === dashMyDivision;

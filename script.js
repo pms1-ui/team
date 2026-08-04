@@ -2451,6 +2451,10 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         
+        // Set default dashboard filter to user's division/team
+        if (STATE.user.division) STATE.dashboardDivisionFilter = STATE.user.division;
+        if (STATE.user.team) STATE.dashboardTeamFilter = STATE.user.team;
+        
         // Navigate to dashboard and update URL
         navigateTo('dashboard', true);
     } catch (error) {
@@ -5938,6 +5942,10 @@ async function initLoginPage() {
                     document.getElementById('division-label').innerText = '';
                     document.getElementById('login-view').classList.add('hidden');
                     document.getElementById('app-view').classList.remove('hidden');
+                    
+                    // Set default dashboard filter to user's division/team
+                    if (STATE.user.division) STATE.dashboardDivisionFilter = STATE.user.division;
+                    if (STATE.user.team) STATE.dashboardTeamFilter = STATE.user.team;
                     
                     // Handle initial route
                     handleInitialRoute();

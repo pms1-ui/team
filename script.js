@@ -649,8 +649,8 @@ window.removeKR = function(okrId, krId, isTempObj = false) {
 };
 
 window.openImportOKRModal = function() {
-    const currentTab = STATE.goalsSetTab;
-    const currentPeriod = STATE.goalsSetPeriodValue;
+    const currentTab = STATE.currentView === 'goals_set' ? STATE.goalsSetTab : STATE.goalsManageTab;
+    const currentPeriod = STATE.currentView === 'goals_set' ? STATE.goalsSetPeriodValue : STATE.goalsManagePeriodValue;
     
     // 현재 사용자의 다른 기간 OKR 목록 가져오기
     const otherPeriodGoals = STATE.allGoals.filter(g => 
@@ -2035,7 +2035,7 @@ function renderGoalsManage(container) {
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
                 ${generatePeriodOptions(STATE.goalsManageTab, STATE.goalsManagePeriodValue, true)}
             </select>
-            ${isPeriodClosed ? "" : `<button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>새 OKR 추가</button>`}
+            ${isPeriodClosed ? "" : `<div class="flex items-center gap-2"><button onclick="openImportOKRModal()" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-100 text-on-surface-variant font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>가져오기</button><button onclick="addOKR()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>새 OKR 추가</button></div>`}
         </div>
         <div class="bg-white rounded-2xl border border-blue-50 shadow-sm w-full overflow-hidden">
             <table class="w-full text-left table-auto">

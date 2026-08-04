@@ -5309,7 +5309,15 @@ async function renderTeamGoalsDX(container) {
     const canEdit = (item) => isAdmin || item.owner_id === STATE.user.id;
 
     let ganttRows = '';
-    STATE.ganttData.forEach((item, idx) => {
+    // 담당자 가나다순 정렬
+    const sortedData = [...STATE.ganttData].sort((a, b) => a.owner.localeCompare(b.owner, 'ko'));
+    
+    // 담당자별 그룹핑 (rowspan 계산)
+    const ownerGroups = {};
+    sortedData.forEach(item => { if (!ownerGroups[item.owner]) ownerGroups[item.owner] = 0; ownerGroups[item.owner]++; });
+    let prevOwner = '';
+    
+    sortedData.forEach((item, idx) => {
         let cells = '';
         for (let i = 0; i < totalWeeks; i++) {
             const isActive = i >= item.start && i < item.start + item.duration;
@@ -5331,6 +5339,13 @@ async function renderTeamGoalsDX(container) {
         const isEditable = canEdit(item);
         const colorDot = `<span class="inline-block w-3 h-3 rounded-full flex-shrink-0 ${isEditable ? 'cursor-pointer' : ''}" style="background:${item.color}" ${isEditable ? `onclick="cycleGanttColor('${item.id}')"` : ''}></span>`;
 
+        // 담당자 셀: 같은 담당자 첫 행에만 rowspan으로 표시
+        let ownerCell = '';
+        if (item.owner !== prevOwner) {
+            ownerCell = `<td class="py-2 px-1 text-[10px] text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap bg-surface-container-lowest" style="min-width:48px;width:48px" rowspan="${ownerGroups[item.owner]}">${item.owner}</td>`;
+            prevOwner = item.owner;
+        }
+
         ganttRows += `
             <tr class="border-b border-blue-50/50 hover:bg-blue-50/20 group">
                 <td class="py-2 px-2 border-r border-blue-100" style="min-width:240px;width:240px">
@@ -5339,18 +5354,22 @@ async function renderTeamGoalsDX(container) {
                         ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[11px] font-bold text-on-surface bg-transparent border-none outline-none w-full truncate focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 py-0.5">` : `<span class="text-[11px] font-bold text-on-surface truncate">${item.name}</span>`}
                     </div>
                 </td>
-                <td class="py-2 px-1 text-[10px] text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">${item.owner}</td>
+                ${ownerCell}
                 ${cells}
                 ${isEditable ? `<td class="py-2 px-1 w-6"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-error hover:bg-error/10 rounded p-0.5 transition-opacity"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6"></td>'}
             </tr>
         `;
     });
 
-    // 월 헤더 (7~12월 = 2026, 1~6월 = 2027)
+    // 연도 헤더 (별도 행)
+    const h1Weeks = months.slice(0, 6).reduce((s, m) => s + m.weeks, 0); // 2026 하반기
+    const h2Weeks = months.slice(6).reduce((s, m) => s + m.weeks, 0); // 2027 상반기
+    let yearHeaders = `<th colspan="2" class="border-r border-blue-100"></th><th colspan="${h1Weeks}" class="py-1 text-[11px] font-bold text-on-surface text-center border-r border-blue-100 bg-blue-50/50">2026</th><th colspan="${h2Weeks}" class="py-1 text-[11px] font-bold text-on-surface text-center border-r border-blue-100 bg-blue-50/50">2027</th><th></th>`;
+
+    // 월 헤더
     let monthHeaders = '';
-    months.forEach((m, i) => {
-        const yearTag = (i === 0) ? '<span class="text-[8px] text-on-surface-variant">2026</span> ' : (i === 6) ? '<span class="text-[8px] text-on-surface-variant">2027</span> ' : '';
-        monthHeaders += `<th colspan="${m.weeks}" class="py-1.5 text-[10px] font-bold text-primary text-center border-r border-blue-100 bg-primary/5">${yearTag}${m.name}</th>`;
+    months.forEach((m) => {
+        monthHeaders += `<th colspan="${m.weeks}" class="py-1.5 text-[10px] font-bold text-primary text-center border-r border-blue-100 bg-primary/5">${m.name}</th>`;
     });
 
     let weekHeaders = '';
@@ -5376,6 +5395,9 @@ async function renderTeamGoalsDX(container) {
             <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse min-w-[1100px]">
                     <thead class="bg-surface-container">
+                        <tr class="border-b border-blue-50">
+                            ${yearHeaders}
+                        </tr>
                         <tr class="border-b border-blue-100">
                             <th class="py-2 px-2 text-[11px] font-bold text-on-surface-variant text-left border-r border-blue-100" style="min-width:240px;width:240px">일감</th>
                             <th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-100 whitespace-nowrap" style="min-width:48px;width:48px">담당</th>
@@ -5383,7 +5405,7 @@ async function renderTeamGoalsDX(container) {
                             ${isDXMember ? '<th class="w-6"></th>' : ''}
                         </tr>
                         <tr class="border-b border-blue-50">
-                            <th class="border-r border-blue-100"></th>
+                            <th class="border-r border-blue-100 h-3"></th>
                             <th class="border-r border-blue-100"></th>
                             ${weekHeaders}
                             ${isDXMember ? '<th></th>' : ''}

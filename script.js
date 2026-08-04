@@ -5307,9 +5307,9 @@ function renderTeamGoalsDX(container) {
             const isLast = i === item.start + item.duration - 1;
             const radius = isFirst && isLast ? 'border-radius:5px' : isFirst ? 'border-radius:5px 0 0 5px' : isLast ? 'border-radius:0 5px 5px 0' : '';
             if (isDXMember) {
-                cells += `<td class="py-1.5 px-0 border-r border-blue-50/30 cursor-pointer hover:bg-blue-50/50" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                cells += `<td class="py-1 px-0 border-r border-blue-50/30 gantt-cell" data-item="${item.id}" data-week="${i}" style="width:22px;min-width:22px;user-select:none;cursor:pointer"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
             } else {
-                cells += `<td class="py-1.5 px-0 border-r border-blue-50/30"><div style="height:20px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+                cells += `<td class="py-1 px-0 border-r border-blue-50/30" style="width:22px;min-width:22px"><div style="height:18px;margin:0 1px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
             }
         }
 
@@ -5394,15 +5394,16 @@ window.toggleGanttCell = function(itemId, weekIdx) {
         else if (weekIdx < item.start) { item.duration += item.start - weekIdx; item.start = weekIdx; }
         else { item.duration = weekIdx - item.start + 1; }
     }
-    renderCurrentView();
 };
 
-// 드래그 지원
+// 드래그 지원 — DOM 갱신 없이 스타일만 변경, mouseup 시 한번만 렌더
 (function() {
     let isDragging = false, dragMode = null, dragItemId = null;
+    
     document.addEventListener('mousedown', function(e) {
-        const cell = e.target.closest('.gantt-cell') || (e.target.parentElement && e.target.parentElement.classList.contains('gantt-cell') ? e.target.parentElement : null);
-        if (!cell || !cell.dataset.item) return;
+        const cell = e.target.closest('[data-item]');
+        if (!cell || !cell.dataset.item || !cell.classList.contains('gantt-cell')) return;
+        e.preventDefault();
         isDragging = true;
         dragItemId = cell.dataset.item;
         const weekIdx = parseInt(cell.dataset.week);
@@ -5411,19 +5412,42 @@ window.toggleGanttCell = function(itemId, weekIdx) {
         const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
         dragMode = isActive ? 'remove' : 'add';
         window.toggleGanttCell(dragItemId, weekIdx);
+        updateCellVisual(cell, item, weekIdx);
     });
+    
     document.addEventListener('mouseover', function(e) {
         if (!isDragging) return;
-        const cell = e.target.closest('.gantt-cell') || (e.target.parentElement && e.target.parentElement.classList.contains('gantt-cell') ? e.target.parentElement : null);
-        if (!cell || !cell.dataset.item || cell.dataset.item !== dragItemId) return;
+        const cell = e.target.closest('[data-item]');
+        if (!cell || !cell.classList.contains('gantt-cell') || cell.dataset.item !== dragItemId) return;
         const weekIdx = parseInt(cell.dataset.week);
         const item = STATE.ganttData.find(g => g.id === dragItemId);
         if (!item) return;
         const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
-        if (dragMode === 'add' && !isActive) window.toggleGanttCell(dragItemId, weekIdx);
-        else if (dragMode === 'remove' && isActive) window.toggleGanttCell(dragItemId, weekIdx);
+        if (dragMode === 'add' && !isActive) {
+            window.toggleGanttCell(dragItemId, weekIdx);
+            updateCellVisual(cell, item, weekIdx);
+        } else if (dragMode === 'remove' && isActive) {
+            window.toggleGanttCell(dragItemId, weekIdx);
+            updateCellVisual(cell, item, weekIdx);
+        }
     });
-    document.addEventListener('mouseup', function() { isDragging = false; dragMode = null; dragItemId = null; });
+    
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            dragMode = null;
+            dragItemId = null;
+            renderCurrentView();
+        }
+    });
+    
+    function updateCellVisual(cell, item, weekIdx) {
+        const div = cell.querySelector('div');
+        if (!div) return;
+        const isActive = weekIdx >= item.start && weekIdx < item.start + item.duration;
+        div.style.background = isActive ? item.color : '';
+        div.style.borderRadius = '';
+    }
 })();
 
 window.cycleGanttColor = function(itemId) {

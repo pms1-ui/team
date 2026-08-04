@@ -1624,6 +1624,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
     else if (STATE.currentView === "team_goals_dx") renderTeamGoalsDX(content);
+    else if (STATE.currentView === "team_goals_cx") renderTeamGoalsGeneric(content, 'CX');
     else if (STATE.currentView === "team_goals") renderTeamGoals(content);
     
     if (STATE.modalData) renderModal(document.body);
@@ -5262,6 +5263,13 @@ function renderTeamGoals(container) {
                     <h3 class="text-[16px] font-bold text-on-surface mb-1">DX팀</h3>
                     <p class="text-[12px] text-on-surface-variant">기획 · 개발 · 디자인</p>
                 </button>
+                <button onclick="STATE.currentView='team_goals_cx'; renderCurrentView();" class="bg-white border border-blue-100 rounded-2xl p-6 hover:border-primary hover:shadow-md transition-all text-left group">
+                    <div class="w-12 h-12 bg-[#059669]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#059669]/20 transition-colors">
+                        <svg class="w-6 h-6 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
+                    <h3 class="text-[16px] font-bold text-on-surface mb-1">CX팀</h3>
+                    <p class="text-[12px] text-on-surface-variant">고객 경험 · CS · 운영</p>
+                </button>
             </div>
         </div>
     `;
@@ -5292,6 +5300,7 @@ async function renderTeamGoalsDX(container) {
         }
     }
     if (!STATE.ganttData) STATE.ganttData = [];
+    STATE._ganttTeam = 'DX';
 
     const months = [
         {name:'8월',weeks:5},{name:'9월',weeks:4},{name:'10월',weeks:5},{name:'11월',weeks:4},{name:'12월',weeks:4},
@@ -5303,8 +5312,9 @@ async function renderTeamGoalsDX(container) {
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
     // DX팀원 확인
-    const dxMembers = STATE.members.filter(m => m.team === 'DX' && !m.is_hidden && m.is_approved);
-    const isDXMember = dxMembers.some(m => m.user_id === STATE.user.id) || STATE.user.role === 'admin';
+    const ganttTeam = STATE._ganttTeam || 'DX';
+    const teamMembers = STATE.members.filter(m => m.team === ganttTeam && !m.is_hidden && m.is_approved);
+    const isDXMember = teamMembers.some(m => m.user_id === STATE.user.id) || STATE.user.role === 'admin';
     const isAdmin = STATE.user.role === 'admin';
     const canEdit = (item) => isAdmin || item.owner_id === STATE.user.id;
 
@@ -5464,15 +5474,17 @@ window.removeGanttItem = function(itemId) {
 
 window.addGanttItem = function() {
     const newId = 'g-' + Date.now();
+    const team = STATE._ganttTeam || 'DX';
     STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE', isNew: true });
     renderCurrentView();
 };
 
 window.saveGantt = async function() {
     try {
+        const team = STATE._ganttTeam || 'DX';
         const myItems = STATE.ganttData.filter(g => g.owner_id === STATE.user.id || STATE.user.role === 'admin');
         for (const item of myItems) {
-            const row = { task_id: item.id, team: 'DX', name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, updated_at: new Date().toISOString() };
+            const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, updated_at: new Date().toISOString() };
             if (item.dbId) { await GanttAPI.update(item.dbId, row); }
             else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
         }
@@ -5490,6 +5502,41 @@ window.removeGanttItem = async function(itemId) {
         renderCurrentView();
     } catch(e) { console.error('Gantt delete error:', e); alert('삭제 중 오류가 발생했습니다.'); }
 };
+
+// --- Team Goals Generic (CX 등) ---
+async function renderTeamGoalsGeneric(container, teamName) {
+    // 팀별 별도 state key
+    const stateKey = 'ganttData_' + teamName;
+    const loadedKey = 'ganttLoaded_' + teamName;
+    
+    if (!STATE[loadedKey]) {
+        container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
+        try {
+            const rows = await GanttAPI.listByTeam(teamName);
+            STATE[stateKey] = rows.filter(r => r.task_id).map(r => ({
+                dbId: r.id, id: r.task_id, name: r.name || '', owner_id: r.owner_id || '', owner: r.owner_name || '',
+                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669'
+            }));
+            STATE[loadedKey] = true;
+        } catch(e) { STATE[stateKey] = []; STATE[loadedKey] = true; }
+    }
+    if (!STATE[stateKey]) STATE[stateKey] = [];
+
+    // 기존 DX 간트 로직 재활용: STATE.ganttData를 임시로 교체
+    const origData = STATE.ganttData;
+    const origLoaded = STATE.ganttLoaded;
+    STATE.ganttData = STATE[stateKey];
+    STATE.ganttLoaded = true;
+    STATE._ganttTeam = teamName;
+    
+    // DX 렌더링 호출 (내부에서 STATE.ganttData 사용)
+    await renderTeamGoalsDX(container);
+    
+    // 복원하지 않음 — 저장/추가 시 현재 팀 데이터를 쓰게 함
+    // 대신 팀 라벨 교체
+    const titleEl = container.querySelector('h2');
+    if (titleEl) titleEl.textContent = teamName + '팀 일감 간트차트';
+}
 
 // --- Admin Settings View ---
 function renderAdminSettings(container) {

@@ -318,7 +318,7 @@ function ensureTempStructures(goal) {
 const MENU_ITEMS = [
     { id: 'dashboard', label: '대시보드', icon: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/dashboard' },
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
-    { id: 'team_goals', label: '팀별 목표', icon: '<path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.5 4.5h-11L5 14.5m14 0H5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/team-goals', subItems: [{id: 'team_goals_dx', label: 'DX팀'}] },
+    { id: 'team_goals', label: '팀별 목표', icon: '<path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.5 4.5h-11L5 14.5m14 0H5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/team-goals' },
 
     { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
@@ -1624,6 +1624,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
     else if (STATE.currentView === "team_goals_dx") renderTeamGoalsDX(content);
+    else if (STATE.currentView === "team_goals") renderTeamGoals(content);
     
     if (STATE.modalData) renderModal(document.body);
     else {
@@ -5245,22 +5246,93 @@ function renderOrgChart(container) {
     container.innerHTML = h;
 }
 
-// --- Team Goals DX View ---
-function renderTeamGoalsDX(container) {
+// --- Team Goals View ---
+function renderTeamGoals(container) {
     container.innerHTML = `
         <div class="max-w-4xl mx-auto">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-                </div>
-                <div>
-                    <h2 class="text-[18px] font-bold text-on-surface">DX팀 목표</h2>
-                    <p class="text-[13px] text-on-surface-variant">준비 중인 기능입니다.</p>
+            <div class="mb-8">
+                <h2 class="text-[20px] font-bold text-on-surface mb-2">팀별 목표</h2>
+                <p class="text-[14px] text-on-surface-variant">팀을 선택하면 일감별 간트차트를 확인할 수 있습니다.</p>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                <button onclick="STATE.currentView='team_goals_dx'; renderCurrentView();" class="bg-white border border-blue-100 rounded-2xl p-6 hover:border-primary hover:shadow-md transition-all text-left group">
+                    <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                    </div>
+                    <h3 class="text-[16px] font-bold text-on-surface mb-1">DX팀</h3>
+                    <p class="text-[12px] text-on-surface-variant">개발 · 디자인 · 데이터</p>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// --- Team Goals DX (Gantt Chart) ---
+function renderTeamGoalsDX(container) {
+    const weeks = ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'];
+    const ganttData = [
+        { name: '퍼포먼스 통합 대시보드 구축', owner: '김슬기', start: 0, duration: 6, color: '#006EBE' },
+        { name: 'BI 플랫폼 컨버전', owner: '김강모', start: 1, duration: 8, color: '#0053db' },
+        { name: '가상피팅 시스템 고도화', owner: '김강모', start: 2, duration: 5, color: '#7c3aed' },
+        { name: '채팅 서비스 구현 및 배포', owner: '이정현', start: 0, duration: 4, color: '#059669' },
+        { name: '웹뷰앱 딥링크/푸시 동기화', owner: '이정현', start: 3, duration: 3, color: '#0891b2' },
+        { name: 'CI/CD 배포 최적화', owner: '이정현', start: 5, duration: 2, color: '#64748b' },
+        { name: 'AI 비주얼 프로덕션 시스템', owner: '최보라', start: 1, duration: 7, color: '#dc2626' },
+        { name: '차일디 인스타 오가닉 도달', owner: '박명수', start: 0, duration: 12, color: '#ea580c' },
+        { name: '주간 보안 점검 자동화', owner: '이정현', start: 6, duration: 4, color: '#475569' },
+        { name: 'CutMaker 기능 추가', owner: '김강모', start: 4, duration: 5, color: '#7c3aed' }
+    ];
+
+    let ganttRows = '';
+    ganttData.forEach(item => {
+        let cells = '';
+        for (let i = 0; i < 12; i++) {
+            const isActive = i >= item.start && i < item.start + item.duration;
+            const isFirst = i === item.start;
+            const isLast = i === item.start + item.duration - 1;
+            const radius = isFirst && isLast ? 'border-radius:6px' : isFirst ? 'border-radius:6px 0 0 6px' : isLast ? 'border-radius:0 6px 6px 0' : '';
+            cells += `<td class="py-2 px-0.5 border-r border-blue-50/50"><div style="height:24px;${isActive ? 'background:' + item.color + ';' + radius : ''}"></div></td>`;
+        }
+        ganttRows += `
+            <tr class="border-b border-blue-50/50 hover:bg-blue-50/20">
+                <td class="py-3 px-3 text-[12px] font-bold text-on-surface whitespace-nowrap border-r border-blue-100 w-56">${item.name}</td>
+                <td class="py-3 px-2 text-[11px] text-on-surface-variant whitespace-nowrap border-r border-blue-100 w-16 text-center">${item.owner}</td>
+                ${cells}
+            </tr>
+        `;
+    });
+
+    let weekHeaders = weeks.map(w => `<th class="py-2 px-1 text-[10px] font-bold text-on-surface-variant text-center border-r border-blue-50/50 w-[calc((100%-288px)/12)]">${w}</th>`).join('');
+
+    container.innerHTML = `
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="STATE.currentView='team_goals'; renderCurrentView();" class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-[18px] font-bold text-on-surface">DX팀 일감 간트차트</h2>
+                        <p class="text-[12px] text-on-surface-variant">2026년 3분기 (8~9월)</p>
+                    </div>
                 </div>
             </div>
-            <div class="bg-white/50 border border-dashed border-blue-200 h-64 rounded-2xl flex items-center justify-center text-on-surface-variant font-bold text-[14px]">
-                추후 업데이트 예정
+            <div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-x-auto">
+                <table class="w-full border-collapse min-w-[900px]">
+                    <thead class="bg-surface-container">
+                        <tr class="border-b border-blue-100">
+                            <th class="py-3 px-3 text-[12px] font-bold text-on-surface-variant text-left border-r border-blue-100 w-56">일감</th>
+                            <th class="py-3 px-2 text-[11px] font-bold text-on-surface-variant text-center border-r border-blue-100 w-16">담당</th>
+                            ${weekHeaders}
+                        </tr>
+                    </thead>
+                    <tbody>${ganttRows}</tbody>
+                </table>
             </div>
+            <p class="mt-4 text-[11px] text-on-surface-variant text-center">* 더미 데이터입니다. 실제 일감 데이터 연동 예정.</p>
         </div>
     `;
 }

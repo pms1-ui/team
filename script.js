@@ -5416,9 +5416,9 @@ async function renderTeamGoalsDX(container) {
                 </div>
                 ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button></div>` : ''}
             </div>
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto" style="max-height:70vh;overflow-y:auto">
                 <table class="w-full border-collapse min-w-[1100px]">
-                    <thead>
+                    <thead class="sticky top-0 z-10 bg-white shadow-sm">
                         <tr class="border-b border-gray-100">
                             ${yearHeaders}
                         </tr>

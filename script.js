@@ -5328,20 +5328,27 @@ async function renderTeamGoalsDX(container) {
     const sortedData = [...STATE.ganttData].sort((a, b) => (a.owner || '').localeCompare(b.owner || '', 'ko'));
     
     sortedData.forEach((item, idx) => {
+        // 툴팁용 날짜 계산 (2026-08-03 = W1 시작일 기준)
+        const baseDate = new Date(2026, 6, 27); // 2026-07-27 (월) = 간트 W1 시작
+        const startDate = new Date(baseDate.getTime() + item.start * 7 * 24 * 60 * 60 * 1000);
+        const endDate = new Date(baseDate.getTime() + (item.start + item.duration - 1) * 7 * 24 * 60 * 60 * 1000 + 4 * 24 * 60 * 60 * 1000);
+        const tooltip = item.duration > 0 ? `${startDate.getMonth()+1}/${startDate.getDate()} ~ ${endDate.getMonth()+1}/${endDate.getDate()}` : '';
+
         let cells = '';
         for (let i = 0; i < totalWeeks; i++) {
             const isActive = i >= item.start && i < item.start + item.duration;
             const isFirst = i === item.start;
             const isLast = i === item.start + item.duration - 1;
+            const titleAttr = isActive && tooltip ? ` title="${tooltip}"` : '';
             if (isDXMember) {
                 const canEditThis = canEdit(item);
                 if (canEditThis) {
-                    cells += `<td class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 } else {
-                    cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 }
             } else {
-                cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
             }
         }
 
@@ -5352,8 +5359,8 @@ async function renderTeamGoalsDX(container) {
         const owners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
         const ownerBadges = owners.map(o => `<span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded">${o}</span>`).join('');
         const ownerCell = isEditable 
-            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px;width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-wrap gap-0.5 justify-center">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
-            : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px;width:80px"><div class="flex flex-wrap gap-0.5 justify-center">${ownerBadges}</div></td>`;
+            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-nowrap gap-0.5 justify-center">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
+            : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px"><div class="flex flex-nowrap gap-0.5 justify-center">${ownerBadges}</div></td>`;
 
         ganttRows += `
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">

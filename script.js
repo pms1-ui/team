@@ -5393,11 +5393,11 @@ async function renderTeamGoalsDX(container) {
     // 월 헤더
     let monthHeaders = '';
     months.forEach((m) => {
-        monthHeaders += `<th colspan="${m.weeks}" class="py-2 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100">${m.name}</th>`;
+        monthHeaders += `<th colspan="${m.weeks}" class="py-2 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 bg-gray-50">${m.name}</th>`;
     });
 
     let weekHeaders = '';
-    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50">${i+1}</th>`; }
+    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50 bg-white">${i+1}</th>`; }
 
     container.innerHTML = `
         <div class="max-w-full mx-auto">
@@ -5418,17 +5418,17 @@ async function renderTeamGoalsDX(container) {
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto" style="max-height:70vh;overflow-y:auto">
                 <table class="w-full border-collapse min-w-[1100px]">
-                    <thead class="sticky top-0 z-10 bg-white shadow-sm">
-                        <tr class="border-b border-gray-100">
+                    <thead class="sticky top-0 z-10 shadow-sm">
+                        <tr class="border-b border-gray-100 bg-white">
                             ${yearHeaders}
                         </tr>
-                        <tr class="border-b border-gray-100 bg-gray-50/50">
-                            <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100" style="min-width:240px">일감</th>
-                            <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap" style="min-width:80px;width:80px">담당</th>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="py-2.5 px-3 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 bg-gray-50" style="min-width:240px">일감</th>
+                            <th class="py-2.5 px-1 text-[11px] font-semibold text-gray-500 text-center border-r border-gray-100 whitespace-nowrap bg-gray-50" style="min-width:80px;width:80px">담당</th>
                             ${monthHeaders}
-                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-gray-50/50"></th>' : ''}
+                            ${isDXMember ? '<th class="w-6 sticky right-0 bg-gray-50"></th>' : ''}
                         </tr>
-                        <tr class="border-b border-gray-50">
+                        <tr class="border-b border-gray-50 bg-white">
                             <th class="border-r border-gray-100 h-5 bg-white"></th>
                             <th class="border-r border-gray-100 bg-white"></th>
                             ${weekHeaders}

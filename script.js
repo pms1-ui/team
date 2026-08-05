@@ -5576,13 +5576,21 @@ window.toggleGanttOwner = function(itemId, name) {
         owners.push(name);
     }
     item.owner = owners.join(', ');
-    // owner_id도 업데이트 (첫 번째 담당자 기준)
     if (owners.length > 0) {
         const firstMember = STATE.members.find(m => m.name === owners[0]);
         if (firstMember) item.owner_id = firstMember.user_id;
     }
-    // 모달 내 버튼 상태 갱신
-    openGanttOwnerModal(itemId);
+    // 모달 내 버튼 상태만 DOM에서 직접 갱신
+    const listEl = document.getElementById('gantt-owner-list');
+    if (listEl) {
+        const ganttTeam = STATE._ganttTeam || 'DX';
+        const teamMembers = STATE.members.filter(m => m.team === ganttTeam && !m.is_hidden && m.is_approved);
+        listEl.innerHTML = teamMembers.map(m => {
+            const isSelected = owners.includes(m.name);
+            return `<button onclick="toggleGanttOwner('${itemId}','${m.name}')" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${m.name}</button>`;
+        }).join('');
+    }
+};
 };
 
 // --- Team Goals Generic (CX 등) ---

@@ -5591,7 +5591,6 @@ window.toggleGanttOwner = function(itemId, name) {
         }).join('');
     }
 };
-};
 
 // --- Team Goals Generic (CX 등) ---
 async function renderTeamGoalsGeneric(container, teamName) {

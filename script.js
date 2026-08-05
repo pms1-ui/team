@@ -5296,7 +5296,8 @@ async function renderTeamGoalsDX(container) {
                 start: parseInt(r.start_week) || 0,
                 duration: parseInt(r.duration) || 0,
                 color: r.color || '#006EBE',
-                detail: r.detail || ''
+                detail: r.detail || '',
+                sequence: parseInt(r.sequence) || 999
             }));
             STATE.ganttLoaded = true;
         } catch(e) {
@@ -5325,8 +5326,8 @@ async function renderTeamGoalsDX(container) {
     const canEdit = (item) => true; // 모든 구성원이 수정 가능
 
     let ganttRows = '';
-    // 담당자 가나다순 정렬
-    const sortedData = [...STATE.ganttData].sort((a, b) => (a.owner || '').localeCompare(b.owner || '', 'ko'));
+    // sequence 순 정렬
+    const sortedData = [...STATE.ganttData].sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
     
     sortedData.forEach((item, idx) => {
         // 툴팁용 날짜 계산 (2026-08-03 = W1 시작일 기준)
@@ -5369,12 +5370,12 @@ async function renderTeamGoalsDX(container) {
         const toggleIcon = `<span class="inline-block cursor-pointer text-gray-300 hover:text-gray-500 transition-colors mr-1" onclick="event.stopPropagation(); toggleGanttDetail('${item.id}')"><svg class="w-3.5 h-3.5 transition-transform ${detailExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>`;
 
         ganttRows += `
-            <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">
+            <tr class="border-b border-gray-50 hover:bg-gray-50/50 group" draggable="true" data-gantt-id="${item.id}" ondragstart="ganttDragStart(event,'${item.id}')" ondragover="ganttDragOver(event)" ondrop="ganttDrop(event,'${item.id}')">
                 <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px">
                     <div class="flex items-center gap-1">
                         ${toggleIcon}
                         ${colorDot}
-                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5" style="min-width:200px">` : `<span class="text-[12px] font-medium text-gray-800" style="white-space:nowrap">${item.name}</span>`}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 cursor-grab active:cursor-grabbing" style="min-width:200px">` : `<span class="text-[12px] font-medium text-gray-800 cursor-grab" style="white-space:nowrap">${item.name}</span>`}
                     </div>
                 </td>
                 ${ownerCell}
@@ -5481,6 +5482,30 @@ window.updateGanttName = function(itemId, value) {
     if (item) item.name = value;
 };
 
+// 드래그 앤 드롭 순서 변경
+window.ganttDragStart = function(e, itemId) {
+    e.dataTransfer.setData('text/plain', itemId);
+    e.dataTransfer.effectAllowed = 'move';
+};
+window.ganttDragOver = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+};
+window.ganttDrop = function(e, targetId) {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (draggedId === targetId) return;
+    const data = STATE.ganttData;
+    const dragIdx = data.findIndex(g => g.id === draggedId);
+    const targetIdx = data.findIndex(g => g.id === targetId);
+    if (dragIdx < 0 || targetIdx < 0) return;
+    const [item] = data.splice(dragIdx, 1);
+    data.splice(targetIdx, 0, item);
+    // sequence 재부여
+    data.forEach((g, i) => { g.sequence = i + 1; });
+    renderCurrentView();
+};
+
 window.toggleGanttDetail = function(itemId) {
     if (!STATE._ganttExpanded) STATE._ganttExpanded = {};
     STATE._ganttExpanded[itemId] = !STATE._ganttExpanded[itemId];
@@ -5507,7 +5532,7 @@ window.removeGanttItem = function(itemId) {
 window.addGanttItem = function() {
     const newId = 'g-' + Date.now();
     const team = STATE._ganttTeam || 'DX';
-    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE', isNew: true });
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE', isNew: true, detail: '', sequence: STATE.ganttData.length + 1 });
     renderCurrentView();
 };
 
@@ -5522,7 +5547,7 @@ window.saveGantt = async function() {
                 const team = STATE._ganttTeam || 'DX';
                 const myItems = STATE.ganttData;
                 for (const item of myItems) {
-                    const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, detail: item.detail || '', updated_at: new Date().toISOString() };
+                    const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, detail: item.detail || '', sequence: String(item.sequence || 999), updated_at: new Date().toISOString() };
                     if (item.dbId) { await GanttAPI.update(item.dbId, row); }
                     else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
                 }
@@ -5604,7 +5629,7 @@ async function renderTeamGoalsGeneric(container, teamName) {
             const rows = await GanttAPI.listByTeam(teamName);
             STATE[stateKey] = rows.filter(r => r.task_id).map(r => ({
                 dbId: r.id, id: r.task_id, name: r.name || '', owner_id: r.owner_id || '', owner: r.owner_name || '',
-                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669', detail: r.detail || ''
+                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669', detail: r.detail || '', sequence: parseInt(r.sequence) || 999
             }));
             STATE[loadedKey] = true;
         } catch(e) { STATE[stateKey] = []; STATE[loadedKey] = true; }

@@ -5295,7 +5295,8 @@ async function renderTeamGoalsDX(container) {
                 owner: r.owner_name || '',
                 start: parseInt(r.start_week) || 0,
                 duration: parseInt(r.duration) || 0,
-                color: r.color || '#006EBE'
+                color: r.color || '#006EBE',
+                detail: r.detail || ''
             }));
             STATE.ganttLoaded = true;
         } catch(e) {
@@ -5364,18 +5365,23 @@ async function renderTeamGoalsDX(container) {
             ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-nowrap gap-0.5 justify-center items-center">${ownerDisplay || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
             : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px"><div class="flex flex-nowrap gap-0.5 justify-center items-center">${ownerDisplay}</div></td>`;
 
+        const detailExpanded = STATE._ganttExpanded && STATE._ganttExpanded[item.id];
+        const toggleIcon = `<span class="inline-block cursor-pointer text-gray-300 hover:text-gray-500 transition-colors mr-1" onclick="event.stopPropagation(); toggleGanttDetail('${item.id}')"><svg class="w-3.5 h-3.5 transition-transform ${detailExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>`;
+
         ganttRows += `
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">
                 <td class="py-2.5 px-3 border-r border-gray-100" style="min-width:240px">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1">
+                        ${toggleIcon}
                         ${colorDot}
-                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5 -ml-1.5" style="min-width:200px">` : `<span class="text-[12px] font-medium text-gray-800" style="white-space:nowrap">${item.name}</span>`}
+                        ${isEditable ? `<input type="text" value="${item.name}" onchange="updateGanttName('${item.id}',this.value)" class="text-[12px] font-medium text-gray-800 bg-transparent border-none outline-none w-full focus:bg-gray-50 focus:ring-1 focus:ring-gray-200 focus:rounded px-1.5 py-0.5" style="min-width:200px">` : `<span class="text-[12px] font-medium text-gray-800" style="white-space:nowrap">${item.name}</span>`}
                     </div>
                 </td>
                 ${ownerCell}
                 ${cells}
                 ${isEditable ? `<td class="py-2.5 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
             </tr>
+            ${detailExpanded ? `<tr class="border-b border-gray-100 bg-gray-50/30"><td colspan="100" class="px-6 py-3"><textarea onchange="updateGanttDetail('${item.id}',this.value)" class="w-full text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary resize-y min-h-[60px] leading-relaxed" rows="3" placeholder="일감 설명을 입력하세요...">${item.detail || ''}</textarea></td></tr>` : ''}
         `;
     });
 
@@ -5408,7 +5414,7 @@ async function renderTeamGoalsDX(container) {
                         <p class="text-[12px] text-on-surface-variant">2026 하반기 ~ 2027 상반기</p>
                     </div>
                 </div>
-                ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button></div>` : ''}
+                ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse min-w-[1100px]">
@@ -5475,6 +5481,24 @@ window.updateGanttName = function(itemId, value) {
     if (item) item.name = value;
 };
 
+window.toggleGanttDetail = function(itemId) {
+    if (!STATE._ganttExpanded) STATE._ganttExpanded = {};
+    STATE._ganttExpanded[itemId] = !STATE._ganttExpanded[itemId];
+    renderCurrentView();
+};
+
+window.updateGanttDetail = function(itemId, value) {
+    const item = STATE.ganttData.find(g => g.id === itemId);
+    if (item) item.detail = value;
+};
+
+window.toggleAllGanttDetails = function() {
+    if (!STATE._ganttExpanded) STATE._ganttExpanded = {};
+    STATE._ganttAllExpanded = !STATE._ganttAllExpanded;
+    STATE.ganttData.forEach(item => { STATE._ganttExpanded[item.id] = STATE._ganttAllExpanded; });
+    renderCurrentView();
+};
+
 window.removeGanttItem = function(itemId) {
     STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
     renderCurrentView();
@@ -5492,7 +5516,7 @@ window.saveGantt = async function() {
         const team = STATE._ganttTeam || 'DX';
         const myItems = STATE.ganttData; // 모든 일감 저장 가능
         for (const item of myItems) {
-            const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, updated_at: new Date().toISOString() };
+            const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, detail: item.detail || '', updated_at: new Date().toISOString() };
             if (item.dbId) { await GanttAPI.update(item.dbId, row); }
             else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
         }
@@ -5563,7 +5587,7 @@ async function renderTeamGoalsGeneric(container, teamName) {
             const rows = await GanttAPI.listByTeam(teamName);
             STATE[stateKey] = rows.filter(r => r.task_id).map(r => ({
                 dbId: r.id, id: r.task_id, name: r.name || '', owner_id: r.owner_id || '', owner: r.owner_name || '',
-                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669'
+                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669', detail: r.detail || ''
             }));
             STATE[loadedKey] = true;
         } catch(e) { STATE[stateKey] = []; STATE[loadedKey] = true; }

@@ -5381,7 +5381,7 @@ async function renderTeamGoalsDX(container) {
                 ${cells}
                 ${isEditable ? `<td class="py-2.5 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
             </tr>
-            ${detailExpanded ? `<tr class="border-b border-gray-100 bg-gray-50/30"><td colspan="100" class="px-6 py-3"><textarea onchange="updateGanttDetail('${item.id}',this.value)" class="w-full text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary resize-y min-h-[60px] leading-relaxed" rows="3" placeholder="일감 설명을 입력하세요...">${item.detail || ''}</textarea></td></tr>` : ''}
+            ${detailExpanded ? `<tr class="border-b border-gray-100 bg-gray-50/30"><td colspan="100" class="px-6 py-2"><textarea onchange="updateGanttDetail('${item.id}',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" class="w-full text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-primary resize-none leading-relaxed overflow-hidden" rows="1" style="min-height:28px">${item.detail || ''}</textarea></td></tr>` : ''}
         `;
     });
 

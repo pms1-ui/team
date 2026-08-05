@@ -5512,16 +5512,26 @@ window.addGanttItem = function() {
 };
 
 window.saveGantt = async function() {
-    try {
-        const team = STATE._ganttTeam || 'DX';
-        const myItems = STATE.ganttData; // 모든 일감 저장 가능
-        for (const item of myItems) {
-            const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, detail: item.detail || '', updated_at: new Date().toISOString() };
-            if (item.dbId) { await GanttAPI.update(item.dbId, row); }
-            else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
-        }
-        alert('저장되었습니다.');
-    } catch(e) { console.error('Gantt save error:', e); alert('저장 중 오류가 발생했습니다.'); }
+    STATE.modalData = {
+        title: '저장 확인',
+        content: '<p class="text-[14px] text-gray-700">마일스톤 변경 사항을 저장하시겠습니까?</p>',
+        onConfirm: async () => {
+            STATE.modalData = null;
+            renderCurrentView();
+            try {
+                const team = STATE._ganttTeam || 'DX';
+                const myItems = STATE.ganttData;
+                for (const item of myItems) {
+                    const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, detail: item.detail || '', updated_at: new Date().toISOString() };
+                    if (item.dbId) { await GanttAPI.update(item.dbId, row); }
+                    else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
+                }
+                alert('저장되었습니다.');
+            } catch(e) { console.error('Gantt save error:', e); alert('저장 중 오류가 발생했습니다.'); }
+        },
+        isWide: false
+    };
+    renderCurrentView();
 };
 
 window.removeGanttItem = async function(itemId) {

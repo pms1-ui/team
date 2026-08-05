@@ -5343,12 +5343,12 @@ async function renderTeamGoalsDX(container) {
             if (isDXMember) {
                 const canEditThis = canEdit(item);
                 if (canEditThis) {
-                    cells += `<td class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 } else {
-                    cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 }
             } else {
-                cells += `<td class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div${titleAttr} style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
             }
         }
 

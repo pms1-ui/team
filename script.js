@@ -5357,10 +5357,12 @@ async function renderTeamGoalsDX(container) {
 
         // 담당자: 클릭하면 모달로 추가/삭제
         const owners = item.owner ? item.owner.split(',').map(o => o.trim()).filter(Boolean) : [];
-        const ownerBadges = owners.map(o => `<span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded whitespace-nowrap">${o}</span>`).join('');
+        const mainOwner = owners.length > 0 ? `<span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded whitespace-nowrap">${owners[0]}</span>` : '';
+        const extraCount = owners.length > 1 ? `<span class="inline-block px-1 py-0.5 bg-gray-200 text-gray-500 text-[9px] font-bold rounded whitespace-nowrap">+${owners.length - 1}</span>` : '';
+        const ownerDisplay = mainOwner + extraCount;
         const ownerCell = isEditable 
-            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-nowrap gap-0.5 justify-center">${ownerBadges || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
-            : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px"><div class="flex flex-nowrap gap-0.5 justify-center">${ownerBadges}</div></td>`;
+            ? `<td class="py-2 px-1 border-r border-gray-100 cursor-pointer hover:bg-gray-50 align-middle" style="min-width:80px" onclick="openGanttOwnerModal('${item.id}')"><div class="flex flex-nowrap gap-0.5 justify-center items-center">${ownerDisplay || '<span class="text-[10px] text-gray-300">+담당</span>'}</div></td>`
+            : `<td class="py-2 px-1 border-r border-gray-100 align-middle" style="min-width:80px"><div class="flex flex-nowrap gap-0.5 justify-center items-center">${ownerDisplay}</div></td>`;
 
         ganttRows += `
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 group">

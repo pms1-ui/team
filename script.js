@@ -5319,9 +5319,9 @@ async function renderTeamGoalsDX(container) {
     // DX팀원 확인
     const ganttTeam = STATE._ganttTeam || 'DX';
     const teamMembers = STATE.members.filter(m => m.team === ganttTeam && !m.is_hidden && m.is_approved);
-    const isDXMember = teamMembers.some(m => m.user_id === STATE.user.id) || STATE.user.role === 'admin';
+    const isDXMember = true; // 모든 로그인 사용자가 간트차트 편집 가능
     const isAdmin = STATE.user.role === 'admin';
-    const canEdit = (item) => isAdmin || item.owner_id === STATE.user.id;
+    const canEdit = (item) => true; // 모든 구성원이 수정 가능
 
     let ganttRows = '';
     // 담당자 가나다순 정렬
@@ -5481,7 +5481,7 @@ window.addGanttItem = function() {
 window.saveGantt = async function() {
     try {
         const team = STATE._ganttTeam || 'DX';
-        const myItems = STATE.ganttData.filter(g => g.owner_id === STATE.user.id || STATE.user.role === 'admin');
+        const myItems = STATE.ganttData; // 모든 일감 저장 가능
         for (const item of myItems) {
             const row = { task_id: item.id, team: team, name: item.name, owner_id: item.owner_id, owner_name: item.owner, start_week: String(item.start), duration: String(item.duration), color: item.color, updated_at: new Date().toISOString() };
             if (item.dbId) { await GanttAPI.update(item.dbId, row); }

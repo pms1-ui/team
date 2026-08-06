@@ -5311,10 +5311,10 @@ async function renderTeamGoalsDX(container) {
 
     const months = [
         {name:'8월',weeks:5},{name:'9월',weeks:4},{name:'10월',weeks:5},{name:'11월',weeks:4},{name:'12월',weeks:4},
-        {name:'1월',weeks:5},{name:'2월',weeks:4},{name:'3월',weeks:4},{name:'4월',weeks:5}
+        {name:'1월',weeks:5},{name:'2월',weeks:4}
     ];
     let totalWeeks = 0;
-    months.forEach(m => totalWeeks += m.weeks); // 40
+    months.forEach(m => totalWeeks += m.weeks); // 31
 
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
@@ -5345,12 +5345,12 @@ async function renderTeamGoalsDX(container) {
             if (isDXMember) {
                 const canEditThis = canEdit(item);
                 if (canEditThis) {
-                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:22px;min-width:22px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:28px;min-width:28px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 } else {
-                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:28px;min-width:28px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 }
             } else {
-                cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:22px;min-width:22px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:28px;min-width:28px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
             }
         }
 
@@ -5387,8 +5387,8 @@ async function renderTeamGoalsDX(container) {
     });
 
     // 연도 헤더 (별도 행)
-    const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0);
-    const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0);
+    const h1Weeks = months.slice(0, 5).reduce((s, m) => s + m.weeks, 0); // 2026: 8~12월 = 22주
+    const h2Weeks = months.slice(5).reduce((s, m) => s + m.weeks, 0); // 2027: 1~2월 = 9주
     let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:80px"></th><th colspan="${h1Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center border-r border-gray-200 bg-white">2026</th><th colspan="${h2Weeks}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white">2027</th><th class="sticky right-0 bg-white"></th>`;
 
     // 월 헤더
@@ -5418,7 +5418,7 @@ async function renderTeamGoalsDX(container) {
                 ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-                <table class="w-full border-collapse min-w-[1100px]">
+                <table class="w-full border-collapse" style="min-width:1100px">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="border-b border-gray-100 bg-white">
                             ${yearHeaders}

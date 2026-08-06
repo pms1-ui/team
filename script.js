@@ -2598,6 +2598,21 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         // Set default dashboard filter to user's division/team
         if (STATE.user.division) STATE.dashboardDivisionFilter = STATE.user.division;
         if (STATE.user.team) STATE.dashboardTeamFilter = STATE.user.team;
+        // Set default filters for all views
+        if (STATE.user.division) {
+            STATE.requestsDivisionFilter = STATE.user.division;
+            STATE.feedbackDivisionFilter = STATE.user.division;
+            STATE.feedbackDashDivisionFilter = STATE.user.division;
+            STATE.membersDivisionFilter = STATE.user.division;
+            STATE.rnrBrowseDivisionFilter = STATE.user.division;
+        }
+        if (STATE.user.team) {
+            STATE.requestsTeamFilter = STATE.user.team;
+            STATE.feedbackTeamFilter = STATE.user.team;
+            STATE.feedbackDashTeamFilter = STATE.user.team;
+            STATE.membersTeamFilter = STATE.user.team;
+            STATE.rnrBrowseTeamFilter = STATE.user.team;
+        }
         
         // Navigate to dashboard and update URL
         navigateTo('dashboard', true);
@@ -6525,6 +6540,21 @@ async function initLoginPage() {
                     // Set default dashboard filter to user's division/team
                     if (STATE.user.division) STATE.dashboardDivisionFilter = STATE.user.division;
                     if (STATE.user.team) STATE.dashboardTeamFilter = STATE.user.team;
+                    // Set default filters for all views
+                    if (STATE.user.division) {
+                        STATE.requestsDivisionFilter = STATE.user.division;
+                        STATE.feedbackDivisionFilter = STATE.user.division;
+                        STATE.feedbackDashDivisionFilter = STATE.user.division;
+                        STATE.membersDivisionFilter = STATE.user.division;
+                        STATE.rnrBrowseDivisionFilter = STATE.user.division;
+                    }
+                    if (STATE.user.team) {
+                        STATE.requestsTeamFilter = STATE.user.team;
+                        STATE.feedbackTeamFilter = STATE.user.team;
+                        STATE.feedbackDashTeamFilter = STATE.user.team;
+                        STATE.membersTeamFilter = STATE.user.team;
+                        STATE.rnrBrowseTeamFilter = STATE.user.team;
+                    }
                     
                     // Handle initial route
                     handleInitialRoute();

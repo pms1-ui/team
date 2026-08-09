@@ -5007,16 +5007,37 @@ function renderWeeklyReportMyView(selectedPeriod) {
     const isSubmitted = !!(myReport && myReport.content && myReport.content.trim() !== '');
     const isEditing = STATE.weeklyReportEditing === true;
 
+    // 마감 판단: 해당 주차의 다음주 월요일 14:00 이후면 마감
+    let isClosed = false;
+    if (selectedPeriod) {
+        const deadline = new Date(selectedPeriod.mondayDate);
+        deadline.setDate(deadline.getDate() + 7); // 다음주 월요일
+        deadline.setHours(14, 0, 0, 0);
+        isClosed = new Date() >= deadline;
+    }
+
     let h = '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+
+    // 마감 안내
+    if (isClosed) {
+        h += '<div class="flex items-center gap-2 mb-5 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">';
+        h += '<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
+        h += '<span class="text-[12px] font-bold text-gray-500">제출 마감 — 해당 주차의 제출 기한(차주 월요일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
+        h += '</div>';
+    }
 
     // 제출 상태 배지
     h += '<div class="flex items-center justify-between mb-5">';
     if (isSubmitted) {
         h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
     } else {
-        h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>미제출</span>';
+        if (isClosed) {
+            h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-500 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>미제출 (마감)</span>';
+        } else {
+            h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>미제출</span>';
+        }
     }
-    if (isSubmitted && !isEditing) {
+    if (isSubmitted && !isEditing && !isClosed) {
         h += `<button onclick="enableWeeklyReportEdit()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-on-surface font-bold text-[12px] rounded-lg hover:bg-blue-50 transition-all">`;
         h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>수정</button>';
     }
@@ -5035,7 +5056,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
         h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${fmt}</span>`;
     }
     h += '</div>';
-    const textareaDisabled = isSubmitted && !isEditing;
+    const textareaDisabled = isClosed || (isSubmitted && !isEditing);
     h += `<textarea id="weekly-report-content" rows="16" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
     h += '</div>';
     if (!textareaDisabled) {

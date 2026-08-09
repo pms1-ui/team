@@ -4917,14 +4917,14 @@ function generateWeeklyPeriods() {
         if (dow === 0) firstMonday.setDate(firstOfMonth.getDate() + 1);
         else if (dow !== 1) firstMonday.setDate(firstOfMonth.getDate() + (8 - dow));
         const weekNum = Math.round((cursor - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-        const friday = new Date(cursor);
-        friday.setDate(cursor.getDate() + 4);
+        const sunday = new Date(cursor);
+        sunday.setDate(cursor.getDate() + 6);
         const fmt = d => `${d.getMonth() + 1}/${d.getDate()}`;
         periods.push({
             key: `${year}-${month}-${weekNum}`,
             year: String(year), month: String(month), week: String(weekNum),
             label: `${year}년 ${month}월 ${weekNum}주차`,
-            dateRange: `${fmt(cursor)} ~ ${fmt(friday)}`,
+            dateRange: `${fmt(cursor)} ~ ${fmt(sunday)}`,
             monthLabel: `${year}년 ${month}월`,
             mondayDate: new Date(cursor)
         });
@@ -4934,15 +4934,26 @@ function generateWeeklyPeriods() {
 }
 
 function getTodayWeekKey(periods) {
-    const now = new Date(); now.setHours(0,0,0,0);
-    const dow = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    const now = new Date();
+    // 월요일 14시 기준: 월요일 14시 이전이면 지난주차, 이후면 이번주차
+    const dow = now.getDay(); // 0=일, 1=월, ...
+    const hour = now.getHours();
+    let targetMonday = new Date(now);
+    targetMonday.setHours(0,0,0,0);
+    // 이번주 월요일 구하기
+    targetMonday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    // 월요일 14시 이전이면 지난주차를 보여줌
+    if (dow === 1 && hour < 14) {
+        targetMonday.setDate(targetMonday.getDate() - 7);
+    } else if (dow === 0) {
+        // 일요일이면 이번주(지나간 월요일) 주차
+        // targetMonday은 이미 이번주 월요일을 가리킴
+    }
     for (const p of periods) {
         const pm = p.mondayDate;
-        if (pm.getFullYear()===monday.getFullYear() && pm.getMonth()===monday.getMonth() && pm.getDate()===monday.getDate()) return p.key;
+        if (pm.getFullYear()===targetMonday.getFullYear() && pm.getMonth()===targetMonday.getMonth() && pm.getDate()===targetMonday.getDate()) return p.key;
     }
-    const past = [...periods].filter(p => p.mondayDate <= monday);
+    const past = [...periods].filter(p => p.mondayDate <= targetMonday);
     return past.length ? past[past.length-1].key : (periods[0] ? periods[0].key : '');
 }
 
@@ -4993,7 +5004,24 @@ function renderWeeklyReportMyView(selectedPeriod) {
         r.user_id===STATE.user.id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week
     ) : null;
     const content = myReport ? (myReport.content || '') : '';
+    const isSubmitted = !!(myReport && myReport.content && myReport.content.trim() !== '');
+    const isEditing = STATE.weeklyReportEditing === true;
+
     let h = '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
+
+    // 제출 상태 배지
+    h += '<div class="flex items-center justify-between mb-5">';
+    if (isSubmitted) {
+        h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+    } else {
+        h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>미제출</span>';
+    }
+    if (isSubmitted && !isEditing) {
+        h += `<button onclick="enableWeeklyReportEdit()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-on-surface font-bold text-[12px] rounded-lg hover:bg-blue-50 transition-all">`;
+        h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>수정</button>';
+    }
+    h += '</div>';
+
     h += '<div class="grid grid-cols-3 gap-4 mb-6">';
     [['이름', member.name || STATE.user.name || ''], ['팀', member.team || ''], ['직책', member.position || '']].forEach(([label, val]) => {
         h += `<div><label class="block text-[12px] font-bold text-on-surface-variant mb-1.5">${label}</label>`;
@@ -5007,14 +5035,28 @@ function renderWeeklyReportMyView(selectedPeriod) {
         h += `<span class="text-[11px] text-on-surface-variant/60 font-medium">마지막 저장: ${fmt}</span>`;
     }
     h += '</div>';
-    h += `<textarea id="weekly-report-content" rows="16" placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
+    const textareaDisabled = isSubmitted && !isEditing;
+    h += `<textarea id="weekly-report-content" rows="16" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
     h += '</div>';
-    h += `<div class="flex justify-end"><button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
-    h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button></div></div>';
+    if (!textareaDisabled) {
+        h += `<div class="flex justify-end gap-2">`;
+        if (isEditing) {
+            h += `<button onclick="cancelWeeklyReportEdit()" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-blue-200 text-on-surface font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all">취소</button>`;
+        }
+        h += `<button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
+        h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button></div>';
+    }
+    h += '</div>';
     return h;
 }
 
 function renderWeeklyReportAllView(selectedPeriod) {
+    // 디폴트: 현재 사용자의 본부/팀으로 설정
+    const currentMember = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+    if (!STATE.weeklyReportDivisionFilter && !STATE.weeklyReportTeamFilter && currentMember.division) {
+        STATE.weeklyReportDivisionFilter = currentMember.division;
+        if (currentMember.team) STATE.weeklyReportTeamFilter = currentMember.team;
+    }
     const divSelected = STATE.weeklyReportDivisionFilter && STATE.weeklyReportDivisionFilter !== '';
     const teamSelected = STATE.weeklyReportTeamFilter && STATE.weeklyReportTeamFilter !== '';
     const targetMembers = teamSelected ? STATE.members.filter(m =>
@@ -5124,6 +5166,7 @@ window.setWeeklyReportMonth = function(monthLabel) {
 
 window.setWeeklyReportWeek = function(key) {
     STATE.weeklyReportSelectedWeek = key;
+    STATE.weeklyReportEditing = false;
     renderCurrentView();
 };
 
@@ -5155,12 +5198,23 @@ window.saveWeeklyReport = async function(periodKey) {
             });
             STATE.weeklyReports.push({...created, content, updated_at: now});
         }
+        STATE.weeklyReportEditing = false;
         renderCurrentView();
     } catch (error) {
         console.error('Error saving weekly report:', error);
         alert('저장 중 오류가 발생했습니다.');
         if (btn) { btn.disabled=false; btn.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장'; }
     }
+};
+
+window.enableWeeklyReportEdit = function() {
+    STATE.weeklyReportEditing = true;
+    renderCurrentView();
+};
+
+window.cancelWeeklyReportEdit = function() {
+    STATE.weeklyReportEditing = false;
+    renderCurrentView();
 };
 
 // --- Org Chart View ---

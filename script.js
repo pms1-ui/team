@@ -5011,44 +5011,47 @@ function renderWeeklyReportMyView(selectedPeriod) {
     let isClosed = false;
     if (selectedPeriod) {
         const deadline = new Date(selectedPeriod.mondayDate);
-        deadline.setDate(deadline.getDate() + 7); // 다음주 월요일
+        deadline.setDate(deadline.getDate() + 7);
         deadline.setHours(14, 0, 0, 0);
         isClosed = new Date() >= deadline;
     }
 
     let h = '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
 
-    // 마감 안내
-    if (isClosed) {
-        h += '<div class="flex items-center gap-2 mb-5 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">';
-        h += '<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
-        h += '<span class="text-[12px] font-bold text-gray-500">제출 마감 — 해당 주차의 제출 기한(차주 월요일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
-        h += '</div>';
-    }
-
-    // 제출 상태 배지
-    h += '<div class="flex items-center justify-between mb-5">';
-    if (isSubmitted) {
-        h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+    // 헤더: 프로필 정보 + 상태 배지를 한 줄로
+    h += '<div class="flex items-center justify-between mb-6">';
+    h += '<div class="flex items-center gap-3">';
+    h += `<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[14px]">${(member.name || STATE.user.name || '?').charAt(0)}</div>`;
+    h += '<div>';
+    h += `<div class="flex items-center gap-2"><span class="font-bold text-on-surface text-[14px]">${member.name || STATE.user.name || ''}</span>`;
+    // 상태 배지 인라인
+    if (isClosed && !isSubmitted) {
+        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-500 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>미제출(마감)</span>';
+    } else if (isSubmitted) {
+        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
     } else {
-        if (isClosed) {
-            h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-500 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>미제출 (마감)</span>';
-        } else {
-            h += '<span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>미제출</span>';
-        }
+        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/></svg>미제출</span>';
     }
+    h += '</div>';
+    h += `<p class="text-[12px] text-on-surface-variant">${member.team || ''} · ${member.position || ''}</p>`;
+    h += '</div></div>';
+    // 우측: 수정 버튼 or 마감 잠금
     if (isSubmitted && !isEditing && !isClosed) {
         h += `<button onclick="enableWeeklyReportEdit()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-on-surface font-bold text-[12px] rounded-lg hover:bg-blue-50 transition-all">`;
         h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>수정</button>';
+    } else if (isClosed) {
+        h += '<div class="flex items-center gap-1.5 px-3 py-1.5 text-gray-400 text-[12px] font-bold"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>마감</div>';
     }
     h += '</div>';
 
-    h += '<div class="grid grid-cols-3 gap-4 mb-6">';
-    [['이름', member.name || STATE.user.name || ''], ['팀', member.team || ''], ['직책', member.position || '']].forEach(([label, val]) => {
-        h += `<div><label class="block text-[12px] font-bold text-on-surface-variant mb-1.5">${label}</label>`;
-        h += `<input type="text" value="${val}" disabled class="w-full bg-surface-container border border-blue-100 rounded-lg px-3 py-2 text-[13px] font-bold text-on-surface cursor-not-allowed"></div>`;
-    });
-    h += '</div>';
+    // 마감 배너 (마감 상태일 때만)
+    if (isClosed) {
+        h += '<div class="flex items-center gap-2 mb-5 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">';
+        h += '<span class="text-[11px] text-gray-500">제출 기한(차주 월요일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
+        h += '</div>';
+    }
+
+    // 업무 내용 영역
     h += '<div class="mb-5"><div class="flex items-center justify-between mb-2">';
     h += `<label class="text-[13px] font-bold text-on-surface-variant">${selectedPeriod ? selectedPeriod.label+' 업무공유' : '업무공유'}</label>`;
     if (myReport && myReport.updated_at) {
@@ -5057,7 +5060,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     }
     h += '</div>';
     const textareaDisabled = isClosed || (isSubmitted && !isEditing);
-    h += `<textarea id="weekly-report-content" rows="16" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
+    h += `<textarea id="weekly-report-content" rows="14" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed opacity-70' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
     h += '</div>';
     if (!textareaDisabled) {
         h += `<div class="flex justify-end gap-2">`;

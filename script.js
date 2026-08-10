@@ -3621,7 +3621,7 @@ function renderMyReceivedFeedback(container) {
 }
 
 function renderFeedback(container) {
-    // 비밀번호 미리보기 함수
+    // 비밀번호 미리보기 함수 (일반 구성원용)
     window.promptFeedbackPreviewPassword = function() {
         const pw = prompt('미리보기 비밀번호를 입력하세요:');
         if (pw === 'dxpreview') {
@@ -3632,9 +3632,44 @@ function renderFeedback(container) {
         }
     };
 
+    // 관리자 피드백 열람 비밀번호 함수 (기간 만료 후)
+    window.promptAdminFeedbackPassword = function() {
+        const pw = prompt('피드백 열람 비밀번호를 입력하세요:');
+        if (pw === 'childy20261!') {
+            STATE._adminFeedbackUnlocked = true;
+            renderCurrentView();
+        } else if (pw !== null) {
+            alert('비밀번호가 틀렸습니다.');
+        }
+    };
+
     // 일반 구성원(user)은 "나에게 온 피드백" 뷰만 표시
     if (STATE.user.role !== 'admin') {
         renderMyReceivedFeedback(container);
+        return;
+    }
+
+    // 관리자 기간 만료 체크: 모든 period의 feedback_cloase_date가 지났으면 비밀번호 필요
+    const now = new Date();
+    const hasActivePeriod = (STATE.periodSettings || []).some(p => {
+        if (!p.feedback_visible) return false;
+        const closeDate = p.feedback_cloase_date ? new Date(p.feedback_cloase_date) : null;
+        return !closeDate || now <= closeDate;
+    });
+    const adminNeedsPassword = !hasActivePeriod && !STATE._adminFeedbackUnlocked;
+
+    if (adminNeedsPassword) {
+        container.innerHTML = `
+            <div class="max-w-lg mx-auto mt-16">
+                <div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-8 text-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <h2 class="text-[16px] font-bold text-on-surface mb-2">피드백 열람 기간이 종료되었습니다</h2>
+                    <p class="text-[13px] text-on-surface-variant mb-6">피드백 조회를 위해 비밀번호를 입력해주세요.</p>
+                    <button onclick="promptAdminFeedbackPassword()" class="px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">비밀번호 입력</button>
+                </div>
+            </div>`;
         return;
     }
 

@@ -5134,22 +5134,30 @@ function renderWeeklyReportAllView(selectedPeriod) {
     const submittedCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
         r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && (r.status === 'submitted' || (!r.status && r.content && r.content.trim()!==''))
     )).length;
+    const draftCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
+        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.status === 'draft'
+    )).length;
+    const notSubmittedCount = targetMembers.length - submittedCount - draftCount;
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-2 flex items-center gap-6">';
     h += '<div class="text-[13px] font-bold text-on-surface-variant">제출 현황</div>';
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-success"></div><span class="text-[13px] font-bold text-on-surface">제출완료 ${submittedCount}명</span></div>`;
-    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-blue-100"></div><span class="text-[13px] font-bold text-on-surface-variant">미제출 ${targetMembers.length-submittedCount}명</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-blue-400"></div><span class="text-[13px] font-bold text-on-surface">임시저장 ${draftCount}명</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-blue-100"></div><span class="text-[13px] font-bold text-on-surface-variant">미제출 ${notSubmittedCount}명</span></div>`;
     h += '</div>';
     targetMembers.forEach((m, idx) => {
         const report = STATE.weeklyReports.find(r =>
-            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && (r.status === 'submitted' || (!r.status && r.content && r.content.trim()!==''))
+            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.content && r.content.trim()!==''
         );
+        const memberStatus = report ? (report.status || 'submitted') : null;
         const isMe = m.user_id===STATE.user.id;
-        const submitted = !!report;
-        h += `<div class="bg-white rounded-xl border ${submitted ? 'border-success/30' : 'border-blue-50'} shadow-sm overflow-hidden">`;
+        const borderClass = memberStatus === 'submitted' ? 'border-success/30' : memberStatus === 'draft' ? 'border-blue-300/50' : 'border-blue-50';
+        h += `<div class="bg-white rounded-xl border ${borderClass} shadow-sm overflow-hidden">`;
         h += `<div class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-blue-50/40 transition-colors" onclick="document.getElementById('wr-detail-${idx}').classList.toggle('hidden')">`;
         h += '<div class="flex items-center gap-3">';
-        if (submitted) {
+        if (memberStatus === 'submitted') {
             h += '<span class="flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+        } else if (memberStatus === 'draft') {
+            h += '<span class="flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>임시저장</span>';
         } else {
             h += '<span class="px-2.5 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded-full">미제출</span>';
         }
@@ -5158,7 +5166,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
         if (isMe) h += '<span class="ml-2 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">나</span>';
         h += `<p class="text-[11px] text-on-surface-variant">${m.team||''} · ${m.position||''}</p></div></div>`;
         h += '<div class="flex items-center gap-3">';
-        if (submitted && report.updated_at) {
+        if (memberStatus && report && report.updated_at) {
             const fmt = new Date(report.updated_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
             h += `<span class="text-[11px] text-on-surface-variant/60 hidden lg:block">${fmt}</span>`;
         }
@@ -5169,7 +5177,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
         h += '<svg class="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
         h += '</div></div>';
         h += `<div id="wr-detail-${idx}" class="hidden border-t border-blue-50 px-5 py-4 bg-surface-container/30">`;
-        if (submitted && report.content) {
+        if (report && report.content) {
             h += `<pre class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap font-sans break-all">${report.content}</pre>`;
         } else {
             h += '<p class="text-[13px] text-on-surface-variant/60 font-medium">아직 작성된 업무공유가 없습니다.</p>';

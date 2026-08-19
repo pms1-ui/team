@@ -1624,7 +1624,6 @@ function renderCurrentView() {
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
     else if (STATE.currentView === "team_goals_dx") renderTeamGoalsDX(content);
-    else if (STATE.currentView === "team_goals_cx") renderTeamGoalsGeneric(content, 'CX');
     else if (STATE.currentView === "team_goals") renderTeamGoals(content);
     
     if (STATE.modalData) renderModal(document.body);
@@ -5450,13 +5449,6 @@ function renderTeamGoals(container) {
                     <h3 class="text-[16px] font-bold text-on-surface mb-1">DX팀</h3>
                     <p class="text-[12px] text-on-surface-variant">기획 · 개발 · 디자인</p>
                 </button>
-                <button onclick="STATE.currentView='team_goals_cx'; renderCurrentView();" class="bg-white border border-blue-100 rounded-2xl p-6 hover:border-primary hover:shadow-md transition-all text-left group">
-                    <div class="w-12 h-12 bg-[#059669]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#059669]/20 transition-colors">
-                        <svg class="w-6 h-6 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    </div>
-                    <h3 class="text-[16px] font-bold text-on-surface mb-1">CX팀</h3>
-                    <p class="text-[12px] text-on-surface-variant">고객 경험 · CS · 운영</p>
-                </button>
             </div>
         </div>
     `;
@@ -5499,6 +5491,11 @@ async function renderTeamGoalsDX(container) {
 
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
+    // 현재 주차 인덱스 계산 (baseDate 기준)
+    const baseDate = new Date(2026, 6, 27); // 2026-07-27 (월)
+    const now = new Date();
+    const currentWeekIdx = Math.floor((now - baseDate) / (7 * 24 * 60 * 60 * 1000));
+
     // DX팀원 확인
     const ganttTeam = STATE._ganttTeam || 'DX';
     const teamMembers = STATE.members.filter(m => m.team === ganttTeam && !m.is_hidden && m.is_approved);
@@ -5522,16 +5519,18 @@ async function renderTeamGoalsDX(container) {
             const isActive = i >= item.start && i < item.start + item.duration;
             const isFirst = i === item.start;
             const isLast = i === item.start + item.duration - 1;
+            const isCurrentWeek = i === currentWeekIdx;
+            const currentWeekBg = isCurrentWeek ? 'background-color:rgba(220,38,38,0.06);' : '';
             const titleAttr = isActive && tooltip ? ` title="${tooltip}"` : '';
             if (isDXMember) {
                 const canEditThis = canEdit(item);
                 if (canEditThis) {
-                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:35px;min-width:35px" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50 cursor-pointer hover:bg-gray-100/50" style="width:35px;min-width:35px;${currentWeekBg}" onclick="toggleGanttCell('${item.id}',${i})"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 } else {
-                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:35px;min-width:35px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                    cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:35px;min-width:35px;${currentWeekBg}"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
                 }
             } else {
-                cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:35px;min-width:35px"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
+                cells += `<td${titleAttr} class="py-1.5 px-0 border-r border-gray-50" style="width:35px;min-width:35px;${currentWeekBg}"><div style="height:20px;margin:0 1px;border-radius:${isActive ? (isFirst && isLast ? '4px' : isFirst ? '4px 0 0 4px' : isLast ? '0 4px 4px 0' : '0') : '0'};${isActive ? 'background:' + item.color : ''}"></div></td>`;
             }
         }
 
@@ -5580,7 +5579,8 @@ async function renderTeamGoalsDX(container) {
     let weekCounter = 0;
     months.forEach(m => {
         for (let w = 0; w < m.weeks; w++) {
-            weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50 bg-white">${w+1}</th>`;
+            const isCurrent = weekCounter === currentWeekIdx;
+            weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium ${isCurrent ? 'text-red-500 font-bold' : 'text-gray-300'} text-center border-r border-gray-50 bg-white" style="${isCurrent ? 'background-color:rgba(220,38,38,0.06)' : ''}">${w+1}</th>`;
             weekCounter++;
         }
     });
@@ -5803,40 +5803,6 @@ window.toggleGanttOwner = function(itemId, name) {
 };
 
 // --- Team Goals Generic (CX 등) ---
-async function renderTeamGoalsGeneric(container, teamName) {
-    // 팀별 별도 state key
-    const stateKey = 'ganttData_' + teamName;
-    const loadedKey = 'ganttLoaded_' + teamName;
-    
-    if (!STATE[loadedKey]) {
-        container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
-        try {
-            const rows = await GanttAPI.listByTeam(teamName);
-            STATE[stateKey] = rows.filter(r => r.task_id).map(r => ({
-                dbId: r.id, id: r.task_id, name: r.name || '', owner_id: r.owner_id || '', owner: r.owner_name || '',
-                start: parseInt(r.start_week) || 0, duration: parseInt(r.duration) || 0, color: r.color || '#059669', detail: r.detail || '', sequence: parseInt(r.sequence) || 999
-            }));
-            STATE[loadedKey] = true;
-        } catch(e) { STATE[stateKey] = []; STATE[loadedKey] = true; }
-    }
-    if (!STATE[stateKey]) STATE[stateKey] = [];
-
-    // 기존 DX 간트 로직 재활용: STATE.ganttData를 임시로 교체
-    const origData = STATE.ganttData;
-    const origLoaded = STATE.ganttLoaded;
-    STATE.ganttData = STATE[stateKey];
-    STATE.ganttLoaded = true;
-    STATE._ganttTeam = teamName;
-    
-    // DX 렌더링 호출 (내부에서 STATE.ganttData 사용)
-    await renderTeamGoalsDX(container);
-    
-    // 복원하지 않음 — 저장/추가 시 현재 팀 데이터를 쓰게 함
-    // 대신 팀 라벨 교체
-    const titleEl = container.querySelector('h2');
-    if (titleEl) titleEl.textContent = teamName + '팀 일감 간트차트';
-}
-
 // --- Admin Settings View ---
 function renderAdminSettings(container) {
     const periods = STATE.periodSettings || [];

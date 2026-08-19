@@ -5577,7 +5577,13 @@ async function renderTeamGoalsDX(container) {
     });
 
     let weekHeaders = '';
-    for (let i = 0; i < totalWeeks; i++) { weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50 bg-white">${i+1}</th>`; }
+    let weekCounter = 0;
+    months.forEach(m => {
+        for (let w = 0; w < m.weeks; w++) {
+            weekHeaders += `<th class="py-1.5 px-0 text-[9px] font-medium text-gray-300 text-center border-r border-gray-50 bg-white">${w+1}</th>`;
+            weekCounter++;
+        }
+    });
 
     container.innerHTML = `
         <div class="max-w-full mx-auto">

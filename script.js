@@ -320,7 +320,7 @@ const MENU_ITEMS = [
     { id: 'goals_manage', label: '내 목표', icon: '<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/goals-manage' },
     { id: 'team_goals', label: '팀별 목표', icon: '<path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.5 4.5h-11L5 14.5m14 0H5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/team-goals' },
 
-    { id: 'weekly_report', label: '주간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
+    { id: 'weekly_report', label: '월간업무공유', icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/weekly-report' },
     { id: 'rnr', label: '직무기술 / R&R', icon: '<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/rnr' },
     { id: 'requests', label: '요청 관리', icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/requests' },
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
@@ -4934,71 +4934,57 @@ function renderGuide(container) {
 
 // --- Weekly Report View ---
 
-// 주차 계산: 월요일 시작, 주차 소속은 그 주 월요일 기준 월
-// 시작: 2026년 6월 4주차 (2026-06-22), 현재일 기준 3개월 후까지 자동 생성
-function generateWeeklyPeriods() {
+// 월간업무: 월 단위 기간 생성 (2026년 6월 ~ 현재+3개월)
+function generateMonthlyPeriods() {
     const periods = [];
-    const startMonday = new Date(2026, 5, 22); // 2026-06-22
     const now = new Date();
-    const endRef = new Date(now.getFullYear(), now.getMonth() + 4, 0);
-    let cursor = new Date(startMonday);
-    while (cursor <= endRef) {
-        const year = cursor.getFullYear();
-        const month = cursor.getMonth() + 1;
-        const firstOfMonth = new Date(year, month - 1, 1);
-        const dow = firstOfMonth.getDay();
-        const firstMonday = new Date(firstOfMonth);
-        if (dow === 0) firstMonday.setDate(firstOfMonth.getDate() + 1);
-        else if (dow !== 1) firstMonday.setDate(firstOfMonth.getDate() + (8 - dow));
-        const weekNum = Math.round((cursor - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-        const sunday = new Date(cursor);
-        sunday.setDate(cursor.getDate() + 6);
-        const fmt = d => `${d.getMonth() + 1}/${d.getDate()}`;
+    const startYear = 2026, startMonth = 6;
+    const endYear = now.getFullYear(), endMonth = now.getMonth() + 4; // 현재+3개월
+    let y = startYear, m = startMonth;
+    while (y < endYear || (y === endYear && m <= endMonth)) {
+        const lastDay = new Date(y, m, 0).getDate();
         periods.push({
-            key: `${year}-${month}-${weekNum}`,
-            year: String(year), month: String(month), week: String(weekNum),
-            label: `${year}년 ${month}월 ${weekNum}주차`,
-            dateRange: `${fmt(cursor)} ~ ${fmt(sunday)}`,
-            monthLabel: `${year}년 ${month}월`,
-            mondayDate: new Date(cursor)
+            key: `${y}-${m}`,
+            year: String(y), month: String(m), week: '1',
+            label: `${y}년 ${m}월`,
+            dateRange: `${m}/1 ~ ${m}/${lastDay}`,
+            monthLabel: `${y}년`,
+            deadlineDate: new Date(y, m, 3, 14, 0, 0) // 차월 3일 14시 마감
         });
-        cursor.setDate(cursor.getDate() + 7);
+        m++;
+        if (m > 12) { m = 1; y++; }
     }
     return periods;
 }
 
-function getTodayWeekKey(periods) {
+function getTodayMonthKey(periods) {
     const now = new Date();
-    // 월요일 14시 기준: 월요일 14시 이전이면 지난주차, 이후면 이번주차
-    const dow = now.getDay(); // 0=일, 1=월, ...
-    const hour = now.getHours();
-    let targetMonday = new Date(now);
-    targetMonday.setHours(0,0,0,0);
-    // 이번주 월요일 구하기
-    targetMonday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
-    // 월요일 14시 이전이면 지난주차를 보여줌
-    if (dow === 1 && hour < 14) {
-        targetMonday.setDate(targetMonday.getDate() - 7);
-    } else if (dow === 0) {
-        // 일요일이면 이번주(지나간 월요일) 주차
-        // targetMonday은 이미 이번주 월요일을 가리킴
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1;
+    const d = now.getDate();
+    const h = now.getHours();
+    // 1~3일 14시 이전이면 이전 월을 기본 선택 (아직 제출 기간)
+    if (d <= 3 && (d < 3 || h < 14)) {
+        const prevM = m === 1 ? 12 : m - 1;
+        const prevY = m === 1 ? y - 1 : y;
+        const key = `${prevY}-${prevM}`;
+        if (periods.find(p => p.key === key)) return key;
     }
-    for (const p of periods) {
-        const pm = p.mondayDate;
-        if (pm.getFullYear()===targetMonday.getFullYear() && pm.getMonth()===targetMonday.getMonth() && pm.getDate()===targetMonday.getDate()) return p.key;
-    }
-    const past = [...periods].filter(p => p.mondayDate <= targetMonday);
-    return past.length ? past[past.length-1].key : (periods[0] ? periods[0].key : '');
+    // 그 외엔 현재 월
+    const key = `${y}-${m}`;
+    if (periods.find(p => p.key === key)) return key;
+    // fallback
+    return periods.length ? periods[periods.length - 1].key : '';
 }
 
 function renderWeeklyReport(container) {
-    const periods = generateWeeklyPeriods();
+    const periods = generateMonthlyPeriods();
     const viewMode = STATE.weeklyReportViewMode || 'my';
     if (!STATE.weeklyReportSelectedWeek || !periods.find(p => p.key === STATE.weeklyReportSelectedWeek)) {
-        STATE.weeklyReportSelectedWeek = getTodayWeekKey(periods);
+        STATE.weeklyReportSelectedWeek = getTodayMonthKey(periods);
     }
     const selectedPeriod = periods.find(p => p.key === STATE.weeklyReportSelectedWeek) || periods[0];
-    const months = [...new Set(periods.map(p => p.monthLabel))];
+    const years = [...new Set(periods.map(p => p.monthLabel))];
 
     let h = '<div class="max-w-3xl mx-auto">';
     h += '<div class="flex items-center gap-3 mb-6">';
@@ -5008,23 +4994,17 @@ function renderWeeklyReport(container) {
     h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>구성원 전체 현황</button>';
     h += '</div>';
 
-    h += '<p style="font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;animation:blink 1.5s ease-in-out infinite">주간업무는 해당주차 금요일 혹은 차주 월요일까지 입력하시는 것을 권장합니다.</p>';
+    h += '<p style="font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;animation:blink 1.5s ease-in-out infinite">월간업무는 해당 월 말일까지 입력하시는 것을 권장합니다. (차월 3일 14시 마감)</p>';
 
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-6 flex items-center gap-3 flex-wrap">';
     h += '<svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
-    h += '<select onchange="setWeeklyReportMonth(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
-    months.forEach(ml => {
-        h += `<option value="${ml}" ${selectedPeriod && selectedPeriod.monthLabel===ml ? 'selected' : ''}>${ml}</option>`;
-    });
-    h += '</select>';
-    const monthPeriods = selectedPeriod ? periods.filter(p => p.monthLabel===selectedPeriod.monthLabel) : [];
     h += '<select onchange="setWeeklyReportWeek(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-100 rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary">';
-    monthPeriods.forEach(p => {
-        h += `<option value="${p.key}" ${p.key===STATE.weeklyReportSelectedWeek ? 'selected' : ''}>${p.week}주차 (${p.dateRange})</option>`;
+    periods.forEach(p => {
+        h += `<option value="${p.key}" ${p.key===STATE.weeklyReportSelectedWeek ? 'selected' : ''}>${p.label} (${p.dateRange})</option>`;
     });
     h += '</select>';
     if (selectedPeriod) {
-        h += `<span class="text-[13px] text-primary font-black">${selectedPeriod.label}</span>`;
+        h += `<span class="text-[13px] text-primary font-black">${selectedPeriod.label} 업무공유</span>`;
     }
     h += '</div>';
     h += viewMode==='my' ? renderWeeklyReportMyView(selectedPeriod) : renderWeeklyReportAllView(selectedPeriod);
@@ -5035,7 +5015,7 @@ function renderWeeklyReport(container) {
 function renderWeeklyReportMyView(selectedPeriod) {
     const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
     const myReport = selectedPeriod ? STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week
+        r.user_id===STATE.user.id && r.year===selectedPeriod.year && r.month===selectedPeriod.month
     ) : null;
     const content = myReport ? (myReport.content || '') : '';
     // status: 'submitted' = 최종제출, 'draft' = 임시저장, null/없음+content있음 = 기존 제출 데이터(submitted 취급)
@@ -5044,13 +5024,10 @@ function renderWeeklyReportMyView(selectedPeriod) {
     const isDraft = reportStatus === 'draft';
     const isEditing = STATE.weeklyReportEditing === true;
 
-    // 마감 판단: 해당 주차의 다음주 월요일 14:00 이후면 마감
+    // 마감 판단: 차월 3일 14:00 이후면 마감
     let isClosed = false;
     if (selectedPeriod) {
-        const deadline = new Date(selectedPeriod.mondayDate);
-        deadline.setDate(deadline.getDate() + 7);
-        deadline.setHours(14, 0, 0, 0);
-        isClosed = new Date() >= deadline;
+        isClosed = new Date() >= selectedPeriod.deadlineDate;
     }
 
     let h = '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 lg:p-8">';
@@ -5086,7 +5063,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     // 마감 배너 (마감 상태일 때만)
     if (isClosed) {
         h += '<div class="flex items-center gap-2 mb-5 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">';
-        h += '<span class="text-[11px] text-gray-500">제출 기한(차주 월요일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
+        h += '<span class="text-[11px] text-gray-500">제출 기한(차월 3일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
         h += '</div>';
     }
 
@@ -5099,7 +5076,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     }
     h += '</div>';
     const textareaDisabled = isClosed || (isSubmitted && !isEditing);
-    h += `<textarea id="weekly-report-content" rows="14" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 주 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 주 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed opacity-70' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
+    h += `<textarea id="weekly-report-content" rows="14" ${textareaDisabled ? 'disabled' : ''} placeholder="이번 달 업무 내용을 자유롭게 작성해 주세요.&#10;&#10;예) 진행한 업무, 완료된 작업, 이슈 및 해결 방법, 다음 달 계획 등" class="w-full ${textareaDisabled ? 'bg-surface-container cursor-not-allowed opacity-70' : 'bg-white'} border border-blue-100 rounded-xl px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary resize-none leading-relaxed custom-scroll">${content}</textarea>`;
     h += '</div>';
     if (!textareaDisabled) {
         h += `<div class="flex justify-end gap-2">`;
@@ -5166,10 +5143,10 @@ function renderWeeklyReportAllView(selectedPeriod) {
         return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';
     }
     const submittedCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
-        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && (r.status === 'submitted' || (!r.status && r.content && r.content.trim()!==''))
+        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && (r.status === 'submitted' || (!r.status && r.content && r.content.trim()!==''))
     )).length;
     const draftCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
-        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.status === 'draft'
+        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.status === 'draft'
     )).length;
     const notSubmittedCount = targetMembers.length - submittedCount - draftCount;
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-2 flex items-center gap-6">';
@@ -5180,7 +5157,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
     h += '</div>';
     targetMembers.forEach((m, idx) => {
         const report = STATE.weeklyReports.find(r =>
-            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.week===selectedPeriod.week && r.content && r.content.trim()!==''
+            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.content && r.content.trim()!==''
         );
         const memberStatus = report ? (report.status || 'submitted') : null;
         const isMe = m.user_id===STATE.user.id;
@@ -5228,7 +5205,7 @@ window.setWeeklyReportViewMode = function(mode) {
 };
 
 window.setWeeklyReportMonth = function(monthLabel) {
-    const periods = generateWeeklyPeriods();
+    const periods = generateMonthlyPeriods();
     const monthPeriods = periods.filter(p => p.monthLabel===monthLabel);
     if (monthPeriods.length > 0) {
         const already = monthPeriods.find(p => p.key===STATE.weeklyReportSelectedWeek);
@@ -5248,13 +5225,13 @@ window.saveWeeklyReport = async function(periodKey) {
     if (!textarea) return;
     const content = textarea.value.trim();
     if (!content) { alert('업무 내용을 입력해주세요.'); return; }
-    const periods = generateWeeklyPeriods();
+    const periods = generateMonthlyPeriods();
     const period = periods.find(p => p.key===periodKey);
     if (!period) return;
     const member = STATE.members.find(m => m.user_id===STATE.user.id) || {};
     const now = new Date().toISOString();
     const existingReport = STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month && r.week===period.week
+        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month
     );
     const btn = document.querySelector('[onclick*="saveWeeklyReport"]');
     if (btn) { btn.disabled=true; btn.textContent='제출 중...'; }
@@ -5286,13 +5263,13 @@ window.saveDraftWeeklyReport = async function(periodKey) {
     if (!textarea) return;
     const content = textarea.value.trim();
     if (!content) { alert('임시저장할 내용을 입력해주세요.'); return; }
-    const periods = generateWeeklyPeriods();
+    const periods = generateMonthlyPeriods();
     const period = periods.find(p => p.key===periodKey);
     if (!period) return;
     const member = STATE.members.find(m => m.user_id===STATE.user.id) || {};
     const now = new Date().toISOString();
     const existingReport = STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month && r.week===period.week
+        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month
     );
     const btn = document.querySelector('[onclick*="saveDraftWeeklyReport"]');
     if (btn) { btn.disabled=true; btn.textContent='저장 중...'; }

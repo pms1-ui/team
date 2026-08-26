@@ -4934,6 +4934,24 @@ function renderGuide(container) {
 
 // --- Weekly Report View ---
 
+// 해당 월에 대해 유저의 "유효한" 리포트를 1건 반환 (가장 최근 업데이트 기준)
+// 2026년 8월은 예외: 8/15 이후 제출분만 유효
+function getValidMonthlyReport(userId, year, month, reports) {
+    const filtered = reports.filter(r => {
+        if (r.user_id !== userId || r.year !== year || r.month !== month) return false;
+        // 2026년 8월 예외: 15일 이후 제출/수정분만 유효
+        if (year === '2026' && month === '8') {
+            const updated = r.updated_at ? new Date(r.updated_at) : null;
+            if (!updated || updated < new Date('2026-08-15T00:00:00Z')) return false;
+        }
+        return true;
+    });
+    if (filtered.length === 0) return null;
+    // 가장 최근 updated_at 기준 1건
+    filtered.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    return filtered[0];
+}
+
 // 월간업무: 월 단위 기간 생성 (2026년 6월 ~ 현재+3개월)
 function generateMonthlyPeriods() {
     const periods = [];
@@ -5014,9 +5032,7 @@ function renderWeeklyReport(container) {
 
 function renderWeeklyReportMyView(selectedPeriod) {
     const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
-    const myReport = selectedPeriod ? STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===selectedPeriod.year && r.month===selectedPeriod.month
-    ) : null;
+    const myReport = selectedPeriod ? getValidMonthlyReport(STATE.user.id, selectedPeriod.year, selectedPeriod.month, STATE.weeklyReports) : null;
     const content = myReport ? (myReport.content || '') : '';
     // status: 'submitted' = 최종제출, 'draft' = 임시저장, null/없음+content있음 = 기존 제출 데이터(submitted 취급)
     const reportStatus = myReport ? (myReport.status || (myReport.content && myReport.content.trim() !== '' ? 'submitted' : null)) : null;
@@ -5142,12 +5158,14 @@ function renderWeeklyReportAllView(selectedPeriod) {
     if (!selectedPeriod || targetMembers.length===0) {
         return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';
     }
-    const submittedCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
-        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && (r.status === 'submitted' || (!r.status && r.content && r.content.trim()!==''))
-    )).length;
-    const draftCount = targetMembers.filter(m => STATE.weeklyReports.some(r =>
-        r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.status === 'draft'
-    )).length;
+    const submittedCount = targetMembers.filter(m => {
+        const r = getValidMonthlyReport(m.user_id, selectedPeriod.year, selectedPeriod.month, STATE.weeklyReports);
+        return r && (r.status === 'submitted' || (!r.status && r.content && r.content.trim() !== ''));
+    }).length;
+    const draftCount = targetMembers.filter(m => {
+        const r = getValidMonthlyReport(m.user_id, selectedPeriod.year, selectedPeriod.month, STATE.weeklyReports);
+        return r && r.status === 'draft';
+    }).length;
     const notSubmittedCount = targetMembers.length - submittedCount - draftCount;
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-2 flex items-center gap-6">';
     h += '<div class="text-[13px] font-bold text-on-surface-variant">제출 현황</div>';
@@ -5156,9 +5174,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-surface-container-high border border-blue-100"></div><span class="text-[13px] font-bold text-on-surface-variant">미제출 ${notSubmittedCount}명</span></div>`;
     h += '</div>';
     targetMembers.forEach((m, idx) => {
-        const report = STATE.weeklyReports.find(r =>
-            r.user_id===m.user_id && r.year===selectedPeriod.year && r.month===selectedPeriod.month && r.content && r.content.trim()!==''
-        );
+        const report = getValidMonthlyReport(m.user_id, selectedPeriod.year, selectedPeriod.month, STATE.weeklyReports);
         const memberStatus = report ? (report.status || 'submitted') : null;
         const isMe = m.user_id===STATE.user.id;
         const borderClass = memberStatus === 'submitted' ? 'border-success/30' : memberStatus === 'draft' ? 'border-blue-300/50' : 'border-blue-50';
@@ -5230,9 +5246,7 @@ window.saveWeeklyReport = async function(periodKey) {
     if (!period) return;
     const member = STATE.members.find(m => m.user_id===STATE.user.id) || {};
     const now = new Date().toISOString();
-    const existingReport = STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month
-    );
+    const existingReport = getValidMonthlyReport(STATE.user.id, period.year, period.month, STATE.weeklyReports);
     const btn = document.querySelector('[onclick*="saveWeeklyReport"]');
     if (btn) { btn.disabled=true; btn.textContent='제출 중...'; }
     try {
@@ -5268,9 +5282,7 @@ window.saveDraftWeeklyReport = async function(periodKey) {
     if (!period) return;
     const member = STATE.members.find(m => m.user_id===STATE.user.id) || {};
     const now = new Date().toISOString();
-    const existingReport = STATE.weeklyReports.find(r =>
-        r.user_id===STATE.user.id && r.year===period.year && r.month===period.month
-    );
+    const existingReport = getValidMonthlyReport(STATE.user.id, period.year, period.month, STATE.weeklyReports);
     const btn = document.querySelector('[onclick*="saveDraftWeeklyReport"]');
     if (btn) { btn.disabled=true; btn.textContent='저장 중...'; }
     try {

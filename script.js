@@ -4967,7 +4967,7 @@ function generateMonthlyPeriods() {
             label: `${y}년 ${m}월`,
             dateRange: `${m}/1 ~ ${m}/${lastDay}`,
             monthLabel: `${y}년`,
-            deadlineDate: new Date(y, m, 3, 14, 0, 0) // 차월 3일 14시 마감
+            deadlineDate: new Date(y, m - 1, lastDay, 23, 59, 59) // 당월 말일 23:59:59 마감
         });
         m++;
         if (m > 12) { m = 1; y++; }
@@ -4979,16 +4979,7 @@ function getTodayMonthKey(periods) {
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth() + 1;
-    const d = now.getDate();
-    const h = now.getHours();
-    // 1~3일 14시 이전이면 이전 월을 기본 선택 (아직 제출 기간)
-    if (d <= 3 && (d < 3 || h < 14)) {
-        const prevM = m === 1 ? 12 : m - 1;
-        const prevY = m === 1 ? y - 1 : y;
-        const key = `${prevY}-${prevM}`;
-        if (periods.find(p => p.key === key)) return key;
-    }
-    // 그 외엔 현재 월
+    // 현재 월 기본 선택
     const key = `${y}-${m}`;
     if (periods.find(p => p.key === key)) return key;
     // fallback
@@ -5012,7 +5003,7 @@ function renderWeeklyReport(container) {
     h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>구성원 전체 현황</button>';
     h += '</div>';
 
-    h += '<p style="font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;animation:blink 1.5s ease-in-out infinite">월간업무는 해당 월 말일까지 입력하시는 것을 권장합니다. (차월 3일 14시 마감)</p>';
+    h += '<p style="font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;animation:blink 1.5s ease-in-out infinite">월간업무는 해당 월 말일 자정(23:59)까지 제출해주세요.</p>';
 
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-6 flex items-center gap-3 flex-wrap">';
     h += '<svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
@@ -5079,7 +5070,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     // 마감 배너 (마감 상태일 때만)
     if (isClosed) {
         h += '<div class="flex items-center gap-2 mb-5 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">';
-        h += '<span class="text-[11px] text-gray-500">제출 기한(차월 3일 14:00)이 지나 수정 및 신규 작성이 불가합니다.</span>';
+        h += '<span class="text-[11px] text-gray-500">제출 기한(해당 월 말일 23:59)이 지나 수정 및 신규 작성이 불가합니다.</span>';
         h += '</div>';
     }
 

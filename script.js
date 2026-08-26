@@ -2728,11 +2728,13 @@ function updateDateTime() {
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const date = now.getDate();
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayName = dayNames[now.getDay()];
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    document.getElementById('current-date').innerText = `${year}년 ${month}월 ${date}일`;
+    document.getElementById('current-date').innerText = `${year}년 ${month}월 ${date}일 (${dayName})`;
     document.getElementById('current-time').innerText = `${hours}:${minutes}:${seconds}`;
 }
 
@@ -5093,7 +5095,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
         h += `<button onclick="saveDraftWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-blue-200 text-on-surface font-bold text-[13px] rounded-lg hover:bg-blue-50 transition-all">`;
         h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>임시저장</button>';
         h += `<button onclick="saveWeeklyReport('${STATE.weeklyReportSelectedWeek}')" class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
-        h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>최종제출</button></div>';
+        h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>제출하기</button></div>';
     }
     h += '</div>';
     return h;
@@ -5161,8 +5163,9 @@ function renderWeeklyReportAllView(selectedPeriod) {
             h += `<span class="text-[11px] text-on-surface-variant/60 hidden lg:block">${fmt}</span>`;
         }
         if (isMe) {
+            const myBtnLabel = memberStatus === 'submitted' ? '수정하기' : '작성하기';
             h += `<button onclick="event.stopPropagation();setWeeklyReportViewMode('my')" class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white font-bold text-[12px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">`;
-            h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>작성하기</button>';
+            h += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' + myBtnLabel + '</button>';
         }
         h += '<svg class="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
         h += '</div></div>';
@@ -5231,7 +5234,7 @@ window.saveWeeklyReport = async function(periodKey) {
     } catch (error) {
         console.error('Error saving weekly report:', error);
         alert('저장 중 오류가 발생했습니다.');
-        if (btn) { btn.disabled=false; btn.textContent='최종제출'; }
+        if (btn) { btn.disabled=false; btn.textContent='제출하기'; }
     }
 };
 

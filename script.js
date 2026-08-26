@@ -2649,11 +2649,11 @@ window.openPasswordChangeModal = function() {
             <div class="space-y-6">
                 <div>
                     <label class="block text-[13px] font-bold text-on-surface-variant mb-3">프로필 사진</label>
-                    <div class="flex items-center gap-4">
-                        <div id="profile-preview" class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-blue-100">
+                    <div class="flex flex-col items-center gap-3">
+                        <div id="profile-preview" class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-gray-200">
                             ${profileImg ? `<img src="${profileImg}" class="w-full h-full object-cover">` : `<span class="text-primary font-bold text-[20px]">${(currentMember?.name || '?').charAt(0)}</span>`}
                         </div>
-                        <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
                             <label class="flex items-center gap-2 px-3 py-2 bg-primary text-white font-bold text-[12px] rounded-lg hover:bg-primary-dim transition-all cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 사진 변경
@@ -2771,9 +2771,9 @@ window.removeProfileImage = async function() {
 function getAvatarHtml(member, size = 'w-10 h-10', textSize = 'text-[14px]') {
     const img = member.profile_image && member.profile_image.length > 0 ? member.profile_image[0].url || member.profile_image[0].thumbnails?.tiny?.url : '';
     if (img) {
-        return `<div class="${size} rounded-full overflow-hidden flex-shrink-0"><img src="${img}" class="w-full h-full object-cover"></div>`;
+        return `<div class="${size} rounded-full overflow-hidden flex-shrink-0 border border-gray-200"><img src="${img}" class="w-full h-full object-cover"></div>`;
     }
-    return `<div class="${size} rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold ${textSize} flex-shrink-0">${(member.name || '?').charAt(0)}</div>`;
+    return `<div class="${size} rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold ${textSize} flex-shrink-0 border border-gray-200">${(member.name || '?').charAt(0)}</div>`;
 }
 
 // 날짜 및 시간 업데이트 함수

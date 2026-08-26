@@ -2638,15 +2638,35 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     window.history.pushState(null, '', '/login');
 });
 
-// Password Change Function
+// 내 정보 수정 (프로필 사진 + 비밀번호 변경)
 window.openPasswordChangeModal = function() {
+    const currentMember = STATE.members.find(m => m.user_id === STATE.user.id);
+    const profileImg = currentMember && currentMember.profile_image && currentMember.profile_image.length > 0 ? currentMember.profile_image[0].url : '';
+    
     STATE.modalData = {
-        title: '비밀번호 변경',
+        title: '내 정보 수정',
         content: `
-            <div class="space-y-4">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[13px] font-bold text-on-surface-variant mb-3">프로필 사진</label>
+                    <div class="flex items-center gap-4">
+                        <div id="profile-preview" class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-blue-100">
+                            ${profileImg ? `<img src="${profileImg}" class="w-full h-full object-cover">` : `<span class="text-primary font-bold text-[20px]">${(currentMember?.name || '?').charAt(0)}</span>`}
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2 px-3 py-2 bg-primary text-white font-bold text-[12px] rounded-lg hover:bg-primary-dim transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                사진 변경
+                                <input type="file" id="profile-image-input" accept="image/*" class="hidden" onchange="previewProfileImage(this)">
+                            </label>
+                            ${profileImg ? `<button onclick="removeProfileImage()" class="flex items-center gap-1 px-3 py-2 bg-white border border-red-200 text-red-500 font-bold text-[12px] rounded-lg hover:bg-red-50 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>삭제</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-blue-50">
                 <div>
                     <label class="block text-[13px] font-bold text-on-surface-variant mb-2">현재 비밀번호</label>
-                    <input type="password" id="current-password" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary" placeholder="현재 비밀번호 입력">
+                    <input type="password" id="current-password" class="w-full bg-white border border-blue-100 rounded-lg px-4 py-3 text-[13px] text-on-surface outline-none focus:border-primary" placeholder="비밀번호 변경 시에만 입력">
                 </div>
                 <div>
                     <label class="block text-[13px] font-bold text-on-surface-variant mb-2">새 비밀번호</label>
@@ -2659,68 +2679,102 @@ window.openPasswordChangeModal = function() {
             </div>
         `,
         onConfirm: async () => {
+            const currentMember = STATE.members.find(m => m.user_id === STATE.user.id);
+            if (!currentMember) { alert('사용자 정보를 찾을 수 없습니다.'); return; }
+
+            // 프로필 이미지 업로드 처리
+            const fileInput = document.getElementById('profile-image-input');
+            if (fileInput && fileInput.files.length > 0) {
+                try {
+                    const uploadResult = await baserowUploadFile(fileInput.files[0]);
+                    await MembersAPI.update(currentMember.id, {
+                        profile_image: [{ name: uploadResult.name }]
+                    });
+                    currentMember.profile_image = [uploadResult];
+                } catch (e) {
+                    console.error('Profile image upload error:', e);
+                    alert('프로필 사진 업로드 중 오류가 발생했습니다.');
+                    return;
+                }
+            }
+
+            // 비밀번호 변경 (입력된 경우에만)
             const currentPassword = document.getElementById('current-password')?.value.trim();
             const newPassword = document.getElementById('new-password')?.value.trim();
             const newPasswordConfirm = document.getElementById('new-password-confirm')?.value.trim();
             
-            if (!currentPassword || !newPassword || !newPasswordConfirm) {
-                alert('모든 필드를 입력해주세요.');
-                return;
+            if (currentPassword || newPassword || newPasswordConfirm) {
+                if (!currentPassword || !newPassword || !newPasswordConfirm) {
+                    alert('비밀번호 변경 시 모든 필드를 입력해주세요.');
+                    return;
+                }
+                if (currentMember.password !== currentPassword) {
+                    alert('현재 비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+                if (newPassword !== newPasswordConfirm) {
+                    alert('새 비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+                if (newPassword.length < 4) {
+                    alert('새 비밀번호는 최소 4자 이상이어야 합니다.');
+                    return;
+                }
+                try {
+                    await MembersAPI.update(currentMember.id, { password: newPassword });
+                    currentMember.password = newPassword;
+                } catch (error) {
+                    console.error('Error changing password:', error);
+                    alert('비밀번호 변경 중 오류가 발생했습니다.');
+                    return;
+                }
             }
-            
-            // Find current user in members
-            const currentMember = STATE.members.find(m => m.user_id === STATE.user.id);
-            if (!currentMember) {
-                alert('사용자 정보를 찾을 수 없습니다.');
-                return;
-            }
-            
-            // Verify current password
-            if (currentMember.password !== currentPassword) {
-                alert('현재 비밀번호가 일치하지 않습니다.');
-                return;
-            }
-            
-            // Verify new password confirmation
-            if (newPassword !== newPasswordConfirm) {
-                alert('새 비밀번호가 일치하지 않습니다.');
-                return;
-            }
-            
-            // Validate new password (minimum 4 characters)
-            if (newPassword.length < 4) {
-                alert('새 비밀번호는 최소 4자 이상이어야 합니다.');
-                return;
-            }
-            
-            try {
-                // Update password in Baserow
-                await MembersAPI.update(currentMember.id, {
-                    password: newPassword
-                });
-                
-                // Update local state
-                currentMember.password = newPassword;
-                
-                // Update session
-                const session = {
-                    user: STATE.user,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('okr_session', JSON.stringify(session));
-                
-                STATE.modalData = null;
-                alert('비밀번호가 성공적으로 변경되었습니다.');
-                renderCurrentView();
-            } catch (error) {
-                console.error('Error changing password:', error);
-                alert('비밀번호 변경 중 오류가 발생했습니다.');
-            }
+
+            STATE.modalData = null;
+            alert('정보가 저장되었습니다.');
+            renderCurrentView();
         },
         isWide: false
     };
     renderCurrentView();
 };
+
+// 프로필 이미지 미리보기
+window.previewProfileImage = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profile-preview').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+// 프로필 이미지 삭제
+window.removeProfileImage = async function() {
+    if (!confirm('프로필 사진을 삭제하시겠습니까?')) return;
+    const currentMember = STATE.members.find(m => m.user_id === STATE.user.id);
+    if (!currentMember) return;
+    try {
+        await MembersAPI.update(currentMember.id, { profile_image: [] });
+        currentMember.profile_image = [];
+        STATE.modalData = null;
+        alert('프로필 사진이 삭제되었습니다.');
+        renderCurrentView();
+    } catch (e) {
+        console.error('Profile image delete error:', e);
+        alert('삭제 중 오류가 발생했습니다.');
+    }
+};
+
+// 프로필 아바타 HTML 생성 (이미지 있으면 이미지, 없으면 성씨)
+function getAvatarHtml(member, size = 'w-10 h-10', textSize = 'text-[14px]') {
+    const img = member.profile_image && member.profile_image.length > 0 ? member.profile_image[0].url || member.profile_image[0].thumbnails?.tiny?.url : '';
+    if (img) {
+        return `<div class="${size} rounded-full overflow-hidden flex-shrink-0"><img src="${img}" class="w-full h-full object-cover"></div>`;
+    }
+    return `<div class="${size} rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold ${textSize} flex-shrink-0">${(member.name || '?').charAt(0)}</div>`;
+}
 
 // 날짜 및 시간 업데이트 함수
 function updateDateTime() {
@@ -5044,7 +5098,7 @@ function renderWeeklyReportMyView(selectedPeriod) {
     // 헤더: 프로필 정보 + 상태 배지를 한 줄로
     h += '<div class="flex items-center justify-between mb-6">';
     h += '<div class="flex items-center gap-3">';
-    h += `<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[14px]">${(member.name || STATE.user.name || '?').charAt(0)}</div>`;
+    h += `${getAvatarHtml(member, 'w-10 h-10', 'text-[14px]')}`;
     h += '<div>';
     h += `<div class="flex items-center gap-2"><span class="font-bold text-on-surface text-[14px]">${member.name || STATE.user.name || ''}</span>`;
     // 상태 배지 인라인
@@ -5153,7 +5207,7 @@ function renderWeeklyReportAllView(selectedPeriod) {
         } else {
             h += '<span class="px-2.5 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded-full">미제출</span>';
         }
-        h += `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">${m.name.charAt(0)}</div>`;
+        h += `${getAvatarHtml(m, 'w-8 h-8', 'text-[12px]')}`;
         h += `<div><span class="font-bold text-on-surface text-[14px]">${m.name}</span>`;
         if (isMe) h += '<span class="ml-2 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">나</span>';
         h += `<p class="text-[11px] text-on-surface-variant">${m.team||''} · ${m.position||''}</p></div></div>`;

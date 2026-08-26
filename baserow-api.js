@@ -373,3 +373,26 @@ const GanttAPI = {
         });
     }
 };
+
+
+// File Upload API (프로필 이미지 등)
+async function baserowUploadFile(file) {
+    const url = `${BASEROW_CONFIG.apiUrl}/user-files/upload-file/`;
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': BASEROW_CONFIG.token
+        },
+        body: formData
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`File upload error (${response.status}): ${errorText}`);
+    }
+    
+    return await response.json();
+}

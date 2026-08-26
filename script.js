@@ -5100,51 +5100,29 @@ function renderWeeklyReportMyView(selectedPeriod) {
 }
 
 function renderWeeklyReportAllView(selectedPeriod) {
-    // 디폴트: 현재 사용자의 본부/팀으로 설정
-    const currentMember = STATE.members.find(m => m.user_id === STATE.user.id) || {};
-    if (!STATE.weeklyReportDivisionFilter && !STATE.weeklyReportTeamFilter && currentMember.division) {
-        STATE.weeklyReportDivisionFilter = currentMember.division;
-        if (currentMember.team) STATE.weeklyReportTeamFilter = currentMember.team;
-    }
-    const divSelected = STATE.weeklyReportDivisionFilter && STATE.weeklyReportDivisionFilter !== '';
-    const teamSelected = STATE.weeklyReportTeamFilter && STATE.weeklyReportTeamFilter !== '';
-    const targetMembers = teamSelected ? STATE.members.filter(m =>
-        !m.is_hidden &&
-        m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
-        m.team===STATE.weeklyReportTeamFilter
-    ).sort((a,b) => a.name.localeCompare(b.name,'ko')) : [];
+    // DX팀 고정
+    STATE.weeklyReportDivisionFilter = '운영본부';
+    STATE.weeklyReportTeamFilter = 'DX';
 
-    // 본인을 최상단으로
-    if (teamSelected) {
-        const myIdx = targetMembers.findIndex(m => m.user_id === STATE.user.id);
-        if (myIdx > 0) {
-            const me = targetMembers.splice(myIdx, 1)[0];
-            targetMembers.unshift(me);
-        }
-    }
-
-    // 본부 기준 팀 필터
-    const wrFilteredTeams = divSelected ? STATE.teams.filter(t => t.division === STATE.weeklyReportDivisionFilter) : STATE.teams;
+    // DX팀 고정 (드롭다운 숨김)
+    STATE.weeklyReportDivisionFilter = '운영본부';
+    STATE.weeklyReportTeamFilter = 'DX';
+    const wrFilteredTeams = STATE.teams.filter(t => t.division === '운영본부');
 
     let h = '<div class="space-y-3">';
 
-    // 본부 + 팀 필터
-    h += '<div class="flex items-center gap-2 mb-2">';
-    h += '<select onchange="setWeeklyReportDivisionFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm">';
-    h += `<option value="" ${!divSelected ? 'selected' : ''}>본부 선택</option>`;
-    STATE.divisions.forEach(d => {
-        h += `<option value="${d.name}" ${STATE.weeklyReportDivisionFilter===d.name ? 'selected' : ''}>${d.name}</option>`;
-    });
-    h += '</select>';
-    h += `<select onchange="setWeeklyReportTeamFilter(this.value)" class="bg-white border border-blue-100 text-on-surface font-bold rounded-lg text-[13px] px-3 py-2 outline-none focus:border-primary shadow-sm" ${!divSelected ? 'disabled' : ''}>`;
-    h += `<option value="" ${!teamSelected ? 'selected' : ''}>${divSelected ? '팀 선택' : '본부를 먼저 선택'}</option>`;
-    wrFilteredTeams.forEach(t => {
-        h += `<option value="${t.name}" ${STATE.weeklyReportTeamFilter===t.name ? 'selected' : ''}>${t.name}</option>`;
-    });
-    h += '</select></div>';
+    const teamSelected = true;
+    const targetMembers = STATE.members.filter(m =>
+        !m.is_hidden &&
+        m.team!=='무소속(운영본부)' && m.team!=='CEO,CCO' &&
+        m.team==='DX'
+    ).sort((a,b) => a.name.localeCompare(b.name,'ko'));
 
-    if (!teamSelected) {
-        return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">본부와 팀을 선택하면 구성원별 업무공유 현황이 표시됩니다.</div></div>';
+    // 본인을 최상단으로
+    const myIdx = targetMembers.findIndex(m => m.user_id === STATE.user.id);
+    if (myIdx > 0) {
+        const me = targetMembers.splice(myIdx, 1)[0];
+        targetMembers.unshift(me);
     }
     if (!selectedPeriod || targetMembers.length===0) {
         return h + '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">데이터가 없습니다.</div></div>';

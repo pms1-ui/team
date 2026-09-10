@@ -5789,8 +5789,8 @@ window.downloadGantt = async function(btn) {
             useCORS: true,
             scrollX: 0,
             scrollY: 0,
-            windowWidth: target.scrollWidth + 40,
-            width: target.scrollWidth,
+            windowWidth: target.scrollWidth + 60,
+            width: target.scrollWidth + 20,
             onclone: (doc) => {
                 const clone = doc.getElementById('gantt-capture');
                 if (!clone) return;
@@ -5802,7 +5802,7 @@ window.downloadGantt = async function(btn) {
                 clone.querySelectorAll('input[type="text"]').forEach(inp => {
                     const span = doc.createElement('span');
                     span.textContent = inp.value;
-                    span.style.cssText = 'display:block;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;line-height:20px;height:20px;padding:0 6px;';
+                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;line-height:1;height:20px;padding:0 6px;';
                     inp.parentNode.replaceChild(span, inp);
                 });
                 // 2) 일감명 셀: 긴 제목이 안잘리도록 폭을 내용에 맞게 확장
@@ -5810,11 +5810,20 @@ window.downloadGantt = async function(btn) {
                     td.style.whiteSpace = 'nowrap';
                     td.style.width = 'auto';
                 });
-                // 3) 담당 태그: 텍스트가 위로 붙는 현상 방지 (라인하이트/패딩 명시)
-                clone.querySelectorAll('.owner-main, span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
-                    s.style.lineHeight = '16px';
+                // 3) 담당 태그: 텍스트가 위/아래로 치우치는 현상 방지 (line-height:1 + flex 중앙)
+                clone.querySelectorAll('span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
+                    s.style.lineHeight = '1';
                     s.style.display = 'inline-flex';
                     s.style.alignItems = 'center';
+                    s.style.justifyContent = 'center';
+                    s.style.paddingTop = '3px';
+                    s.style.paddingBottom = '3px';
+                });
+                // 4) 주차 열 붕괴 방지: 주차 셀 너비를 명시적으로 고정
+                //    (html2canvas 서브픽셀 반올림으로 특정 주차열이 0폭으로 접히는 문제 해결)
+                clone.querySelectorAll('td[style*="width:35px"]').forEach(c => {
+                    c.style.width = '35px'; c.style.minWidth = '35px'; c.style.maxWidth = '35px';
+                    c.style.boxSizing = 'border-box';
                 });
             }
         });

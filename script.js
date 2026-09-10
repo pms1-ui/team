@@ -5799,18 +5799,15 @@ window.downloadGantt = async function(btn) {
                 // flex 컨테이너 세로 중앙 정렬 보정
                 clone.querySelectorAll('.flex').forEach(f => { f.style.alignItems = 'center'; });
                 // 1) 일감명 input -> 정적 span 치환 (html2canvas는 input 텍스트를 잘 못그림 / 세로정렬 틀어짐)
+                //    ★ 셀 폭은 원래대로 유지한다. nowrap+auto로 넓히면 표 전체 폭이 커져 오른쪽(11~12월)이 잘림.
                 clone.querySelectorAll('input[type="text"]').forEach(inp => {
+                    const w = inp.offsetWidth;
                     const span = doc.createElement('span');
                     span.textContent = inp.value;
-                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;line-height:1;height:20px;padding:0 6px;';
+                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;height:20px;padding:0 6px;width:' + w + 'px;';
                     inp.parentNode.replaceChild(span, inp);
                 });
-                // 2) 일감명 셀: 긴 제목이 안잘리도록 폭을 내용에 맞게 확장
-                clone.querySelectorAll('td[style*="min-width:240px"]').forEach(td => {
-                    td.style.whiteSpace = 'nowrap';
-                    td.style.width = 'auto';
-                });
-                // 3) 담당 태그: 텍스트가 위/아래로 치우치는 현상 방지 (line-height:1 + flex 중앙)
+                // 2) 담당 태그: 텍스트가 위/아래로 치우치는 현상 방지 (line-height:1 + flex 중앙)
                 clone.querySelectorAll('span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
                     s.style.lineHeight = '1';
                     s.style.display = 'inline-flex';

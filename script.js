@@ -5595,10 +5595,10 @@ async function renderTeamGoalsDX(container) {
     });
 
     container.innerHTML = `
-        <div class="max-w-full mx-auto">
+        <div class="max-w-full mx-auto" id="gantt-capture">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
-                    <button onclick="STATE.currentView='team_goals'; renderCurrentView();" class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+                    <button data-html2canvas-ignore onclick="STATE.currentView='team_goals'; renderCurrentView();" class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
                     <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -5609,7 +5609,7 @@ async function renderTeamGoalsDX(container) {
                         <p class="text-[12px] text-on-surface-variant">2026 하반기</p>
                     </div>
                 </div>
-                ${isDXMember ? `<div class="flex items-center gap-2"><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button></div>` : ''}
+                ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse" style="min-width:1100px">
@@ -5762,6 +5762,49 @@ window.removeGanttItem = async function(itemId) {
         STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
         renderCurrentView();
     } catch(e) { console.error('Gantt delete error:', e); alert('삭제 중 오류가 발생했습니다.'); }
+};
+
+window.downloadGantt = async function(btn) {
+    if (typeof html2canvas === 'undefined') {
+        alert('이미지 라이브러리를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+        return;
+    }
+    const target = document.getElementById('gantt-capture');
+    if (!target) return;
+
+    // 버튼 로딩 표시
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>생성 중...'; }
+
+    // 가로 스크롤 영역 전체가 캡처되도록 overflow 임시 해제
+    const scrollBox = target.querySelector('.overflow-x-auto');
+    const prevOverflow = scrollBox ? scrollBox.style.overflow : '';
+    const prevScrollLeft = scrollBox ? scrollBox.scrollLeft : 0;
+    if (scrollBox) { scrollBox.style.overflow = 'visible'; scrollBox.scrollLeft = 0; }
+
+    try {
+        const canvas = await html2canvas(target, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: target.scrollWidth + 40,
+            width: target.scrollWidth
+        });
+        const link = document.createElement('a');
+        const today = new Date();
+        const stamp = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+        link.download = `DX팀_마일스톤_간트차트_${stamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch(e) {
+        console.error('Gantt download error:', e);
+        alert('이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+        if (scrollBox) { scrollBox.style.overflow = prevOverflow; scrollBox.scrollLeft = prevScrollLeft; }
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    }
 };
 
 window.openGanttOwnerModal = function(itemId) {

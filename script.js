@@ -5569,7 +5569,7 @@ async function renderTeamGoalsDX(container) {
                 </td>
                 ${ownerCell}
                 ${cells}
-                ${isEditable ? `<td class="py-2.5 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
+                ${isEditable ? `<td data-html2canvas-ignore class="py-2.5 px-1 w-6 sticky right-0 bg-white z-[1]"><button onclick="removeGanttItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>` : '<td class="w-6 sticky right-0 bg-white"></td>'}
             </tr>
             ${detailExpanded ? `<tr class="border-b border-gray-100 bg-gray-50/30"><td colspan="100" class="px-6 py-2"><textarea onchange="updateGanttDetail('${item.id}',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" class="w-full text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-primary resize-none leading-relaxed overflow-hidden" rows="1" style="min-height:28px">${item.detail || ''}</textarea></td></tr>` : ''}
         `;
@@ -5765,7 +5765,9 @@ window.removeGanttItem = async function(itemId) {
 };
 
 window.downloadGantt = async function(btn) {
-    if (typeof html2canvas === 'undefined') {
+    // html-to-image 사용: SVG foreignObject로 브라우저 네이티브 렌더러가 그림.
+    // html2canvas처럼 텍스트 baseline을 추측하지 않아 화면과 100% 동일하게 나온다(텍스트 쏠림 없음).
+    if (typeof htmlToImage === 'undefined') {
         alert('이미지 라이브러리를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
         return;
     }
@@ -5782,55 +5784,61 @@ window.downloadGantt = async function(btn) {
     const prevScrollLeft = scrollBox ? scrollBox.scrollLeft : 0;
     if (scrollBox) { scrollBox.style.overflow = 'visible'; scrollBox.scrollLeft = 0; }
 
+    let holder = null;
     try {
-        // ★ width/windowWidth 옵션은 절대 지정하지 않는다.
-        //   지정 시 html2canvas의 테이블 열 폭 계산이 틀어져 특정 주차열(예: 11월)이 통째로 누락된다.
-        //   overflow:visible 로 풀어두면 html2canvas가 전체 폭을 알아서 정확히 캡처한다.
-        const canvas = await html2canvas(target, {
-            backgroundColor: '#ffffff',
-            scale: 2,
-            useCORS: true,
-            onclone: (doc) => {
-                const clone = doc.getElementById('gantt-capture');
-                if (!clone) return;
-                const sb = clone.querySelector('.overflow-x-auto');
-                if (sb) { sb.style.overflow = 'visible'; }
-                // 세로 중앙 정렬 보정 (셀 폭/테이블 레이아웃은 절대 건드리지 않는다)
-                clone.querySelectorAll('td, th').forEach(td => { td.style.verticalAlign = 'middle'; });
-                clone.querySelectorAll('.flex').forEach(f => { f.style.alignItems = 'center'; });
-                // 일감명 input -> 정적 span 치환 (html2canvas가 input 텍스트를 잘 못그림)
-                // 원래 렌더 폭을 그대로 유지해 표 전체 폭 불변
-                // top:-6px = html2canvas가 텍스트 baseline을 아래로 그리는 현상 상쇄(픽셀 측정으로 확정)
-                clone.querySelectorAll('input[type="text"]').forEach(inp => {
-                    const w = inp.offsetWidth;
-                    const span = doc.createElement('span');
-                    span.textContent = inp.value;
-                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px;height:20px;padding:0 6px;width:' + w + 'px;position:relative;top:-6px;';
-                    inp.parentNode.replaceChild(span, inp);
-                });
-                // 담당 태그: 텍스트 세로 치우침 방지 (top:-6px 상쇄 포함)
-                clone.querySelectorAll('span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
-                    s.style.lineHeight = '16px';
-                    s.style.display = 'inline-flex';
-                    s.style.alignItems = 'center';
-                    s.style.justifyContent = 'center';
-                    s.style.paddingTop = '2px';
-                    s.style.paddingBottom = '2px';
-                    s.style.position = 'relative';
-                    s.style.top = '-6px';
-                });
-            }
+        // 원본을 직접 캡처하면 sticky/hover/스크롤 상태와 겹침 잔상이 생기므로,
+        // 깨끗한 오프스크린 복제본을 만들어 캡처한다(화면 DOM은 건드리지 않음).
+        const clone = target.cloneNode(true);
+        // sticky/fixed 해제
+        clone.querySelectorAll('*').forEach(el => {
+            const cs = getComputedStyle(el);
+            if (cs.position === 'sticky' || cs.position === 'fixed') el.style.position = 'static';
         });
+        // 편집 버튼/뒤로가기 등(ignore 표시) 및 행별 삭제버튼 셀 제거
+        clone.querySelectorAll('[data-html2canvas-ignore]').forEach(el => el.remove());
+        clone.querySelectorAll('tbody tr').forEach(tr => {
+            const last = tr.lastElementChild;
+            if (last && last.querySelector && last.querySelector('button')) last.remove();
+        });
+        const sc = clone.querySelector('.overflow-x-auto');
+        if (sc) { sc.style.overflow = 'visible'; }
+        // 제목이 캡처 폭에서 줄바꿈되어 아랫줄 글자가 부제목 위로 넘치는 현상 방지
+        const h2 = clone.querySelector('h2');
+        if (h2) { h2.style.whiteSpace = 'nowrap'; }
+
+        // 오프스크린 배치
+        holder = document.createElement('div');
+        holder.style.cssText = 'position:fixed;left:-99999px;top:0;background:#ffffff;';
+        holder.style.width = (target.scrollWidth + 8) + 'px';
+        holder.appendChild(clone);
+        document.body.appendChild(holder);
+        // input value 복제(cloneNode가 현재 입력값을 반영 안하는 경우 대비)
+        const srcInputs = target.querySelectorAll('input');
+        const dstInputs = clone.querySelectorAll('input');
+        srcInputs.forEach((si, i) => { if (dstInputs[i]) dstInputs[i].setAttribute('value', si.value); });
+
+        if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(_){} }
+        await new Promise(r => setTimeout(r, 80));
+
+        const dataUrl = await htmlToImage.toPng(clone, {
+            backgroundColor: '#ffffff',
+            pixelRatio: 2,
+            width: clone.scrollWidth,
+            height: clone.scrollHeight,
+            cacheBust: true
+        });
+
         const link = document.createElement('a');
         const today = new Date();
         const stamp = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
         link.download = `DX팀_마일스톤_간트차트_${stamp}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         link.click();
     } catch(e) {
         console.error('Gantt download error:', e);
         alert('이미지 생성 중 오류가 발생했습니다.');
     } finally {
+        if (holder && holder.parentNode) holder.parentNode.removeChild(holder);
         if (scrollBox) { scrollBox.style.overflow = prevOverflow; scrollBox.scrollLeft = prevScrollLeft; }
         if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
     }

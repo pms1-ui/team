@@ -5800,21 +5800,24 @@ window.downloadGantt = async function(btn) {
                 clone.querySelectorAll('.flex').forEach(f => { f.style.alignItems = 'center'; });
                 // 일감명 input -> 정적 span 치환 (html2canvas가 input 텍스트를 잘 못그림)
                 // 원래 렌더 폭을 그대로 유지해 표 전체 폭 불변
+                // top:-6px = html2canvas가 텍스트 baseline을 아래로 그리는 현상 상쇄(픽셀 측정으로 확정)
                 clone.querySelectorAll('input[type="text"]').forEach(inp => {
                     const w = inp.offsetWidth;
                     const span = doc.createElement('span');
                     span.textContent = inp.value;
-                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;height:20px;padding:0 6px;width:' + w + 'px;';
+                    span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px;height:20px;padding:0 6px;width:' + w + 'px;position:relative;top:-6px;';
                     inp.parentNode.replaceChild(span, inp);
                 });
-                // 담당 태그: 텍스트 세로 치우침 방지
+                // 담당 태그: 텍스트 세로 치우침 방지 (top:-6px 상쇄 포함)
                 clone.querySelectorAll('span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
-                    s.style.lineHeight = '1';
+                    s.style.lineHeight = '16px';
                     s.style.display = 'inline-flex';
                     s.style.alignItems = 'center';
                     s.style.justifyContent = 'center';
-                    s.style.paddingTop = '3px';
-                    s.style.paddingBottom = '3px';
+                    s.style.paddingTop = '2px';
+                    s.style.paddingBottom = '2px';
+                    s.style.position = 'relative';
+                    s.style.top = '-6px';
                 });
             }
         });

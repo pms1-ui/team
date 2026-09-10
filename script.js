@@ -5790,7 +5790,33 @@ window.downloadGantt = async function(btn) {
             scrollX: 0,
             scrollY: 0,
             windowWidth: target.scrollWidth + 40,
-            width: target.scrollWidth
+            width: target.scrollWidth,
+            onclone: (doc) => {
+                const clone = doc.getElementById('gantt-capture');
+                if (!clone) return;
+                // 모든 셀 세로 중앙 정렬
+                clone.querySelectorAll('td, th').forEach(td => { td.style.verticalAlign = 'middle'; });
+                // flex 컨테이너 세로 중앙 정렬 보정
+                clone.querySelectorAll('.flex').forEach(f => { f.style.alignItems = 'center'; });
+                // 1) 일감명 input -> 정적 span 치환 (html2canvas는 input 텍스트를 잘 못그림 / 세로정렬 틀어짐)
+                clone.querySelectorAll('input[type="text"]').forEach(inp => {
+                    const span = doc.createElement('span');
+                    span.textContent = inp.value;
+                    span.style.cssText = 'display:block;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;line-height:20px;height:20px;padding:0 6px;';
+                    inp.parentNode.replaceChild(span, inp);
+                });
+                // 2) 일감명 셀: 긴 제목이 안잘리도록 폭을 내용에 맞게 확장
+                clone.querySelectorAll('td[style*="min-width:240px"]').forEach(td => {
+                    td.style.whiteSpace = 'nowrap';
+                    td.style.width = 'auto';
+                });
+                // 3) 담당 태그: 텍스트가 위로 붙는 현상 방지 (라인하이트/패딩 명시)
+                clone.querySelectorAll('.owner-main, span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
+                    s.style.lineHeight = '16px';
+                    s.style.display = 'inline-flex';
+                    s.style.alignItems = 'center';
+                });
+            }
         });
         const link = document.createElement('a');
         const today = new Date();

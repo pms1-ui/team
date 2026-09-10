@@ -5783,23 +5783,23 @@ window.downloadGantt = async function(btn) {
     if (scrollBox) { scrollBox.style.overflow = 'visible'; scrollBox.scrollLeft = 0; }
 
     try {
+        // ★ width/windowWidth 옵션은 절대 지정하지 않는다.
+        //   지정 시 html2canvas의 테이블 열 폭 계산이 틀어져 특정 주차열(예: 11월)이 통째로 누락된다.
+        //   overflow:visible 로 풀어두면 html2canvas가 전체 폭을 알아서 정확히 캡처한다.
         const canvas = await html2canvas(target, {
             backgroundColor: '#ffffff',
             scale: 2,
             useCORS: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: target.scrollWidth + 60,
-            width: target.scrollWidth + 20,
             onclone: (doc) => {
                 const clone = doc.getElementById('gantt-capture');
                 if (!clone) return;
-                // 모든 셀 세로 중앙 정렬
+                const sb = clone.querySelector('.overflow-x-auto');
+                if (sb) { sb.style.overflow = 'visible'; }
+                // 세로 중앙 정렬 보정 (셀 폭/테이블 레이아웃은 절대 건드리지 않는다)
                 clone.querySelectorAll('td, th').forEach(td => { td.style.verticalAlign = 'middle'; });
-                // flex 컨테이너 세로 중앙 정렬 보정
                 clone.querySelectorAll('.flex').forEach(f => { f.style.alignItems = 'center'; });
-                // 1) 일감명 input -> 정적 span 치환 (html2canvas는 input 텍스트를 잘 못그림 / 세로정렬 틀어짐)
-                //    ★ 셀 폭은 원래대로 유지한다. nowrap+auto로 넓히면 표 전체 폭이 커져 오른쪽(11~12월)이 잘림.
+                // 일감명 input -> 정적 span 치환 (html2canvas가 input 텍스트를 잘 못그림)
+                // 원래 렌더 폭을 그대로 유지해 표 전체 폭 불변
                 clone.querySelectorAll('input[type="text"]').forEach(inp => {
                     const w = inp.offsetWidth;
                     const span = doc.createElement('span');
@@ -5807,7 +5807,7 @@ window.downloadGantt = async function(btn) {
                     span.style.cssText = 'display:inline-flex;align-items:center;font-size:12px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;height:20px;padding:0 6px;width:' + w + 'px;';
                     inp.parentNode.replaceChild(span, inp);
                 });
-                // 2) 담당 태그: 텍스트가 위/아래로 치우치는 현상 방지 (line-height:1 + flex 중앙)
+                // 담당 태그: 텍스트 세로 치우침 방지
                 clone.querySelectorAll('span[class*="bg-gray-100"], span[class*="bg-gray-200"]').forEach(s => {
                     s.style.lineHeight = '1';
                     s.style.display = 'inline-flex';
@@ -5815,12 +5815,6 @@ window.downloadGantt = async function(btn) {
                     s.style.justifyContent = 'center';
                     s.style.paddingTop = '3px';
                     s.style.paddingBottom = '3px';
-                });
-                // 4) 주차 열 붕괴 방지: 주차 셀 너비를 명시적으로 고정
-                //    (html2canvas 서브픽셀 반올림으로 특정 주차열이 0폭으로 접히는 문제 해결)
-                clone.querySelectorAll('td[style*="width:35px"]').forEach(c => {
-                    c.style.width = '35px'; c.style.minWidth = '35px'; c.style.maxWidth = '35px';
-                    c.style.boxSizing = 'border-box';
                 });
             }
         });

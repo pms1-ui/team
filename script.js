@@ -75,6 +75,10 @@ const STATE = {
     
     // Period Settings
     periodSettings: [],
+
+    // Activity Log (업데이트 현황)
+    activityLogs: [],
+    activityLogsLoaded: false,
     
     // Loading state
     isLoading: true
@@ -307,6 +311,30 @@ function getPeriodLabel(type, value) {
     return value;
 }
 
+// --- Activity Log (업데이트 현황) ---
+// 사용자의 CRUD/요청/체크인 등 행동을 activity_log 테이블에 한 줄 기록.
+// 실패해도 본 기능에 영향 주지 않도록 조용히 무시한다(비차단).
+async function logActivity(category, action, target, detail) {
+    try {
+        const now = new Date().toISOString();
+        const row = {
+            log_id: 'log-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            actor_id: (STATE.user && STATE.user.id) || '',
+            actor_name: (STATE.user && STATE.user.name) || '',
+            category: category || '',
+            action: action || '',
+            target: (target || '').toString().slice(0, 500),
+            detail: (detail || '').toString().slice(0, 1000),
+            created_at: now
+        };
+        // STATE에 즉시 반영(낙관적 업데이트)
+        if (Array.isArray(STATE.activityLogs)) STATE.activityLogs.unshift(row);
+        await ActivityLogAPI.create(row);
+    } catch (e) {
+        console.error('logActivity error:', e);
+    }
+}
+
 // Ensure temp structures exist for Manage tab
 function ensureTempStructures(goal) {
     if((goal.status === '합의 완료' || goal.status === '거부') && !goal.tempKeyResults) {
@@ -326,6 +354,7 @@ const MENU_ITEMS = [
     { id: 'members', label: '구성원', icon: '<path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/members' },
     // { id: 'org_chart', label: '조직도', icon: '<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/org-chart' },
     { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' },
+    { id: 'activity_log', label: '업데이트 현황', icon: '<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/activity-log' },
     { id: 'admin_settings', label: '관리자', icon: '<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/admin-settings' }
 ];
 
@@ -806,6 +835,7 @@ window.removeOKR = function(id) {
             // Delete the goal
             await GoalsAPI.delete(id);
             
+            logActivity('목표', '삭제', (goal && goal.text) || 'OKR', getPeriodLabel(goal && goal.periodType, goal && goal.periodValue));
             STATE.allGoals = STATE.allGoals.filter(g => g.id !== id);
             renderCurrentView();
         } catch (error) {
@@ -900,6 +930,7 @@ window.submitOKRRequest = async function(id) {
         goal.status = '승인 대기중';
         goal.requestType = '신규 수립';
         goal.isProcessed = false;
+        logActivity('목표', '요청', goal.text || 'OKR', '신규 수립 · ' + getPeriodLabel(goal.periodType, goal.periodValue));
         renderCurrentView();
         updateNavigation();
     } catch (error) {
@@ -1057,6 +1088,9 @@ window.submitModifyRequest = function(id) {
             goal.requestType = edits.join(',');
             goal.comment = comment;
             goal.isProcessed = false;
+            // 진척률 보고만 있으면 '체크인', 그 외 변경이 섞이면 '수정'으로 분류
+            const onlyProgress = edits.length > 0 && edits.every(e => e === '진척률 보고');
+            logActivity('목표', onlyProgress ? '체크인' : '수정', goal.text || 'OKR', edits.join(', '));
             closeModal();
             renderCurrentView();
             updateNavigation();
@@ -1095,6 +1129,7 @@ window.requestDeleteOKR = function(id) {
             goal.requestType = '삭제 요청';
             goal.comment = reason;
             goal.isProcessed = false;
+            logActivity('목표', '요청', goal.text || 'OKR', '삭제 요청');
             closeModal();
             renderCurrentView();
             updateNavigation();
@@ -1219,6 +1254,7 @@ window.approveAdminRequest = async function(id) {
                 }
                 // Goal 삭제
                 await GoalsAPI.delete(id);
+                logActivity('목표', '승인', goal.text || 'OKR', '삭제 요청 승인');
                 STATE.allGoals = STATE.allGoals.filter(g => g.id != id);
                 renderCurrentView();
                 updateNavigation();
@@ -1229,6 +1265,7 @@ window.approveAdminRequest = async function(id) {
             goal.requestType = null;
             goal.isProcessed = true;
             goal.reject_comment = null;
+            logActivity('목표', '승인', goal.text || 'OKR', getPeriodLabel(goal.periodType, goal.periodValue));
             renderCurrentView();
             updateNavigation();
         } catch (error) {
@@ -1290,6 +1327,7 @@ window.rejectAdminRequest = async function(id) {
                         goal.reject_comment = rejectComment;
                     }
                     
+                    logActivity('목표', '반려', goal.text || 'OKR', rejectComment);
                     STATE.modalData = null;
                     alert('요청이 거부되었습니다.');
                     // 이메일 알림 발송
@@ -1368,10 +1406,12 @@ window.approveRnRRequest = async function(id) {
                 });
             }
             
+            const rnrReqType = rnr.request_type || 'R&R';
             rnr.status = '합의 완료';
             rnr.request_type = null;
             rnr.comment = '';
             rnr.reject_comment = null;
+            logActivity('R&R', '승인', (rnr.name || '') + ' R&R', rnrReqType);
             alert('요청이 승인되었습니다.');
             // 이메일 알림 발송
             if (rnr && rnr.email) {
@@ -1439,6 +1479,7 @@ window.rejectRnRRequest = async function(id) {
                         rnr.reject_comment = rejectComment;
                     }
                     
+                    logActivity('R&R', '반려', (rnr.name || '') + ' R&R', rejectComment);
                     STATE.modalData = null;
                     alert('요청이 거부되었습니다.');
                     // 이메일 알림 발송
@@ -1623,6 +1664,7 @@ function renderCurrentView() {
     else if (STATE.currentView === 'feedback') renderFeedback(content);
     else if (STATE.currentView === 'ai_poll') renderAIPoll(content);
     else if (STATE.currentView === "admin_settings") renderAdminSettings(content);
+    else if (STATE.currentView === "activity_log") renderActivityLog(content);
     else if (STATE.currentView === "team_goals_dx") renderTeamGoalsDX(content);
     else if (STATE.currentView === "team_goals") renderTeamGoalsDX(content);
     
@@ -5267,6 +5309,7 @@ window.saveWeeklyReport = async function(periodKey) {
     const btn = document.querySelector('[onclick*="saveWeeklyReport"]');
     if (btn) { btn.disabled=true; btn.textContent='제출 중...'; }
     try {
+        const wasExisting = !!existingReport;
         if (existingReport) {
             await WeeklyReportAPI.update(existingReport.id, {content, status: 'submitted', updated_at: now});
             const idx = STATE.weeklyReports.findIndex(r => r.id===existingReport.id);
@@ -5280,6 +5323,7 @@ window.saveWeeklyReport = async function(periodKey) {
             });
             STATE.weeklyReports.push({...created, content, status: 'submitted', updated_at: now});
         }
+        logActivity('월간업무', wasExisting ? '수정' : '작성', period.label + ' 업무공유', '');
         STATE.weeklyReportEditing = false;
         renderCurrentView();
     } catch (error) {
@@ -5812,6 +5856,7 @@ window.saveGantt = async function() {
                     if (item.dbId) { await GanttAPI.update(item.dbId, row); }
                     else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
                 }
+                logActivity('간트', '수정', team + '팀 마일스톤', myItems.length + '개 일감 저장');
                 alert('저장되었습니다.');
             } catch(e) { console.error('Gantt save error:', e); alert('저장 중 오류가 발생했습니다.'); }
         },
@@ -5826,6 +5871,7 @@ window.removeGanttItem = async function(itemId) {
     if (!confirm('일감을 삭제하시겠습니까?')) return;
     try {
         if (item.dbId) await GanttAPI.delete(item.dbId);
+        logActivity('간트', '삭제', item.name || '일감', (STATE._ganttTeam || 'DX') + '팀 마일스톤');
         STATE.ganttData = STATE.ganttData.filter(g => g.id !== itemId);
         renderCurrentView();
     } catch(e) { console.error('Gantt delete error:', e); alert('삭제 중 오류가 발생했습니다.'); }
@@ -6112,6 +6158,94 @@ window.saveGanttConfig = async function() {
         console.error('Gantt config save error:', e);
         alert('간트차트 기간 저장 중 오류가 발생했습니다.');
     }
+};
+
+// --- 업데이트 현황 (Activity Log) ---
+async function renderActivityLog(container) {
+    // 최초 진입 시 로드
+    if (!STATE.activityLogsLoaded) {
+        container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
+        try {
+            STATE.activityLogs = await ActivityLogAPI.list();
+            STATE.activityLogsLoaded = true;
+        } catch (e) {
+            console.error('Activity log load error:', e);
+            STATE.activityLogs = [];
+            STATE.activityLogsLoaded = true;
+        }
+    }
+
+    // 카테고리별 배지 색상
+    const catColor = {
+        '목표': 'bg-primary/10 text-primary',
+        '간트': 'bg-purple-100 text-purple-600',
+        'R&R': 'bg-emerald-100 text-emerald-600',
+        '월간업무': 'bg-amber-100 text-amber-600'
+    };
+    // 동작별 배지 색상
+    const actColor = {
+        '작성': 'bg-blue-50 text-blue-600',
+        '수정': 'bg-indigo-50 text-indigo-600',
+        '삭제': 'bg-red-50 text-red-500',
+        '요청': 'bg-amber-50 text-amber-600',
+        '체크인': 'bg-cyan-50 text-cyan-600',
+        '승인': 'bg-success/10 text-success',
+        '반려': 'bg-red-50 text-red-500'
+    };
+
+    const logs = (STATE.activityLogs || []).slice().sort((a, b) =>
+        new Date(b.created_at || 0) - new Date(a.created_at || 0)
+    );
+
+    let h = '<div class="max-w-4xl mx-auto">';
+    h += '<div class="flex items-center justify-between mb-6">';
+    h += '<div>';
+    h += '<h2 class="text-[20px] font-bold text-on-surface mb-1">업데이트 현황</h2>';
+    h += '<p class="text-[13px] text-on-surface-variant">구성원들의 목표·간트·R&R·월간업무 작업 내역입니다. (최근 200건)</p>';
+    h += '</div>';
+    h += '<button onclick="refreshActivityLog()" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-blue-50 text-on-surface-variant font-bold text-[12px] rounded-lg hover:bg-surface-container transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>새로고침</button>';
+    h += '</div>';
+
+    if (logs.length === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 h-32 rounded-xl flex items-center justify-center text-on-surface-variant font-bold text-[13px]">아직 기록된 내역이 없습니다.</div>';
+        h += '</div>';
+        container.innerHTML = h;
+        return;
+    }
+
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden divide-y divide-blue-50">';
+    logs.forEach(log => {
+        const member = STATE.members.find(m => m.user_id === log.actor_id);
+        const avatar = member ? getAvatarHtml(member, 'w-7 h-7', 'text-[11px]') : '<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-[11px] font-bold text-on-surface-variant">?</div>';
+        const when = log.created_at
+            ? new Date(log.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+            : '';
+        const cColor = catColor[log.category] || 'bg-surface-container text-on-surface-variant';
+        const aColor = actColor[log.action] || 'bg-surface-container text-on-surface-variant';
+        h += '<div class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50/30 transition-colors">';
+        h += `<span class="text-[11px] text-on-surface-variant/70 w-[86px] shrink-0 tabular-nums">${when}</span>`;
+        h += avatar;
+        h += `<span class="font-bold text-on-surface text-[13px] w-[72px] shrink-0 truncate">${(member && member.name) || log.actor_name || '알 수 없음'}</span>`;
+        h += `<span class="inline-block whitespace-nowrap px-2 py-0.5 ${cColor} text-[11px] font-bold rounded-full shrink-0">${log.category || '-'}</span>`;
+        h += `<span class="inline-block whitespace-nowrap px-2 py-0.5 ${aColor} text-[11px] font-bold rounded-full shrink-0">${log.action || '-'}</span>`;
+        h += `<span class="text-[13px] text-on-surface flex-1 min-w-0 truncate" title="${(log.target || '').replace(/"/g, '&quot;')}">${log.target || ''}</span>`;
+        h += '</div>';
+    });
+    h += '</div>';
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+window.refreshActivityLog = async function() {
+    STATE.activityLogsLoaded = false;
+    try {
+        STATE.activityLogs = await ActivityLogAPI.list();
+        STATE.activityLogsLoaded = true;
+    } catch (e) {
+        console.error('Activity log refresh error:', e);
+        STATE.activityLogsLoaded = true;
+    }
+    renderCurrentView();
 };
 
 window.togglePeriodSetting = async function(id, field, value) {
@@ -6634,6 +6768,7 @@ window.requestRnRAgreement = async function() {
                     });
                 }
                 
+                logActivity('R&R', '요청', requestType, (memberInfo.team || '') + ' · ' + (memberInfo.position || ''));
                 STATE.modalData = null;
                 alert('합의 요청이 제출되었습니다.');
                 renderCurrentView();
@@ -6718,6 +6853,7 @@ window.requestRnRModification = async function() {
                 existingRnR.comment = comment;
                 existingRnR.reject_comment = null;
                 
+                logActivity('R&R', '수정', requestType || 'R&R 수정', (existingRnR.team || '') + ' · ' + (existingRnR.position || ''));
                 STATE.modalData = null;
                 alert('수정 요청이 제출되었습니다.');
                 renderCurrentView();
@@ -6790,6 +6926,7 @@ window.cancelRnRRequest = async function() {
                 console.error('Error reloading R&R data:', reloadError);
             }
             
+            logActivity('R&R', '삭제', 'R&R 요청 취소', '');
             alert('요청이 취소되었습니다.');
             renderCurrentView();
             updateNavigation();

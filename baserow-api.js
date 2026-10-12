@@ -404,6 +404,21 @@ const GanttAPI = {
 };
 
 
+// Activity Log API (table id: 3004)
+const ActivityLogAPI = {
+    async list() {
+        // 최신순 200건
+        const data = await baserowFetch(`/database/rows/table/3004/?user_field_names=true&size=200&order_by=-created_at`);
+        return data.results;
+    },
+    async create(row) {
+        return await baserowFetch(`/database/rows/table/3004/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(row)
+        });
+    }
+};
+
 // File Upload API (프로필 이미지 등)
 async function baserowUploadFile(file) {
     const url = `${BASEROW_CONFIG.apiUrl}/user-files/upload-file/`;

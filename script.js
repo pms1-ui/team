@@ -5527,6 +5527,19 @@ function renderTeamGoals(container) {
 // 기본 기간 (설정이 없을 때): 2026-08 ~ 2026-12
 const GANTT_DEFAULT_CONFIG = { start: '2026-08', end: '2026-12' };
 
+// 간트 절대 기준점(ANCHOR): 2026-08의 첫 월요일.
+// 모든 일감의 start(start_week)는 이 앵커로부터의 "절대 주차"로 해석한다.
+// 설정 시작/종료월은 이 절대 타임라인 위를 슬라이딩하는 '보기 창(window)' 역할만 한다.
+// → 설정 기간을 바꿔도 막대는 실제 달력 위치에 그대로 고정된다. (기존 데이터는 앵커 기준이라 그대로 호환)
+function getGanttAnchorDate() {
+    return firstMondayOfMonth(2026, 8);
+}
+// 설정 시작월의 첫 월요일이 앵커로부터 몇 주째인지(음수 가능)
+function getGanttViewOffset(timelineBaseDate) {
+    const anchor = getGanttAnchorDate();
+    return Math.round((timelineBaseDate - anchor) / (7 * 24 * 60 * 60 * 1000));
+}
+
 // "YYYY-MM" 문자열을 {year, month(1-12)}로 파싱
 function parseYM(ym) {
     const [y, m] = (ym || '').split('-').map(Number);
@@ -5629,11 +5642,18 @@ async function renderTeamGoalsDX(container) {
     const totalWeeks = timeline.totalWeeks;
     const baseDate = timeline.baseDate;
 
+    // 절대 앵커(2026-08) 기준 뷰포트 오프셋.
+    // item.start(절대 주차)를 화면 칸으로 변환: displayCol = item.start - viewOffset
+    const viewOffset = getGanttViewOffset(baseDate);
+    STATE._ganttViewOffset = viewOffset; // 셀 클릭 편집에서 역산에 사용
+
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
-    // 현재 주차 인덱스 계산 (baseDate 기준)
+    // 현재 주차 인덱스(화면 칸 기준): 앵커 기준 현재 절대 주차 - viewOffset
+    const anchorDate = getGanttAnchorDate();
     const now = new Date();
-    const currentWeekIdx = Math.floor((now - baseDate) / (7 * 24 * 60 * 60 * 1000));
+    const currentAbsWeek = Math.floor((now - anchorDate) / (7 * 24 * 60 * 60 * 1000));
+    const currentWeekIdx = currentAbsWeek - viewOffset;
 
     // DX팀원 확인
     const ganttTeam = STATE._ganttTeam || 'DX';
@@ -5647,16 +5667,19 @@ async function renderTeamGoalsDX(container) {
     const sortedData = [...STATE.ganttData].sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
     
     sortedData.forEach((item, idx) => {
-        // 툴팁용 날짜 계산 (baseDate = 설정 시작월의 첫 월요일)
-        const startDate = new Date(baseDate.getTime() + item.start * 7 * 24 * 60 * 60 * 1000);
-        const endDate = new Date(baseDate.getTime() + (item.start + item.duration - 1) * 7 * 24 * 60 * 60 * 1000 + 4 * 24 * 60 * 60 * 1000);
+        // 툴팁용 날짜 계산 (앵커 기준 절대 주차 → 실제 날짜)
+        const startDate = new Date(anchorDate.getTime() + item.start * 7 * 24 * 60 * 60 * 1000);
+        const endDate = new Date(anchorDate.getTime() + (item.start + item.duration - 1) * 7 * 24 * 60 * 60 * 1000 + 4 * 24 * 60 * 60 * 1000);
         const tooltip = item.duration > 0 ? `${startDate.getMonth()+1}/${startDate.getDate()} ~ ${endDate.getMonth()+1}/${endDate.getDate()}` : '';
+
+        // 화면 칸 기준 시작/끝 (뷰포트 오프셋 적용)
+        const displayStart = item.start - viewOffset;
 
         let cells = '';
         for (let i = 0; i < totalWeeks; i++) {
-            const isActive = i >= item.start && i < item.start + item.duration;
-            const isFirst = i === item.start;
-            const isLast = i === item.start + item.duration - 1;
+            const isActive = i >= displayStart && i < displayStart + item.duration;
+            const isFirst = i === displayStart;
+            const isLast = i === displayStart + item.duration - 1;
             const isCurrentWeek = i === currentWeekIdx;
             const currentWeekBg = isCurrentWeek ? 'background-color:rgba(220,38,38,0.06);' : '';
             const titleAttr = isActive && tooltip ? ` title="${tooltip}"` : '';
@@ -5776,21 +5799,25 @@ async function renderTeamGoalsDX(container) {
 window.toggleGanttCell = function(itemId, weekIdx) {
     const item = STATE.ganttData.find(g => g.id === itemId);
     if (!item) return;
-    
+
+    // 화면 칸(weekIdx) → 절대 주차로 변환해서 저장 (뷰포트 오프셋 적용)
+    const offset = STATE._ganttViewOffset || 0;
+    const absWeek = weekIdx + offset;
+
     // 상태머신: 첫 클릭 = 시작주 설정, 두번째 클릭 = 종료주 설정
     if (!item._selecting) {
         // 첫 클릭: 시작주 설정
-        item.start = weekIdx;
+        item.start = absWeek;
         item.duration = 1;
         item._selecting = true;
     } else {
         // 두번째 클릭: 종료주 설정
-        if (weekIdx >= item.start) {
-            item.duration = weekIdx - item.start + 1;
+        if (absWeek >= item.start) {
+            item.duration = absWeek - item.start + 1;
         } else {
             // 종료주가 시작주보다 앞이면 swap
-            item.duration = item.start - weekIdx + 1;
-            item.start = weekIdx;
+            item.duration = item.start - absWeek + 1;
+            item.start = absWeek;
         }
         item._selecting = false;
     }
@@ -5861,7 +5888,10 @@ window.removeGanttItem = function(itemId) {
 window.addGanttItem = function() {
     const newId = 'g-' + Date.now();
     const team = STATE._ganttTeam || 'DX';
-    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: 4, duration: 0, color: '#006EBE', isNew: true, detail: '', sequence: STATE.ganttData.length + 1 });
+    // 새 일감은 duration 0(미배치)로 시작 — 사용자가 셀 클릭으로 일정 지정.
+    // start는 현재 보기 창의 시작 절대주차로 둬서, 어느 창이든 자연스럽게 편집 가능.
+    const offset = STATE._ganttViewOffset || 0;
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: offset, duration: 0, color: '#006EBE', isNew: true, detail: '', sequence: STATE.ganttData.length + 1 });
     renderCurrentView();
 };
 
@@ -5880,25 +5910,41 @@ window.saveGantt = async function() {
                     if (item.dbId) { await GanttAPI.update(item.dbId, row); }
                     else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
                 }
-                // 변경 내역 요약 (스냅샷 대비 신규/일정변경/이름변경)
+                // 변경 내역 요약 (스냅샷 대비 신규/삭제/일정변경/이름변경) — 날짜로 표기
+                const anchor = getGanttAnchorDate();
+                const fmtWeek = (absStart, dur) => {
+                    if (!dur || dur <= 0) return '미배치';
+                    const s = new Date(anchor.getTime() + absStart * 7 * 86400000);
+                    const e = new Date(anchor.getTime() + (absStart + dur - 1) * 7 * 86400000 + 4 * 86400000);
+                    return `${s.getMonth()+1}/${s.getDate()}~${e.getMonth()+1}/${e.getDate()}`;
+                };
                 const snap = STATE.ganttSnapshot || {};
                 const changes = [];
+                const currentIds = new Set();
                 myItems.forEach(it => {
+                    currentIds.add(it.id);
                     const before = snap[it.id];
-                    const nm = (it.name || '일감').toString().slice(0, 20);
+                    const nm = (it.name || '일감').toString().slice(0, 24);
                     if (!before) {
-                        changes.push(`${nm}(신규)`);
+                        changes.push(`${nm} 추가(${fmtWeek(it.start, it.duration)})`);
                     } else {
                         const diffs = [];
-                        if (before.name !== it.name) diffs.push('이름변경');
+                        if (before.name !== it.name) diffs.push(`이름 '${(before.name||'').slice(0,16)}'→'${(it.name||'').slice(0,16)}'`);
                         if (before.start !== it.start || before.duration !== it.duration) {
-                            diffs.push(`일정 ${before.start+1}~${before.start+before.duration}주 → ${it.start+1}~${it.start+it.duration}주`);
+                            diffs.push(`일정 ${fmtWeek(before.start, before.duration)} → ${fmtWeek(it.start, it.duration)}`);
                         }
                         if (diffs.length) changes.push(`${nm}: ${diffs.join(', ')}`);
                     }
                 });
+                // 스냅샷엔 있었는데 지금 없으면 삭제된 것 (saveGantt는 삭제를 직접 안 하지만 방어적으로)
+                Object.keys(snap).forEach(id => {
+                    if (!currentIds.has(id)) changes.push(`${(snap[id].name||'일감').slice(0,24)} 삭제`);
+                });
                 const ganttDetail = changes.length ? changes.join(' / ') : '변경 없음(저장만)';
-                logActivity('간트', '수정', team + '팀 마일스톤', ganttDetail);
+                // 변경이 있을 때만 로그 (단순 저장 클릭으로 로그 쌓이는 것 방지)
+                if (changes.length) {
+                    logActivity('간트', '수정', team + '팀 마일스톤', ganttDetail);
+                }
                 // 스냅샷 갱신
                 STATE.ganttSnapshot = {};
                 myItems.forEach(it => { STATE.ganttSnapshot[it.id] = { name: it.name, start: it.start, duration: it.duration }; });

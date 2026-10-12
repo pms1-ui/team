@@ -5637,6 +5637,14 @@ async function renderTeamGoalsDX(container) {
     if (!STATE.ganttConfig) STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
     STATE._ganttTeam = 'DX';
 
+    // 정렬 설정 복원 (localStorage) — 세션 내 변경이 없을 때만 복원
+    if (STATE._ganttSort === undefined) {
+        try { STATE._ganttSort = localStorage.getItem('ganttSort') || 'manual'; } catch(e) { STATE._ganttSort = 'manual'; }
+    }
+    if (STATE._ganttSortDir === undefined) {
+        try { STATE._ganttSortDir = localStorage.getItem('ganttSortDir') || 'asc'; } catch(e) { STATE._ganttSortDir = 'asc'; }
+    }
+
     // 설정 기반 타임라인 계산
     const timeline = buildGanttTimeline(STATE.ganttConfig);
     const months = timeline.months;
@@ -5666,31 +5674,33 @@ async function renderTeamGoalsDX(container) {
     let ganttRows = '';
     // 정렬: 'manual'(드래그 순서=sequence) | 'name'(가나다) | 'created'(추가일) | 'owner'(담당자 가나다)
     const ganttSort = STATE._ganttSort || 'manual';
+    const ganttSortDir = STATE._ganttSortDir || 'asc'; // 'asc' | 'desc'
+    const dirMul = ganttSortDir === 'desc' ? -1 : 1;
     const sortedData = [...STATE.ganttData];
     if (ganttSort === 'name') {
-        sortedData.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
+        sortedData.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko') * dirMul);
     } else if (ganttSort === 'created') {
-        // 추가일 오름차순(먼저 추가된 것부터). created_at 없는 건 맨 뒤로.
+        // created_at 없는 건 방향과 무관하게 항상 맨 뒤로.
         sortedData.sort((a, b) => {
-            const ta = a.createdAt ? new Date(a.createdAt).getTime() : Infinity;
-            const tb = b.createdAt ? new Date(b.createdAt).getTime() : Infinity;
-            return ta - tb;
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : null;
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : null;
+            if (ta === null && tb === null) return 0;
+            if (ta === null) return 1;
+            if (tb === null) return -1;
+            return (ta - tb) * dirMul;
         });
     } else if (ganttSort === 'owner') {
-        // 담당자: 첫 번째 담당자 이름 가나다. 담당자 없는 건 맨 뒤로.
-        const firstOwner = (it) => {
-            const o = (it.owner || '').split(',').map(s => s.trim()).filter(Boolean)[0] || '';
-            return o;
-        };
+        // 담당자: 첫 번째 담당자 이름 가나다. 담당자 없는 건 항상 맨 뒤로.
+        const firstOwner = (it) => (it.owner || '').split(',').map(s => s.trim()).filter(Boolean)[0] || '';
         sortedData.sort((a, b) => {
             const oa = firstOwner(a), ob = firstOwner(b);
             if (!oa && !ob) return 0;
             if (!oa) return 1;
             if (!ob) return -1;
-            return oa.localeCompare(ob, 'ko');
+            return oa.localeCompare(ob, 'ko') * dirMul;
         });
     } else {
-        // manual: sequence(드래그 순서)
+        // manual: sequence(드래그 순서) — 방향 토글 미적용
         sortedData.sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
     }
     
@@ -5795,7 +5805,7 @@ async function renderTeamGoalsDX(container) {
                         <p class="text-[12px] text-on-surface-variant">${STATE.ganttConfig.start.replace('-', '.')} ~ ${STATE.ganttConfig.end.replace('-', '.')}</p>
                     </div>
                 </div>
-                ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><select onchange="setGanttSort(this.value)" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg outline-none focus:border-primary cursor-pointer"><option value="manual" ${ganttSort==='manual'?'selected':''}>수동 정렬</option><option value="name" ${ganttSort==='name'?'selected':''}>가나다순</option><option value="created" ${ganttSort==='created'?'selected':''}>추가일순</option><option value="owner" ${ganttSort==='owner'?'selected':''}>담당자순</option></select><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
+                ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><select onchange="setGanttSort(this.value)" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg outline-none focus:border-primary cursor-pointer"><option value="manual" ${ganttSort==='manual'?'selected':''}>수동 정렬</option><option value="name" ${ganttSort==='name'?'selected':''}>가나다순</option><option value="created" ${ganttSort==='created'?'selected':''}>추가일순</option><option value="owner" ${ganttSort==='owner'?'selected':''}>담당자순</option></select><button onclick="toggleGanttSortDir()" ${ganttSort==='manual'?'disabled':''} title="${ganttSort==='manual'?'정렬을 선택하면 방향을 바꿀 수 있어요':(ganttSortDir==='asc'?'오름차순 (클릭 시 내림차순)':'내림차순 (클릭 시 오름차순)')}" class="flex items-center gap-1 px-3 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg transition-all ${ganttSort==='manual'?'opacity-40 cursor-not-allowed':'hover:bg-gray-50'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${ganttSortDir==='asc'?'M3 4h13M3 8h9M3 12h5m8 8V8m0 12l-4-4m4 4l4-4':'M3 4h13M3 8h9M3 12h5m8 0v12m0 0l-4-4m4 4l4-4'}"/></svg>${ganttSortDir==='asc'?'오름':'내림'}</button><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse" style="min-width:1100px">
@@ -5931,6 +5941,15 @@ window.addGanttItem = function() {
 // 간트 정렬 변경 (보기 전용: sequence는 건드리지 않음)
 window.setGanttSort = function(mode) {
     STATE._ganttSort = mode;
+    try { localStorage.setItem('ganttSort', mode); } catch(e) {}
+    renderCurrentView();
+};
+
+// 정렬 방향 토글 (오름/내림)
+window.toggleGanttSortDir = function() {
+    if ((STATE._ganttSort || 'manual') === 'manual') return; // 수동 정렬은 방향 없음
+    STATE._ganttSortDir = (STATE._ganttSortDir === 'desc') ? 'asc' : 'desc';
+    try { localStorage.setItem('ganttSortDir', STATE._ganttSortDir); } catch(e) {}
     renderCurrentView();
 };
 

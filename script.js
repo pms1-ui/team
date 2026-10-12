@@ -6193,9 +6193,11 @@ async function renderActivityLog(container) {
         '반려': 'bg-red-50 text-red-500'
     };
 
-    const logs = (STATE.activityLogs || []).slice().sort((a, b) =>
-        new Date(b.created_at || 0) - new Date(a.created_at || 0)
-    );
+    // 관리자 승인 내역은 화면에 노출하지 않음 (Baserow에는 그대로 보관)
+    const logs = (STATE.activityLogs || [])
+        .filter(log => log.action !== '승인')
+        .slice()
+        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
     let h = '<div class="max-w-4xl mx-auto">';
     h += '<div class="flex items-center justify-between mb-6">';

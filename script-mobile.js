@@ -130,7 +130,7 @@ function renderGoalsManageMobile(items) {
                     <div class="text-[11px] text-on-surface-variant font-bold mb-2">진척률</div>
                     <div class="bg-surface-container rounded-lg p-3">
                         <div class="flex items-center gap-2">
-                            <input type="range" min="0" max="100" value="${g.keyResults[0]?.progress || 0}" oninput="updateKRProgress('${g.id}', '${g.keyResults[0]?.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
+                            <input type="range" min="0" max="100" step="5" value="${g.keyResults[0]?.progress || 0}" oninput="updateKRProgress('${g.id}', '${g.keyResults[0]?.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
                             <span id="kr-prog-val-${g.keyResults[0]?.id}" class="text-primary font-black text-[12px] min-w-[35px] text-right">${g.keyResults[0]?.progress || 0}%</span>
                         </div>
                     </div>
@@ -140,7 +140,7 @@ function renderGoalsManageMobile(items) {
                             <div class="bg-surface-container rounded-lg p-3">
                                 <textarea rows="1" oninput="updateKRTitle('${g.id}', '${kr.id}', this.value, true); this.style.height='auto'; this.style.height=this.scrollHeight+'px';" ${isPending?'disabled':''} class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[12px] font-medium text-on-surface outline-none focus:border-primary mb-2 disabled:opacity-60 resize-none overflow-hidden">${kr.text}</textarea>
                                 <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
+                                    <input type="range" min="0" max="100" step="5" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="flex-1 h-2 bg-white rounded-lg appearance-none cursor-pointer disabled:opacity-60" style="accent-color: #0053db;">
                                     <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[12px] min-w-[35px] text-right">${kr.progress}%</span>
                                 </div>
                             </div>

@@ -2031,7 +2031,7 @@ function renderGoalsManage(container) {
                                         ${!isPending && krsToRender.length > 1 ? `<button onclick="removeKR('${g.id}', '${kr.id}', true)" class="mt-2 px-2 text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 rounded-md shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                                     </div>
                                     <div class="flex items-center gap-2 w-[180px] shrink-0 pt-2">
-                                        <input type="range" min="0" max="100" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer">
+                                        <input type="range" min="0" max="100" step="5" value="${kr.progress}" oninput="updateKRProgress('${g.id}', '${kr.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer">
                                         <span id="kr-prog-val-${kr.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${kr.progress}%</span>
                                     </div>
                                 </div>
@@ -2040,7 +2040,7 @@ function renderGoalsManage(container) {
                         </div>
                     </td>` : `<td class="py-6 px-4 border-r border-blue-50/30 align-top">
                         <div class="flex items-center justify-between px-4 h-[44px] bg-surface-container-lowest rounded-xl border border-blue-50 shadow-inner">
-                            <input type="range" min="0" max="100" value="${g.keyResults[0]?.progress || 0}" oninput="updateKRProgress('${g.id}', '${g.keyResults[0]?.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
+                            <input type="range" min="0" max="100" step="5" value="${g.keyResults[0]?.progress || 0}" oninput="updateKRProgress('${g.id}', '${g.keyResults[0]?.id}', this.value)" ${isPending?'disabled':''} class="w-full accent-primary h-1.5 bg-blue-100 rounded-full appearance-none cursor-pointer mr-4">
                             <span id="kr-prog-val-${g.keyResults[0]?.id}" class="text-primary font-black text-[14px] w-10 text-right shrink-0">${g.keyResults[0]?.progress || 0}%</span>
                         </div>
                     </td>`}

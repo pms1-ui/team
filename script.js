@@ -1027,6 +1027,21 @@ window.submitModifyRequest = function(id) {
     if(hasKrAddRem) edits.push('KR 항목 증감');
     if(hasKrProg) edits.push('진척률 보고');
 
+    // 로그용 변경 요약: 각 KR의 진척률 old% → new% 변화를 사람이 읽기 좋게 정리
+    const krProgressChanges = [];
+    newKRs.forEach(nKr => {
+        const oKr = oldKRs.find(k => k.id == nKr.id);
+        if (oKr) {
+            const oldP = parseInt(oKr.progress) || 0;
+            const newP = parseInt(nKr.progress) || 0;
+            if (oldP !== newP) {
+                const krName = (nKr.text || oKr.text || 'KR').toString().slice(0, 20);
+                krProgressChanges.push(`${krName} ${oldP}%→${newP}%`);
+            }
+        }
+    });
+    const changeSummary = krProgressChanges.join(', ');
+
     if(edits.length === 0 && goal.status !== '거부') { alert('변경사항이 없습니다.'); return; }
     if(edits.length === 0 && goal.status === '거부') edits.push('재요청');
 
@@ -1090,7 +1105,11 @@ window.submitModifyRequest = function(id) {
             goal.isProcessed = false;
             // 진척률 보고만 있으면 '체크인', 그 외 변경이 섞이면 '수정'으로 분류
             const onlyProgress = edits.length > 0 && edits.every(e => e === '진척률 보고');
-            logActivity('목표', onlyProgress ? '체크인' : '수정', goal.text || 'OKR', edits.join(', '));
+            // detail: 진척률 변화 요약이 있으면 그걸, 없으면 변경 유형을 기록
+            const logDetail = changeSummary
+                ? (onlyProgress ? changeSummary : edits.join(', ') + ' | ' + changeSummary)
+                : edits.join(', ');
+            logActivity('목표', onlyProgress ? '체크인' : '수정', goal.text || 'OKR', logDetail);
             closeModal();
             renderCurrentView();
             updateNavigation();
@@ -5588,6 +5607,11 @@ async function renderTeamGoalsDX(container) {
                 detail: r.detail || '',
                 sequence: parseInt(r.sequence) || 999
             }));
+            // 저장 시 변경 비교용 원본 스냅샷 (start/duration/name만)
+            STATE.ganttSnapshot = {};
+            STATE.ganttData.forEach(it => {
+                STATE.ganttSnapshot[it.id] = { name: it.name, start: it.start, duration: it.duration };
+            });
             STATE.ganttLoaded = true;
         } catch(e) {
             console.error('Gantt load error:', e);
@@ -5856,7 +5880,28 @@ window.saveGantt = async function() {
                     if (item.dbId) { await GanttAPI.update(item.dbId, row); }
                     else { row.created_at = new Date().toISOString(); const created = await GanttAPI.create(row); item.dbId = created.id; item.isNew = false; }
                 }
-                logActivity('간트', '수정', team + '팀 마일스톤', myItems.length + '개 일감 저장');
+                // 변경 내역 요약 (스냅샷 대비 신규/일정변경/이름변경)
+                const snap = STATE.ganttSnapshot || {};
+                const changes = [];
+                myItems.forEach(it => {
+                    const before = snap[it.id];
+                    const nm = (it.name || '일감').toString().slice(0, 20);
+                    if (!before) {
+                        changes.push(`${nm}(신규)`);
+                    } else {
+                        const diffs = [];
+                        if (before.name !== it.name) diffs.push('이름변경');
+                        if (before.start !== it.start || before.duration !== it.duration) {
+                            diffs.push(`일정 ${before.start+1}~${before.start+before.duration}주 → ${it.start+1}~${it.start+it.duration}주`);
+                        }
+                        if (diffs.length) changes.push(`${nm}: ${diffs.join(', ')}`);
+                    }
+                });
+                const ganttDetail = changes.length ? changes.join(' / ') : '변경 없음(저장만)';
+                logActivity('간트', '수정', team + '팀 마일스톤', ganttDetail);
+                // 스냅샷 갱신
+                STATE.ganttSnapshot = {};
+                myItems.forEach(it => { STATE.ganttSnapshot[it.id] = { name: it.name, start: it.start, duration: it.duration }; });
                 alert('저장되었습니다.');
             } catch(e) { console.error('Gantt save error:', e); alert('저장 중 오류가 발생했습니다.'); }
         },
@@ -6193,9 +6238,10 @@ async function renderActivityLog(container) {
         '반려': 'bg-red-50 text-red-500'
     };
 
-    // 관리자 승인 내역은 화면에 노출하지 않음 (Baserow에는 그대로 보관)
+    // 관리자 승인/반려 내역은 화면에 노출하지 않음 (Baserow에는 그대로 보관)
+    const hiddenActions = ['승인', '반려'];
     const logs = (STATE.activityLogs || [])
-        .filter(log => log.action !== '승인')
+        .filter(log => !hiddenActions.includes(log.action))
         .slice()
         .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
@@ -6230,7 +6276,9 @@ async function renderActivityLog(container) {
         h += `<span class="font-bold text-on-surface text-[13px] w-[72px] shrink-0 truncate">${(member && member.name) || log.actor_name || '알 수 없음'}</span>`;
         h += `<span class="inline-block whitespace-nowrap px-2 py-0.5 ${cColor} text-[11px] font-bold rounded-full shrink-0">${log.category || '-'}</span>`;
         h += `<span class="inline-block whitespace-nowrap px-2 py-0.5 ${aColor} text-[11px] font-bold rounded-full shrink-0">${log.action || '-'}</span>`;
-        h += `<span class="text-[13px] text-on-surface flex-1 min-w-0 truncate" title="${(log.target || '').replace(/"/g, '&quot;')}">${log.target || ''}</span>`;
+        const detailText = log.detail ? ` · ${log.detail}` : '';
+        const fullText = (log.target || '') + detailText;
+        h += `<span class="text-[13px] text-on-surface flex-1 min-w-0 truncate" title="${fullText.replace(/"/g, '&quot;')}"><span class="font-medium">${log.target || ''}</span>${detailText ? `<span class="text-on-surface-variant">${detailText}</span>` : ''}</span>`;
         h += '</div>';
     });
     h += '</div>';

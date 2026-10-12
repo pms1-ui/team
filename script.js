@@ -5618,7 +5618,8 @@ async function renderTeamGoalsDX(container) {
                 duration: parseInt(r.duration) || 0,
                 color: r.color || '#006EBE',
                 detail: r.detail || '',
-                sequence: parseInt(r.sequence) || 999
+                sequence: parseInt(r.sequence) || 999,
+                createdAt: r.created_at || null
             }));
             // 저장 시 변경 비교용 원본 스냅샷 (start/duration/name만)
             STATE.ganttSnapshot = {};
@@ -5663,8 +5664,35 @@ async function renderTeamGoalsDX(container) {
     const canEdit = (item) => true; // 모든 구성원이 수정 가능
 
     let ganttRows = '';
-    // sequence 순 정렬
-    const sortedData = [...STATE.ganttData].sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
+    // 정렬: 'manual'(드래그 순서=sequence) | 'name'(가나다) | 'created'(추가일) | 'owner'(담당자 가나다)
+    const ganttSort = STATE._ganttSort || 'manual';
+    const sortedData = [...STATE.ganttData];
+    if (ganttSort === 'name') {
+        sortedData.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
+    } else if (ganttSort === 'created') {
+        // 추가일 오름차순(먼저 추가된 것부터). created_at 없는 건 맨 뒤로.
+        sortedData.sort((a, b) => {
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : Infinity;
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : Infinity;
+            return ta - tb;
+        });
+    } else if (ganttSort === 'owner') {
+        // 담당자: 첫 번째 담당자 이름 가나다. 담당자 없는 건 맨 뒤로.
+        const firstOwner = (it) => {
+            const o = (it.owner || '').split(',').map(s => s.trim()).filter(Boolean)[0] || '';
+            return o;
+        };
+        sortedData.sort((a, b) => {
+            const oa = firstOwner(a), ob = firstOwner(b);
+            if (!oa && !ob) return 0;
+            if (!oa) return 1;
+            if (!ob) return -1;
+            return oa.localeCompare(ob, 'ko');
+        });
+    } else {
+        // manual: sequence(드래그 순서)
+        sortedData.sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
+    }
     
     sortedData.forEach((item, idx) => {
         // 툴팁용 날짜 계산 (앵커 기준 절대 주차 → 실제 날짜)
@@ -5767,7 +5795,7 @@ async function renderTeamGoalsDX(container) {
                         <p class="text-[12px] text-on-surface-variant">${STATE.ganttConfig.start.replace('-', '.')} ~ ${STATE.ganttConfig.end.replace('-', '.')}</p>
                     </div>
                 </div>
-                ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
+                ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><select onchange="setGanttSort(this.value)" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg outline-none focus:border-primary cursor-pointer"><option value="manual" ${ganttSort==='manual'?'selected':''}>수동 정렬</option><option value="name" ${ganttSort==='name'?'selected':''}>가나다순</option><option value="created" ${ganttSort==='created'?'selected':''}>추가일순</option><option value="owner" ${ganttSort==='owner'?'selected':''}>담당자순</option></select><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
             </div>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table class="w-full border-collapse" style="min-width:1100px">
@@ -5849,6 +5877,11 @@ window.ganttDragOver = function(e) {
 };
 window.ganttDrop = function(e, targetId) {
     e.preventDefault();
+    // 정렬이 '수동'이 아닐 때는 드래그 순서 변경 불가 (보기 정렬 중)
+    if ((STATE._ganttSort || 'manual') !== 'manual') {
+        alert('드래그로 순서를 바꾸려면 정렬을 "수동 정렬"로 변경해주세요.');
+        return;
+    }
     const draggedId = e.dataTransfer.getData('text/plain');
     if (draggedId === targetId) return;
     const data = STATE.ganttData;
@@ -5891,7 +5924,13 @@ window.addGanttItem = function() {
     // 새 일감은 duration 0(미배치)로 시작 — 사용자가 셀 클릭으로 일정 지정.
     // start는 현재 보기 창의 시작 절대주차로 둬서, 어느 창이든 자연스럽게 편집 가능.
     const offset = STATE._ganttViewOffset || 0;
-    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: offset, duration: 0, color: '#006EBE', isNew: true, detail: '', sequence: STATE.ganttData.length + 1 });
+    STATE.ganttData.push({ id: newId, name: '새 일감', owner_id: STATE.user.id, owner: STATE.user.name, start: offset, duration: 0, color: '#006EBE', isNew: true, detail: '', sequence: STATE.ganttData.length + 1, createdAt: new Date().toISOString() });
+    renderCurrentView();
+};
+
+// 간트 정렬 변경 (보기 전용: sequence는 건드리지 않음)
+window.setGanttSort = function(mode) {
+    STATE._ganttSort = mode;
     renderCurrentView();
 };
 

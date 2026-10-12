@@ -5101,15 +5101,15 @@ function renderWeeklyReportMyView(selectedPeriod) {
     h += `${getAvatarHtml(member, 'w-10 h-10', 'text-[14px]')}`;
     h += '<div>';
     h += `<div class="flex items-center gap-2"><span class="font-bold text-on-surface text-[14px]">${member.name || STATE.user.name || ''}</span>`;
-    // 상태 배지 인라인
+    // 상태 배지 인라인 (아이콘 없이 텍스트만 — 겹침 방지, team view와 일관)
     if (isClosed && !isSubmitted) {
-        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-500 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>미제출(마감)</span>';
+        h += '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 bg-red-50 text-red-500 text-[11px] font-bold rounded-full">미제출(마감)</span>';
     } else if (isSubmitted) {
-        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+        h += '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 bg-success/10 text-success text-[11px] font-bold rounded-full">제출완료</span>';
     } else if (isDraft) {
-        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>임시저장</span>';
+        h += '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full">임시저장</span>';
     } else {
-        h += '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/></svg>미제출</span>';
+        h += '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 bg-amber-50 text-amber-600 text-[11px] font-bold rounded-full">미제출</span>';
     }
     h += '</div>';
     h += `<p class="text-[12px] text-on-surface-variant">${member.team || ''} · ${member.position || ''}</p>`;
@@ -5203,9 +5203,9 @@ function renderWeeklyReportAllView(selectedPeriod) {
         h += `<div class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-blue-50/40 transition-colors" onclick="document.getElementById('wr-detail-${idx}').classList.toggle('hidden')">`;
         h += '<div class="flex items-center gap-3">';
         if (memberStatus === 'submitted') {
-            h += '<span class="flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[11px] font-bold rounded-full"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출완료</span>';
+            h += '<span class="inline-block whitespace-nowrap px-2.5 py-1 bg-success/10 text-success text-[11px] font-bold rounded-full">제출완료</span>';
         } else {
-            h += '<span class="px-2.5 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded-full">미제출</span>';
+            h += '<span class="inline-block whitespace-nowrap px-2.5 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded-full">미제출</span>';
         }
         h += `${getAvatarHtml(m, 'w-8 h-8', 'text-[12px]')}`;
         h += `<div><span class="font-bold text-on-surface text-[14px]">${m.name}</span>`;

@@ -371,6 +371,35 @@ const GanttAPI = {
         return await baserowFetch(`/database/rows/table/2319/${id}/`, {
             method: 'DELETE'
         });
+    },
+    // 간트차트 기간 설정 (특수 행: task_id = `__config_<team>__`)
+    // 범위는 name 필드에 "YYYY-MM~YYYY-MM" 형식으로 저장
+    async getConfig(team) {
+        const configId = `__config_${team}__`;
+        const data = await baserowFetch(`/database/rows/table/2319/?user_field_names=true&size=5&filter__task_id__equal=${encodeURIComponent(configId)}`);
+        return (data.results && data.results.length > 0) ? data.results[0] : null;
+    },
+    async saveConfig(team, startYM, endYM) {
+        const configId = `__config_${team}__`;
+        const existing = await this.getConfig(team);
+        const row = {
+            task_id: configId,
+            team: team,
+            name: `${startYM}~${endYM}`,
+            updated_at: new Date().toISOString()
+        };
+        if (existing) {
+            return await baserowFetch(`/database/rows/table/2319/${existing.id}/?user_field_names=true`, {
+                method: 'PATCH',
+                body: JSON.stringify(row)
+            });
+        } else {
+            row.created_at = new Date().toISOString();
+            return await baserowFetch(`/database/rows/table/2319/?user_field_names=true`, {
+                method: 'POST',
+                body: JSON.stringify(row)
+            });
+        }
     }
 };
 

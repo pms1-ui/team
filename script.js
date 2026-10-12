@@ -5463,14 +5463,79 @@ function renderTeamGoals(container) {
     `;
 }
 
+// --- Gantt 기간 설정 헬퍼 ---
+// 기본 기간 (설정이 없을 때): 2026-08 ~ 2026-12
+const GANTT_DEFAULT_CONFIG = { start: '2026-08', end: '2026-12' };
+
+// "YYYY-MM" 문자열을 {year, month(1-12)}로 파싱
+function parseYM(ym) {
+    const [y, m] = (ym || '').split('-').map(Number);
+    return { year: y, month: m };
+}
+
+// 특정 년/월(1-12)에 포함된 월요일의 개수 = 그 달의 주차 수
+function mondaysInMonth(year, month) {
+    const last = new Date(year, month, 0).getDate(); // 해당 월 마지막 날
+    let count = 0;
+    for (let d = 1; d <= last; d++) {
+        if (new Date(year, month - 1, d).getDay() === 1) count++;
+    }
+    return count;
+}
+
+// 특정 년/월(1-12)의 첫 번째 월요일 Date
+function firstMondayOfMonth(year, month) {
+    for (let d = 1; d <= 7; d++) {
+        const dt = new Date(year, month - 1, d);
+        if (dt.getDay() === 1) return dt;
+    }
+    return new Date(year, month - 1, 1);
+}
+
+// 설정(start/end "YYYY-MM")으로부터 간트 월 배열, baseDate, 총 주차, 연도 범위 계산
+function buildGanttTimeline(cfg) {
+    const start = parseYM(cfg.start);
+    const end = parseYM(cfg.end);
+    const months = [];
+    let y = start.year, m = start.month;
+    // 안전장치: 최대 36개월
+    let guard = 0;
+    while ((y < end.year || (y === end.year && m <= end.month)) && guard < 36) {
+        months.push({ name: `${m}월`, year: y, month: m, weeks: mondaysInMonth(y, m) });
+        m++;
+        if (m > 12) { m = 1; y++; }
+        guard++;
+    }
+    if (months.length === 0) {
+        months.push({ name: `${start.month}월`, year: start.year, month: start.month, weeks: mondaysInMonth(start.year, start.month) });
+    }
+    const totalWeeks = months.reduce((sum, mo) => sum + mo.weeks, 0);
+    const baseDate = firstMondayOfMonth(months[0].year, months[0].month);
+    const years = [...new Set(months.map(mo => mo.year))];
+    return { months, totalWeeks, baseDate, years };
+}
+
 // --- Team Goals DX (Gantt Chart) ---
 async function renderTeamGoalsDX(container) {
     // DB에서 로드 (첫 진입 시)
     if (!STATE.ganttLoaded) {
         container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
         try {
+            // 기간 설정 로드
+            try {
+                const cfgRow = await GanttAPI.getConfig('DX');
+                if (cfgRow && cfgRow.name && cfgRow.name.includes('~')) {
+                    const [s, e] = cfgRow.name.split('~');
+                    STATE.ganttConfig = { start: s.trim(), end: e.trim() };
+                } else {
+                    STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
+                }
+            } catch (cfgErr) {
+                console.error('Gantt config load error:', cfgErr);
+                STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
+            }
             const rows = await GanttAPI.listByTeam('DX');
-            STATE.ganttData = rows.filter(r => r.task_id).map(r => ({
+            STATE.ganttData = rows.filter(r => r.task_id && !String(r.task_id).startsWith('__config')).map(r => ({
                 dbId: r.id,
                 id: r.task_id,
                 name: r.name || '',
@@ -5490,18 +5555,18 @@ async function renderTeamGoalsDX(container) {
         }
     }
     if (!STATE.ganttData) STATE.ganttData = [];
+    if (!STATE.ganttConfig) STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
     STATE._ganttTeam = 'DX';
 
-    const months = [
-        {name:'8월',weeks:5},{name:'9월',weeks:4},{name:'10월',weeks:5},{name:'11월',weeks:4},{name:'12월',weeks:4}
-    ];
-    let totalWeeks = 0;
-    months.forEach(m => totalWeeks += m.weeks); // 22
+    // 설정 기반 타임라인 계산
+    const timeline = buildGanttTimeline(STATE.ganttConfig);
+    const months = timeline.months;
+    const totalWeeks = timeline.totalWeeks;
+    const baseDate = timeline.baseDate;
 
     const colorOptions = ['#006EBE','#0053db','#7c3aed','#059669','#0891b2','#dc2626','#ea580c','#64748b','#d97706','#be185d'];
 
     // 현재 주차 인덱스 계산 (baseDate 기준)
-    const baseDate = new Date(2026, 6, 27); // 2026-07-27 (월)
     const now = new Date();
     const currentWeekIdx = Math.floor((now - baseDate) / (7 * 24 * 60 * 60 * 1000));
 
@@ -5517,8 +5582,7 @@ async function renderTeamGoalsDX(container) {
     const sortedData = [...STATE.ganttData].sort((a, b) => (a.sequence || 999) - (b.sequence || 999));
     
     sortedData.forEach((item, idx) => {
-        // 툴팁용 날짜 계산 (2026-08-03 = W1 시작일 기준)
-        const baseDate = new Date(2026, 6, 27); // 2026-07-27 (월) = 간트 W1 시작
+        // 툴팁용 날짜 계산 (baseDate = 설정 시작월의 첫 월요일)
         const startDate = new Date(baseDate.getTime() + item.start * 7 * 24 * 60 * 60 * 1000);
         const endDate = new Date(baseDate.getTime() + (item.start + item.duration - 1) * 7 * 24 * 60 * 60 * 1000 + 4 * 24 * 60 * 60 * 1000);
         const tooltip = item.duration > 0 ? `${startDate.getMonth()+1}/${startDate.getDate()} ~ ${endDate.getMonth()+1}/${endDate.getDate()}` : '';
@@ -5575,8 +5639,14 @@ async function renderTeamGoalsDX(container) {
         `;
     });
 
-    // 연도 헤더 (별도 행)
-    let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:80px"></th><th colspan="${totalWeeks}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white">2026</th><th class="sticky right-0 bg-white"></th>`;
+    // 연도 헤더 (별도 행) — 설정 기간이 여러 해에 걸치면 연도별로 분할
+    let yearHeaders = `<th class="border-r border-gray-100 bg-white" style="min-width:240px"></th><th class="border-r border-gray-100 bg-white" style="min-width:80px"></th>`;
+    const yearWeekMap = {};
+    months.forEach(m => { yearWeekMap[m.year] = (yearWeekMap[m.year] || 0) + m.weeks; });
+    Object.keys(yearWeekMap).sort().forEach(yr => {
+        yearHeaders += `<th colspan="${yearWeekMap[yr]}" class="py-3 text-[13px] font-black text-gray-800 text-center bg-white border-r border-gray-100">${yr}</th>`;
+    });
+    yearHeaders += `<th class="sticky right-0 bg-white"></th>`;
 
     // 월 헤더
     let monthHeaders = '';
@@ -5606,7 +5676,7 @@ async function renderTeamGoalsDX(container) {
                     </div>
                     <div>
                         <h2 class="text-[18px] font-bold text-on-surface">DX팀 메인 마일스톤 간트차트</h2>
-                        <p class="text-[12px] text-on-surface-variant">2026 하반기</p>
+                        <p class="text-[12px] text-on-surface-variant">${STATE.ganttConfig.start.replace('-', '.')} ~ ${STATE.ganttConfig.end.replace('-', '.')}</p>
                     </div>
                 </div>
                 ${isDXMember ? `<div class="flex items-center gap-2" data-html2canvas-ignore><button onclick="saveGantt()" class="flex items-center gap-2 px-4 py-2 bg-success text-white font-bold text-[13px] rounded-lg hover:bg-success/90 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장</button><button onclick="addGanttItem()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>일감 추가</button><button onclick="toggleAllGanttDetails()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>${STATE._ganttAllExpanded ? '모두 접기' : '모두 펴기'}</button><button onclick="downloadGantt(this)" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-bold text-[13px] rounded-lg hover:bg-gray-50 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>내려받기</button></div>` : ''}
@@ -5893,7 +5963,23 @@ window.toggleGanttOwner = function(itemId, name) {
 
 // --- Team Goals Generic (CX 등) ---
 // --- Admin Settings View ---
-function renderAdminSettings(container) {
+async function renderAdminSettings(container) {
+    // 간트차트 기간 설정 로드 (최초 1회)
+    if (!STATE.ganttConfig) {
+        container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
+        try {
+            const cfgRow = await GanttAPI.getConfig('DX');
+            if (cfgRow && cfgRow.name && cfgRow.name.includes('~')) {
+                const [s, e] = cfgRow.name.split('~');
+                STATE.ganttConfig = { start: s.trim(), end: e.trim() };
+            } else {
+                STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
+            }
+        } catch (e) {
+            console.error('Gantt config load error:', e);
+            STATE.ganttConfig = { ...GANTT_DEFAULT_CONFIG };
+        }
+    }
     const periods = STATE.periodSettings || [];
     const quarterlyPeriods = periods.filter(p => p.period_type === 'quarterly');
     const yearlyPeriods = periods.filter(p => p.period_type === 'yearly');
@@ -5989,9 +6075,47 @@ function renderAdminSettings(container) {
 
     h += '</div>';
 
+    // 간트차트 기간 설정 박스
+    const gc = STATE.ganttConfig || GANTT_DEFAULT_CONFIG;
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">간트차트 기간 설정</h3>';
+    h += '<p class="text-[13px] text-on-surface-variant mb-6">DX팀 마일스톤 간트차트에 표시할 시작 년월과 종료 년월을 설정합니다. 월 단위로 주차가 자동 계산됩니다.</p>';
+    h += '<div class="flex items-end gap-4 flex-wrap">';
+    h += '<div class="flex items-center gap-2">';
+    h += '<span class="text-[12px] text-on-surface-variant">시작</span>';
+    h += `<input type="month" id="gantt-start-month" value="${gc.start}" min="2025-01" max="2030-12" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">`;
+    h += '</div>';
+    h += '<div class="flex items-center gap-2">';
+    h += '<span class="text-[12px] text-on-surface-variant">종료</span>';
+    h += `<input type="month" id="gantt-end-month" value="${gc.end}" min="2025-01" max="2030-12" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">`;
+    h += '</div>';
+    h += '<button onclick="saveGanttConfig()" class="px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">저장</button>';
+    h += '</div>';
+    h += '</div>';
+
     h += '</div>';
     container.innerHTML = h;
 }
+
+// 간트차트 기간 설정 저장
+window.saveGanttConfig = async function() {
+    const startEl = document.getElementById('gantt-start-month');
+    const endEl = document.getElementById('gantt-end-month');
+    if (!startEl || !endEl) return;
+    const startYM = startEl.value; // "YYYY-MM"
+    const endYM = endEl.value;
+    if (!startYM || !endYM) { alert('시작/종료 년월을 모두 선택해주세요.'); return; }
+    if (startYM > endYM) { alert('시작 년월이 종료 년월보다 늦을 수 없습니다.'); return; }
+    try {
+        await GanttAPI.saveConfig('DX', startYM, endYM);
+        STATE.ganttConfig = { start: startYM, end: endYM };
+        alert('간트차트 기간이 저장되었습니다.');
+        renderCurrentView();
+    } catch (e) {
+        console.error('Gantt config save error:', e);
+        alert('간트차트 기간 저장 중 오류가 발생했습니다.');
+    }
+};
 
 window.togglePeriodSetting = async function(id, field, value) {
     try {

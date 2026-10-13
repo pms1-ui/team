@@ -4563,19 +4563,11 @@ function renderFeedback(container) {
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 제출
                             </button>
-                            <button onclick="generateAIReport('${selectedMemberId}','${selectedPeriod}', this)" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-                                AI 리포트 생성
-                            </button>
                         ` : `
                             <span class="text-[13px] font-bold text-on-surface-variant">Grade: ${existingFeedback[0]?.score || '-'}</span>
                             <button disabled class="flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
-                            </button>
-                            <button onclick="generateAIReport('${selectedMemberId}','${selectedPeriod}', this)" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-                                AI 리포트 생성
                             </button>
                         `}
                     </div>
@@ -6792,9 +6784,47 @@ async function renderAdminSettings(container) {
     h += '</div>';
     h += '</div>';
 
+    // AI 피드백 리포트 생성 박스
+    const aiMembers = (STATE.members || []).filter(m => !m.is_hidden && m.is_approved)
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
+    const nowY = (new Date()).getFullYear() > 2025 ? (new Date()).getFullYear() : 2026;
+    const aiYears = [nowY, nowY - 1];
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">AI 피드백 리포트 생성</h3>';
+    h += '<p class="text-[13px] text-on-surface-variant mb-6">대상자와 분기를 선택하면 해당 구성원의 OKR 진척률·R&R을 바탕으로 AI 피드백 리포트를 생성합니다. (점수 없이 진척률만 표시, 분기별)</p>';
+    h += '<div class="flex items-end gap-3 flex-wrap">';
+    // 대상자
+    h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">대상자</span>';
+    h += '<select id="ai-report-member" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += aiMembers.map(m => `<option value="${m.user_id}">${m.name} (${m.team || ''}·${m.position || ''})</option>`).join('');
+    h += '</select></div>';
+    // 연도
+    h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">연도</span>';
+    h += '<select id="ai-report-year" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += aiYears.map(y => `<option value="${y}">${y}년</option>`).join('');
+    h += '</select></div>';
+    // 분기
+    h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">분기</span>';
+    h += '<select id="ai-report-quarter" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
+    h += [1,2,3,4].map(q => `<option value="${q}">${q}분기</option>`).join('');
+    h += '</select></div>';
+    h += '<button onclick="generateAIReportFromAdmin(this)" class="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>리포트 생성</button>';
+    h += '</div>';
+    h += '</div>';
+
     h += '</div>';
     container.innerHTML = h;
 }
+
+// 관리자 메뉴에서 AI 리포트 생성 (대상자+연도+분기 선택)
+window.generateAIReportFromAdmin = function(btn) {
+    const memberId = document.getElementById('ai-report-member')?.value;
+    const year = document.getElementById('ai-report-year')?.value;
+    const quarter = document.getElementById('ai-report-quarter')?.value;
+    if (!memberId || !year || !quarter) { alert('대상자/연도/분기를 모두 선택해주세요.'); return; }
+    const period = `${year}-Q${quarter}`;
+    generateAIReport(memberId, period, btn);
+};
 
 // 간트차트 기간 설정 저장
 window.saveGanttConfig = async function() {

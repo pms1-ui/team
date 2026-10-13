@@ -2050,22 +2050,16 @@ async function renderDashboardYearly(container) {
                 const descEsc = g.description.replace(/</g, '&lt;');
                 // 설명이 길면(대략 3줄 초과) 3줄 clamp + 더보기 토글
                 const descExpanded = STATE._yearlyDescExpanded && STATE._yearlyDescExpanded[g.id];
-                const isLong = g.description.length > 85 || g.description.split('\n').length > 3;
-                if (isLong && !descExpanded) {
-                    // 글자 수/줄 수로 잘라 '… 펼쳐보기'를 텍스트 바로 뒤에 inline 배치
-                    const CLIP = 85;
-                    let clipped = g.description;
-                    // 3줄 초과면 3줄까지만
-                    const lines = clipped.split('\n');
-                    if (lines.length > 3) clipped = lines.slice(0, 3).join('\n');
-                    // 그래도 길면 글자 수로 자름
-                    if (clipped.length > CLIP) clipped = clipped.slice(0, CLIP).replace(/\s+$/, '');
-                    const clippedEsc = clipped.replace(/</g, '&lt;') + '…';
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${clippedEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline whitespace-nowrap">펼쳐보기</button></p>`;
-                } else if (isLong && descExpanded) {
+                if (descExpanded) {
+                    // 펼친 상태: 전체 + 끝에 '접기' inline
                     h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline whitespace-nowrap">접기</button></p>`;
                 } else {
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
+                    // 접힌 상태: 항상 3줄 clamp로 그리고, 렌더 후 실제 넘침을 측정해 '펼쳐보기'를 표시(아래 setTimeout).
+                    // 넘치지 않으면 버튼은 숨겨져 쓸데없는 행을 차지하지 않는다.
+                    h += `<div class="mt-0.5">`;
+                    h += `<p class="yg-desc text-[12px] text-on-surface-variant leading-relaxed break-words" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap">${descEsc}</p>`;
+                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="yg-more hidden text-[11px] font-bold text-primary hover:underline mt-0.5">펼쳐보기</button>`;
+                    h += `</div>`;
                 }
             }
             h += '</div>';
@@ -2087,6 +2081,18 @@ async function renderDashboardYearly(container) {
     });
     h += '</div>';
     container.innerHTML = h;
+
+    // 렌더 후 실제 넘침 측정: 설명이 3줄을 초과(clamp로 잘림)한 경우에만 '펼쳐보기' 노출
+    setTimeout(() => {
+        container.querySelectorAll('.yg-desc').forEach(p => {
+            const overflow = p.scrollHeight > p.clientHeight + 1;
+            const btn = p.nextElementSibling;
+            if (btn && btn.classList.contains('yg-more')) {
+                if (overflow) btn.classList.remove('hidden');
+                else btn.classList.add('hidden');
+            }
+        });
+    }, 0);
 }
 
 function renderGoalsSet(container) {

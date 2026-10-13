@@ -1984,11 +1984,12 @@ async function renderDashboardYearly(container) {
     const goalsOfYear = (STATE.yearlyGoals || []).filter(g => String(g.year) === yr);
 
     // 전체 요약 계산
-    const norm = s => { const v = (s || '').toLowerCase(); return (v === 'pass' || v === 'fail') ? v : 'ing'; };
+    const norm = s => normYearlyStatus(s);
     const total = goalsOfYear.length;
     const passN = goalsOfYear.filter(g => norm(g.status) === 'pass').length;
     const failN = goalsOfYear.filter(g => norm(g.status) === 'fail').length;
-    const ingN = total - passN - failN;
+    const ingN = goalsOfYear.filter(g => norm(g.status) === 'ing').length;
+    const notYetN = goalsOfYear.filter(g => norm(g.status) === 'not_yet').length;
 
     // 연도 선택 + 전체 요약 (한 줄: 좌측 드롭다운, 우측 요약)
     h += '<div class="mb-5 w-full flex items-center justify-between gap-3 flex-wrap">';
@@ -1996,9 +1997,10 @@ async function renderDashboardYearly(container) {
     years.forEach(y => { h += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}년</option>`; });
     h += '</select>';
     h += '<div class="flex items-center gap-4 flex-wrap">';
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-gray-400"></div><span class="text-[13px] font-bold text-on-surface">Not yet ${notYetN}</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><span class="text-[13px] font-bold text-on-surface">-ing ${ingN}</span></div>`;
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-success"></div><span class="text-[13px] font-bold text-on-surface">Pass ${passN}</span></div>`;
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-[13px] font-bold text-on-surface">Fail ${failN}</span></div>`;
-    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><span class="text-[13px] font-bold text-on-surface">진행중 ${ingN}</span></div>`;
     h += `<span class="text-[12px] text-on-surface-variant/70">총 ${total}건</span>`;
     h += '</div>';
     h += '</div>';
@@ -2024,7 +2026,8 @@ async function renderDashboardYearly(container) {
         const list = byUser[uid];
         const p = list.filter(g => norm(g.status) === 'pass').length;
         const f = list.filter(g => norm(g.status) === 'fail').length;
-        const i = list.length - p - f;
+        const ingC = list.filter(g => norm(g.status) === 'ing').length;
+        const notYetC = list.filter(g => norm(g.status) === 'not_yet').length;
         h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">';
         // 헤더: 멤버 + 요약
         h += '<div class="flex items-center justify-between px-5 py-3.5 border-b border-blue-50 bg-surface-container/30">';
@@ -2032,7 +2035,7 @@ async function renderDashboardYearly(container) {
         h += `${getAvatarHtml(member, 'w-8 h-8', 'text-[12px]')}`;
         h += `<div><span class="font-bold text-on-surface text-[14px]">${member.name || list[0].user_name || '알 수 없음'}</span><p class="text-[11px] text-on-surface-variant">${member.team || ''} · ${member.position || ''}</p></div>`;
         h += '</div>';
-        h += `<div class="flex items-center gap-3 text-[12px] font-bold"><span class="text-success">P ${p}</span><span class="text-red-500">F ${f}</span><span class="text-amber-600">진행 ${i}</span></div>`;
+        h += `<div class="flex items-center gap-3 text-[12px] font-bold"><span class="text-gray-400">N ${notYetC}</span><span class="text-amber-600">-ing ${ingC}</span><span class="text-success">P ${p}</span><span class="text-red-500">F ${f}</span></div>`;
         h += '</div>';
         // 목표 리스트 — 기본 3개까지만 노출, 초과분은 펼치기 토글 (기본 접힘)
         const LIMIT = 3;
@@ -2042,7 +2045,7 @@ async function renderDashboardYearly(container) {
         h += '<div class="divide-y divide-blue-50">';
         visibleList.forEach(g => {
             const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
-            const statusVal = norm(g.status) === 'ing' ? '진행중' : norm(g.status);
+            const statusVal = norm(g.status);
             h += '<div class="flex items-start gap-3 px-5 py-3">';
             h += `<span class="inline-flex items-center justify-center whitespace-nowrap px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full shrink-0 mt-0.5" style="width:92px">${g.category || '기타'}</span>`;
             h += `<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-on-surface break-words">${(g.title || '').replace(/</g, '&lt;')}</p>`;
@@ -2295,7 +2298,7 @@ function renderGoalsManage(container) {
 }
 
 // ===== 연간 도전 목표 (Pass/Fail) =====
-const YEARLY_CATEGORIES = ['자기계발', '비즈니스 임팩트', '기술 향상', '기타'];
+const YEARLY_CATEGORIES = ['자기계발', '비즈니스 임팩트', '기타'];
 const YEARLY_CAT_COLOR = {
     '자기계발': 'bg-blue-50 text-blue-600',
     '비즈니스 임팩트': 'bg-purple-50 text-purple-600',
@@ -2323,10 +2326,27 @@ async function ensureYearlyGoalsLoaded(container) {
     return true;
 }
 
-function yearlyStatusBadge(status) {
-    if (status === 'pass') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[12px] font-bold rounded-full">✓ Pass</span>';
-    if (status === 'fail') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-500 text-[12px] font-bold rounded-full">✕ Fail</span>';
-    return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full">진행중</span>';
+// 상태 체계: 내부값 not_yet | ing | pass | fail  (순서: Not yet → -ing → Pass → Fail)
+// 라벨: Not yet | -ing | Pass | Fail. 기존 '진행중' 저장값은 ing로 정규화.
+const YEARLY_STATUSES = ['not_yet', 'ing', 'pass', 'fail'];
+function normYearlyStatus(s) {
+    const v = (s || '').toString().toLowerCase().trim();
+    if (v === 'pass') return 'pass';
+    if (v === 'fail') return 'fail';
+    if (v === 'not_yet' || v === 'notyet' || v === 'not yet') return 'not_yet';
+    if (v === 'ing' || v === '-ing' || v === '진행중') return 'ing';
+    // 미지정/빈값은 not_yet (기본)
+    return v === '' ? 'not_yet' : 'ing';
+}
+function yearlyStatusLabel(internal) {
+    return { not_yet: 'Not yet', ing: '-ing', pass: 'Pass', fail: 'Fail' }[internal] || 'Not yet';
+}
+function yearlyStatusBadge(internal) {
+    const s = normYearlyStatus(internal);
+    if (s === 'pass') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[12px] font-bold rounded-full">✓ Pass</span>';
+    if (s === 'fail') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-500 text-[12px] font-bold rounded-full">✕ Fail</span>';
+    if (s === 'ing') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full">-ing</span>';
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 text-[12px] font-bold rounded-full">Not yet</span>';
 }
 
 async function renderYearlyGoalsMyView(container) {
@@ -2368,8 +2388,7 @@ async function renderYearlyGoalsMyView(container) {
     h += '<div class="space-y-3">';
     myGoals.forEach(g => {
         const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
-        const st = (g.status || '진행중').toLowerCase();
-        const statusVal = (st === 'pass' || st === 'fail') ? st : '진행중';
+        const statusVal = normYearlyStatus(g.status);
         h += '<div class="bg-white rounded-xl border border-blue-50 shadow-sm overflow-hidden">';
         h += '<div class="px-5 py-4">';
         // 상단: 카테고리 + 상태배지 + 액션
@@ -2387,7 +2406,8 @@ async function renderYearlyGoalsMyView(container) {
         h += '<div class="flex items-center gap-2 mt-3 pt-3 border-t border-blue-50">';
         h += '<span class="text-[12px] text-on-surface-variant font-bold mr-1">판정</span>';
         const btn = (val, label, onCls) => `<button onclick="setYearlyStatus('${g.id}','${val}')" class="px-3 py-1.5 text-[12px] font-bold rounded-lg transition-all ${statusVal===val ? onCls : 'bg-surface-container text-on-surface-variant hover:bg-blue-50'}">${label}</button>`;
-        h += btn('진행중', '진행중', 'bg-amber-500 text-white');
+        h += btn('not_yet', 'Not yet', 'bg-gray-500 text-white');
+        h += btn('ing', '-ing', 'bg-amber-500 text-white');
         h += btn('pass', 'Pass', 'bg-success text-white');
         h += btn('fail', 'Fail', 'bg-red-500 text-white');
         h += '</div>';
@@ -2466,7 +2486,7 @@ function openYearlyGoalModal(existing) {
                     user_name: member.name || STATE.user.name || '',
                     year: STATE.yearlyGoalsYear,
                     category, title: t, description,
-                    status: '진행중',
+                    status: 'not_yet',
                     created_at: now, updated_at: now
                 };
                 const created = await YearlyGoalsAPI.create(row);
@@ -2485,14 +2505,13 @@ function openYearlyGoalModal(existing) {
 window.setYearlyStatus = async function(id, status) {
     const g = (STATE.yearlyGoals || []).find(x => String(x.id) === String(id));
     if (!g) return;
-    const normalized = (status === 'pass' || status === 'fail') ? status : '진행중';
+    const normalized = normYearlyStatus(status);
     const now = new Date().toISOString();
     try {
         await YearlyGoalsAPI.update(g.id, { status: normalized, updated_at: now });
         g.status = normalized;
         g.updated_at = now;
-        const label = normalized === 'pass' ? 'Pass' : normalized === 'fail' ? 'Fail' : '진행중';
-        logActivity('연간목표', '판정', g.title || '연간 목표', label);
+        logActivity('연간목표', '판정', g.title || '연간 목표', yearlyStatusLabel(normalized));
         renderCurrentView();
     } catch (e) {
         console.error('Yearly status update error:', e);

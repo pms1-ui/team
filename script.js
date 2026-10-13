@@ -1279,8 +1279,14 @@ function buildAIReportInner(member, role, period, okrs, data) {
         ['지원이 필요한 부분', ov.support]
     ].filter(r => r[1]).map(r => `<p style="margin-bottom:10px"><b style="color:#2563EB">${esc(r[0])}</b><br>${esc(r[1])}</p>`).join('');
 
-    const achHtml = (d.achievements || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
-    const chHtml = (d.challenges || d.underperformed || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+    // 서술형 문단(string) 우선, 배열이면 문단으로 합쳐 표시
+    const toProse = v => {
+        if (!v) return '';
+        if (Array.isArray(v)) return v.map(x => esc(x)).join('<br><br>');
+        return esc(v).replace(/\n/g, '<br>');
+    };
+    const achHtml = toProse(d.achievements) || '해당 없음';
+    const chHtml = toProse(d.challenges || d.underperformed) || '해당 없음';
 
     const strengthTags = (tags.strength || []).map(t => `<span class="tag tag-s">${esc(t)}</span>`).join('');
     const supportTags = (tags.support || tags.improve || []).map(t => `<span class="tag tag-i">${esc(t)}</span>`).join('');
@@ -1290,8 +1296,8 @@ function buildAIReportInner(member, role, period, okrs, data) {
 <div class="st">OKR 달성 현황</div>
 <ul class="okr-list">${okrListHtml}</ul>
 <div class="eval-block"><div class="block-title">▸ 종합 판단</div>${overallRows}</div>
-<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>${achHtml}</ul></div>
-<div class="eval-block"><div class="block-title">▸ 도전 · 실험 (격려)</div><ul>${chHtml}</ul></div>
+<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><p>${achHtml}</p></div>
+<div class="eval-block"><div class="block-title">▸ 도전 · 실험 (격려)</div><p>${chHtml}</p></div>
 <div class="tags">${strengthTags}${supportTags}</div>
 </div>`;
 }
@@ -1306,18 +1312,22 @@ function showAIReportModal(member, role, period, okrs, data) {
 
     const overlay = document.createElement('div');
     overlay.id = 'ai-report-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.6);display:flex;flex-direction:column;align-items:center;padding:24px 12px;overflow:auto';
+    // 세로로 긴 A4 리포트가 안정적으로 스크롤되도록 블록 + overflow-y:auto
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.6);overflow-y:auto;padding:24px 12px';
     overlay.innerHTML = `
-        <style>${AI_REPORT_STYLE}</style>
-        <div style="width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px">
-            <span style="color:#fff;font-weight:700;font-size:15px;font-family:'Pretendard',sans-serif">AI 피드백 리포트 — ${member.name} (${period})</span>
-            <div style="display:flex;gap:8px">
-                <button onclick="downloadAIReport('image','${stamp}', this)" style="background:#fff;color:#1e293b;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">이미지 저장</button>
-                <button onclick="downloadAIReport('pdf','${stamp}', this)" style="background:#2563EB;color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">PDF 저장</button>
-                <button onclick="document.getElementById('ai-report-overlay').remove()" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">닫기</button>
+        <style>${AI_REPORT_STYLE}
+        #ai-report-overlay .ai-report .page{min-height:auto;width:100%;padding:28px}</style>
+        <div style="max-width:900px;margin:0 auto">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;position:sticky;top:0;z-index:2;padding:4px 0">
+                <span style="color:#fff;font-weight:700;font-size:15px;font-family:'Pretendard',sans-serif">AI 피드백 리포트 — ${member.name} (${period})</span>
+                <div style="display:flex;gap:8px">
+                    <button onclick="downloadAIReport('image','${stamp}', this)" style="background:#fff;color:#1e293b;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">이미지 저장</button>
+                    <button onclick="downloadAIReport('pdf','${stamp}', this)" style="background:#2563EB;color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">PDF 저장</button>
+                    <button onclick="document.getElementById('ai-report-overlay').remove()" style="background:rgba(255,255,255,.2);color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">닫기</button>
+                </div>
             </div>
+            <div class="ai-report" style="background:#fff;border-radius:8px;overflow:hidden" id="ai-report-capture">${inner}</div>
         </div>
-        <div class="ai-report" style="width:100%;max-width:900px;background:#fff;border-radius:8px;overflow:hidden" id="ai-report-capture">${inner}</div>
     `;
     // 배경 클릭 시 닫기(리포트 영역 클릭은 유지)
     overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) overlay.remove(); });

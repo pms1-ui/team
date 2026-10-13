@@ -84,6 +84,9 @@ const STATE = {
     yearlyGoals: [],
     yearlyGoalsLoaded: false,
     yearlyGoalsYear: '', // 선택된 연도 (내 목표/대시보드 공용)
+
+    // 관리자 설정 탭
+    adminTab: 'period', // 'period' | 'feedback' | 'gantt' | 'ai'
     
     // Loading state
     isLoading: true
@@ -1209,11 +1212,7 @@ window.generateAIReport = async function(memberId, period, btn) {
         let data;
         try { data = JSON.parse(text); } catch (e) { throw new Error('AI 응답 파싱 실패: ' + text.slice(0, 200)); }
 
-        const html = buildAIReportHTML(member, role, period, okrs, data);
-        const win = window.open('', '_blank');
-        if (win) { win.document.open(); win.document.write(html); win.document.close(); }
-        else alert('팝업이 차단되었습니다. 팝업을 허용해주세요.');
-
+        showAIReportModal(member, role, period, okrs, data);
         logActivity('피드백', '작성', (member.name || '') + ' AI 리포트', period);
     } catch (e) {
         console.error('AI report error:', e);
@@ -1223,20 +1222,37 @@ window.generateAIReport = async function(memberId, period, btn) {
     }
 };
 
-// 실측 리포트(DESIGN_REPORT.md) 기반 고정 HTML 템플릿
-function buildAIReportHTML(member, role, period, okrs, data) {
+// 리포트 공통 스타일 (DESIGN_REPORT.md 기반)
+const AI_REPORT_STYLE = `
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+.ai-report *{margin:0;padding:0;box-sizing:border-box;font-family:'Pretendard',sans-serif}
+.ai-report .page{width:210mm;min-height:297mm;padding:18mm;background:#fff;position:relative;color:#1e293b;font-size:13px;line-height:1.6}
+.ai-report .st{color:#2563EB;font-size:16px;font-weight:700;margin:18px 0 12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.ai-report .person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.ai-report .person-name{font-size:18px;font-weight:700}.ai-report .person-role{font-size:12px;color:#475569}
+.ai-report .okr-list{list-style:none;padding:0;margin:12px 0 18px}
+.ai-report .okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.ai-report .okr-list li:last-child{border-bottom:none}
+.ai-report .okr-pct{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9}
+.ai-report .eval-block{background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:10px}
+.ai-report .eval-block .block-title{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.ai-report .eval-block ul{padding-left:16px;margin:0}
+.ai-report .eval-block li{font-size:12px;color:#334155;margin-bottom:3px}
+.ai-report .eval-block p{font-size:12px;color:#334155;line-height:1.7}
+.ai-report .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ai-report .tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
+.ai-report .tag-s{background:#dbeafe;color:#1e40af}.ai-report .tag-i{background:#fef3c7;color:#92400e}
+`;
+
+// 리포트 본문(페이지 div)만 생성 — 모달/인쇄/캡처 공용
+function buildAIReportInner(member, role, period, okrs, data) {
     const esc = s => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const d = data || {};
     const ov = d.overall || {};
     const tags = d.tags || {};
-
-    const okrListHtml = okrs.map(o =>
-        `<li><span>${esc(o.objective)}</span><span class="okr-pct">${o.progress}%</span></li>`
-    ).join('');
-
+    const okrListHtml = okrs.map(o => `<li><span>${esc(o.objective)}</span><span class="okr-pct">${o.progress}%</span></li>`).join('');
     const achHtml = (d.achievements || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
     const underHtml = (d.underperformed || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
-
     const overallRows = [
         ['투입량 산정', ov.input],
         ['비즈니스 임팩트 종합', ov.impact],
@@ -1245,38 +1261,9 @@ function buildAIReportHTML(member, role, period, okrs, data) {
         ['반복 운영 vs 도전적 업무 비율', ov.ratio],
         ['다음 분기 방향성 제언', ov.suggestion]
     ].filter(r => r[1]).map(r => `<p style="margin-bottom:8px"><b style="color:#2563EB">${r[0]}</b><br>${esc(r[1])}</p>`).join('');
-
     const strengthTags = (tags.strength || []).map(t => `<span class="tag tag-s">${esc(t)}</span>`).join('');
     const improveTags = (tags.improve || []).map(t => `<span class="tag tag-i">${esc(t)}</span>`).join('');
-
-    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(period)} AI 피드백 — ${esc(member.name)}</title>
-<style>
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
-@page{size:210mm 297mm;margin:0}
-@media print{html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.page{margin:0!important;box-shadow:none!important}.eval-block{page-break-inside:avoid}.pdf-btn{display:none!important}}
-.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative}
-.st{color:#2563EB;font-size:16px;font-weight:700;margin:18px 0 12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
-.person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
-.person-name{font-size:18px;font-weight:700}.person-role{font-size:12px;color:#475569}
-.okr-list{list-style:none;padding:0;margin:12px 0 18px}
-.okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
-.okr-list li:last-child{border-bottom:none}
-.okr-pct{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9}
-.eval-block{background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:10px}
-.eval-block .block-title{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
-.eval-block ul{padding-left:16px;margin:0}
-.eval-block li{font-size:12px;color:#334155;margin-bottom:3px}
-.eval-block p{font-size:12px;color:#334155;line-height:1.7}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
-.tag-s{background:#dbeafe;color:#1e40af}.tag-i{background:#fef3c7;color:#92400e}
-.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
-.pdf-btn:hover{background:#1e40af}
-</style></head><body>
-<button class="pdf-btn" onclick="window.print()">📄 PDF 내려받기</button>
-<div class="page">
+    return `<div class="page">
 <div class="person-header"><div><div class="person-name">${esc(member.name)}</div><div class="person-role">${esc(role)} · ${esc(period)}</div></div></div>
 <div class="st">OKR 달성 현황</div>
 <ul class="okr-list">${okrListHtml}</ul>
@@ -1284,8 +1271,109 @@ html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-
 <div class="eval-block"><div class="block-title">▸ 미착수/저성과</div><ul>${underHtml}</ul></div>
 <div class="eval-block"><div class="block-title">▸ 종합 판단</div>${overallRows}</div>
 <div class="tags">${strengthTags}${improveTags}</div>
-</div></body></html>`;
+</div>`;
 }
+
+// 생성된 리포트를 큰 레이어 팝업으로 표시 (스크롤 + PDF/이미지 저장)
+function showAIReportModal(member, role, period, okrs, data) {
+    const inner = buildAIReportInner(member, role, period, okrs, data);
+    const stamp = `${member.name}_${period}`;
+    // 기존 모달 제거
+    const old = document.getElementById('ai-report-overlay');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-report-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.6);display:flex;flex-direction:column;align-items:center;padding:24px 12px;overflow:auto';
+    overlay.innerHTML = `
+        <style>${AI_REPORT_STYLE}</style>
+        <div style="width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="color:#fff;font-weight:700;font-size:15px;font-family:'Pretendard',sans-serif">AI 피드백 리포트 — ${member.name} (${period})</span>
+            <div style="display:flex;gap:8px">
+                <button onclick="downloadAIReport('image','${stamp}', this)" style="background:#fff;color:#1e293b;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">이미지 저장</button>
+                <button onclick="downloadAIReport('pdf','${stamp}', this)" style="background:#2563EB;color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">PDF 저장</button>
+                <button onclick="document.getElementById('ai-report-overlay').remove()" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">닫기</button>
+            </div>
+        </div>
+        <div class="ai-report" style="width:100%;max-width:900px;background:#fff;border-radius:8px;overflow:hidden" id="ai-report-capture">${inner}</div>
+    `;
+    // 배경 클릭 시 닫기(리포트 영역 클릭은 유지)
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+}
+
+// PDF/이미지 저장 (image=html-to-image PNG, pdf=인쇄 대화상자)
+window.downloadAIReport = async function(mode, stamp, btn) {
+    const target = document.getElementById('ai-report-capture');
+    if (!target) return;
+
+    if (mode === 'pdf') {
+        // 리포트만 담은 독립 문서를 숨은 iframe에 넣어 인쇄 → 사용자가 'PDF로 저장' 선택
+        const inner = target.innerHTML;
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+        document.body.appendChild(iframe);
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${stamp}</title><style>
+@page{size:210mm 297mm;margin:0}
+html,body{margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+${AI_REPORT_STYLE}
+.ai-report .page{box-shadow:none;margin:0}
+</style></head><body class="ai-report">${inner}</body></html>`);
+        doc.close();
+        if (doc.fonts && doc.fonts.ready) { try { await doc.fonts.ready; } catch(_){} }
+        await new Promise(r => setTimeout(r, 250));
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => iframe.remove(), 1000);
+        return;
+    }
+
+    // image: html-to-image로 오프스크린 클론 캡처 (규칙: html2canvas 금지)
+    if (typeof htmlToImage === 'undefined') { alert('이미지 라이브러리를 불러오지 못했습니다.'); return; }
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.textContent = '생성 중...'; }
+    let holder = null;
+    try {
+        const clone = target.cloneNode(true);
+        clone.querySelectorAll('*').forEach(el => {
+            const cs = getComputedStyle(el);
+            if (cs.position === 'sticky' || cs.position === 'fixed') el.style.position = 'static';
+        });
+        holder = document.createElement('div');
+        holder.style.cssText = 'position:fixed;left:-99999px;top:0;background:#ffffff';
+        holder.style.width = target.scrollWidth + 'px';
+        // 스타일 주입(오프스크린 클론에도 리포트 CSS 적용)
+        const styleTag = document.createElement('style');
+        styleTag.textContent = AI_REPORT_STYLE;
+        holder.appendChild(styleTag);
+        const wrap = document.createElement('div');
+        wrap.className = 'ai-report';
+        wrap.appendChild(clone);
+        holder.appendChild(wrap);
+        document.body.appendChild(holder);
+        if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(_){} }
+        await new Promise(r => setTimeout(r, 120));
+        const dataUrl = await htmlToImage.toPng(wrap, {
+            backgroundColor: '#ffffff',
+            pixelRatio: 2,
+            width: wrap.scrollWidth,
+            height: wrap.scrollHeight,
+            cacheBust: true
+        });
+        const link = document.createElement('a');
+        link.download = `AI피드백_${stamp}.png`;
+        link.href = dataUrl;
+        link.click();
+    } catch (e) {
+        console.error('AI report image error:', e);
+        alert('이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+        if (holder && holder.parentNode) holder.parentNode.removeChild(holder);
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    }
+};
 
 // --- 알림 웹훅 발송 ---
 function sendNotificationWebhook(params) {
@@ -6700,7 +6788,25 @@ async function renderAdminSettings(container) {
         `;
     }
 
+    const adminTab = STATE.adminTab || 'period';
+    const tabDef = [
+        ['period', '목표 입력 기간'],
+        ['feedback', '피드백 열람'],
+        ['gantt', '간트차트 기간'],
+        ['ai', 'AI 피드백 생성']
+    ];
+
     let h = '<div class="max-w-3xl mx-auto">';
+    // 상단 탭 바
+    h += '<div class="flex items-center gap-6 border-b-2 border-blue-50 mb-6 px-1 w-full overflow-x-auto">';
+    tabDef.forEach(([key, label]) => {
+        const active = adminTab === key;
+        h += `<button onclick="setAdminTab('${key}')" class="pb-3 text-[15px] whitespace-nowrap transition-all ${active ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">${label}</button>`;
+    });
+    h += '</div>';
+
+    // === 탭: 목표 입력 기간 ===
+    if (adminTab === 'period') {
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
     h += '<h3 class="text-[16px] font-black text-on-surface mb-2">목표 입력 기간 관리</h3>';
     h += '<p class="text-[13px] text-on-surface-variant mb-6">시작 체크 시 구성원에게 해당 기간이 노출되며 입력 가능합니다. 마감 체크 시 조회만 가능하고 새 OKR 추가 및 체크인이 불가합니다.</p>';
@@ -6716,12 +6822,9 @@ async function renderAdminSettings(container) {
     h += '</div>';
     
     h += '</div>';
+    }
 
-    // 피드백 열람 관리 박스
-    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
-    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">피드백 열람 관리</h3>';
-    h += '<p class="text-[13px] text-on-surface-variant mb-6">구성원이 피드백을 열람할 수 있는 기간을 설정합니다. 열람 가능을 켜면 해당 기간의 피드백이 구성원에게 공개됩니다.</p>';
-
+    // === 탭: 피드백 열람 ===
     function renderFeedbackRow(p) {
         const visibleChecked = p.feedback_visible ? 'checked' : '';
         const openDate = p.feedback_open_date ? p.feedback_open_date.slice(0, 16) : '';
@@ -6754,6 +6857,10 @@ async function renderAdminSettings(container) {
         `;
     }
 
+    if (adminTab === 'feedback') {
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">피드백 열람 관리</h3>';
+    h += '<p class="text-[13px] text-on-surface-variant mb-6">구성원이 피드백을 열람할 수 있는 기간을 설정합니다. 열람 가능을 켜면 해당 기간의 피드백이 구성원에게 공개됩니다.</p>';
     h += '<div class="mb-6">';
     h += '<h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>분기별</h4>';
     h += quarterlyPeriods.map(renderFeedbackRow).join('');
@@ -6765,9 +6872,11 @@ async function renderAdminSettings(container) {
     h += '</div>';
 
     h += '</div>';
+    }
 
-    // 간트차트 기간 설정 박스
+    // === 탭: 간트차트 기간 ===
     const gc = STATE.ganttConfig || GANTT_DEFAULT_CONFIG;
+    if (adminTab === 'gantt') {
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
     h += '<h3 class="text-[16px] font-black text-on-surface mb-2">간트차트 기간 설정</h3>';
     h += '<p class="text-[13px] text-on-surface-variant mb-6">DX팀 마일스톤 간트차트에 표시할 시작 년월과 종료 년월을 설정합니다. 월 단위로 주차가 자동 계산됩니다.</p>';
@@ -6783,38 +6892,48 @@ async function renderAdminSettings(container) {
     h += '<button onclick="saveGanttConfig()" class="px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm">저장</button>';
     h += '</div>';
     h += '</div>';
+    }
 
-    // AI 피드백 리포트 생성 박스
-    const aiMembers = (STATE.members || []).filter(m => !m.is_hidden && m.is_approved)
+    // === 탭: AI 피드백 생성 ===
+    if (adminTab === 'ai') {
+    // 대상자는 DX팀만
+    const aiMembers = (STATE.members || []).filter(m => !m.is_hidden && m.is_approved && m.team === 'DX')
         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
     const nowY = (new Date()).getFullYear() > 2025 ? (new Date()).getFullYear() : 2026;
     const aiYears = [nowY, nowY - 1];
     h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm p-6 mb-6">';
-    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">AI 피드백 리포트 생성</h3>';
+    h += '<h3 class="text-[16px] font-black text-on-surface mb-2">AI 피드백 생성</h3>';
     h += '<p class="text-[13px] text-on-surface-variant mb-6">대상자와 분기를 선택하면 해당 구성원의 OKR 진척률·R&R을 바탕으로 AI 피드백 리포트를 생성합니다. (점수 없이 진척률만 표시, 분기별)</p>';
     h += '<div class="flex items-end gap-3 flex-wrap">';
-    // 대상자
-    h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">대상자</span>';
+    // 대상자 (DX팀)
+    h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">대상자 (DX팀)</span>';
     h += '<select id="ai-report-member" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
-    h += aiMembers.map(m => `<option value="${m.user_id}">${m.name} (${m.team || ''}·${m.position || ''})</option>`).join('');
+    h += aiMembers.map(m => `<option value="${m.user_id}">${m.name} (${m.position || ''})</option>`).join('');
     h += '</select></div>';
-    // 연도
+    // 연도 (디폴트 2026)
     h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">연도</span>';
     h += '<select id="ai-report-year" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
-    h += aiYears.map(y => `<option value="${y}">${y}년</option>`).join('');
+    h += aiYears.map(y => `<option value="${y}" ${y === 2026 ? 'selected' : ''}>${y}년</option>`).join('');
     h += '</select></div>';
-    // 분기
+    // 분기 (디폴트 3분기)
     h += '<div class="flex flex-col gap-1"><span class="text-[12px] text-on-surface-variant">분기</span>';
     h += '<select id="ai-report-quarter" class="bg-surface-container border border-blue-50 rounded-lg px-3 py-1.5 text-[13px] text-on-surface outline-none focus:border-primary">';
-    h += [1,2,3,4].map(q => `<option value="${q}">${q}분기</option>`).join('');
+    h += [1,2,3,4].map(q => `<option value="${q}" ${q === 3 ? 'selected' : ''}>${q}분기</option>`).join('');
     h += '</select></div>';
     h += '<button onclick="generateAIReportFromAdmin(this)" class="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>리포트 생성</button>';
     h += '</div>';
     h += '</div>';
+    }
 
     h += '</div>';
     container.innerHTML = h;
 }
+
+// 관리자 설정 탭 전환
+window.setAdminTab = function(tab) {
+    STATE.adminTab = tab;
+    renderCurrentView();
+};
 
 // 관리자 메뉴에서 AI 리포트 생성 (대상자+연도+분기 선택)
 window.generateAIReportFromAdmin = function(btn) {

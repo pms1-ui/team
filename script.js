@@ -2044,7 +2044,7 @@ async function renderDashboardYearly(container) {
             const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
             const statusVal = norm(g.status) === 'ing' ? '진행중' : norm(g.status);
             h += '<div class="flex items-start gap-3 px-5 py-3">';
-            h += `<span class="inline-block px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full shrink-0 mt-0.5">${g.category || '기타'}</span>`;
+            h += `<span class="inline-flex items-center justify-center whitespace-nowrap px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full shrink-0 mt-0.5" style="width:92px">${g.category || '기타'}</span>`;
             h += `<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-on-surface break-words">${(g.title || '').replace(/</g, '&lt;')}</p>`;
             if (g.description) {
                 const descEsc = g.description.replace(/</g, '&lt;');

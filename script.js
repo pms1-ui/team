@@ -2052,11 +2052,13 @@ async function renderDashboardYearly(container) {
                 const descExpanded = STATE._yearlyDescExpanded && STATE._yearlyDescExpanded[g.id];
                 const isLong = g.description.length > 90 || g.description.split('\n').length > 3;
                 if (isLong && !descExpanded) {
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${descEsc}</p>`;
-                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">펼쳐보기</button>`;
+                    // 3줄 clamp + 3번째 줄 우측 끝에 '펼쳐보기'를 겹쳐 배치 (별도 행 미차지)
+                    h += `<div class="relative mt-0.5">`;
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${descEsc}</p>`;
+                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="absolute bottom-0 right-0 pl-6 text-[11px] font-bold text-primary hover:underline bg-gradient-to-l from-white via-white" style="padding-left:24px">펼쳐보기</button>`;
+                    h += `</div>`;
                 } else if (isLong && descExpanded) {
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
-                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">접기</button>`;
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline">접기</button></p>`;
                 } else {
                     h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
                 }

@@ -363,7 +363,7 @@ const MENU_ITEMS = [
     // { id: 'org_chart', label: '조직도', icon: '<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['user', 'admin'], path: '/org-chart' },
     { id: 'feedback', label: '피드백', icon: '<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/feedback' },
     { id: 'activity_log', label: '업데이트 현황', icon: '<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/activity-log' },
-    { id: 'admin_settings', label: '관리자', icon: '<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin'], path: '/admin-settings' }
+    { id: 'admin_settings', label: '관리자', icon: '<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>', roles: ['admin', 'user'], path: '/admin-settings' }
 ];
 
 // --- URL Routing ---
@@ -6820,10 +6820,18 @@ async function renderAdminSettings(container) {
         `;
     }
 
-    const adminTab = STATE.adminTab || 'period';
+    // 피드백 열람 탭은 팀장/본부장/대표(및 pms1)만 노출
+    const canSeeFeedbackTab = STATE.user && (
+        STATE.user.position === '팀장' || STATE.user.position === '본부장' ||
+        STATE.user.position === '대표' || STATE.user.position === 'CCO' ||
+        STATE.user.id === 'pms1' || STATE.user.role === 'admin'
+    );
+    let adminTab = STATE.adminTab || 'period';
+    // 권한 없는 사용자가 feedback 탭에 있으면 기본 탭으로
+    if (adminTab === 'feedback' && !canSeeFeedbackTab) adminTab = 'period';
     const tabDef = [
         ['period', '목표 입력 기간'],
-        ['feedback', '피드백 열람'],
+        ...(canSeeFeedbackTab ? [['feedback', '피드백 열람']] : []),
         ['gantt', '간트차트 기간'],
         ['ai', 'AI 피드백 생성']
     ];

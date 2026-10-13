@@ -419,6 +419,31 @@ const ActivityLogAPI = {
     }
 };
 
+// Yearly Goals API (연간 도전 목표, table id: 3136)
+const YearlyGoalsAPI = {
+    async list() {
+        const data = await baserowFetch(`/database/rows/table/3136/?user_field_names=true&size=200&order_by=-created_at`);
+        return data.results;
+    },
+    async create(row) {
+        return await baserowFetch(`/database/rows/table/3136/?user_field_names=true`, {
+            method: 'POST',
+            body: JSON.stringify(row)
+        });
+    },
+    async update(id, row) {
+        return await baserowFetch(`/database/rows/table/3136/${id}/?user_field_names=true`, {
+            method: 'PATCH',
+            body: JSON.stringify(row)
+        });
+    },
+    async delete(id) {
+        return await baserowFetch(`/database/rows/table/3136/${id}/`, {
+            method: 'DELETE'
+        });
+    }
+};
+
 // File Upload API (프로필 이미지 등)
 async function baserowUploadFile(file) {
     const url = `${BASEROW_CONFIG.apiUrl}/user-files/upload-file/`;

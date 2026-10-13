@@ -79,6 +79,11 @@ const STATE = {
     // Activity Log (업데이트 현황)
     activityLogs: [],
     activityLogsLoaded: false,
+
+    // 연간 도전 목표 (Pass/Fail)
+    yearlyGoals: [],
+    yearlyGoalsLoaded: false,
+    yearlyGoalsYear: '', // 선택된 연도 (내 목표/대시보드 공용)
     
     // Loading state
     isLoading: true
@@ -1730,6 +1735,8 @@ function generatePeriodOptions(tab, selectedValue, useSettings) {
 
 // Rendering Views
 function renderDashboard(container) {
+    // 연간 탭은 '연간 도전 목표' Pass/Fail 요약 뷰로 분기
+    if (STATE.dashboardTab === 'yearly') { renderDashboardYearly(container); return; }
     const relevantGoals = STATE.allGoals.filter(g => g.periodType === STATE.dashboardTab && g.periodValue === STATE.dashboardPeriodValue && g.status === '합의 완료');
     let users = {};
     relevantGoals.forEach(g => { if(!users[g.userId]) users[g.userId] = []; users[g.userId].push(g); });
@@ -1759,7 +1766,7 @@ function renderDashboard(container) {
     
     let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
     h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">분기별</button>';
-    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ' + (STATE.dashboardTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary') + '">연간 도전 목표</button>';
     h += '</div>';
     h += '<div class="mb-4 w-full flex items-center justify-between gap-3">';
     h += '<div class="flex items-center gap-2">';
@@ -1956,6 +1963,97 @@ window.toggleAllDashboardOKRs = function(open) {
         }
     });
 };
+
+// 대시보드 - 연간 도전 목표 Pass/Fail 요약 뷰
+async function renderDashboardYearly(container) {
+    await ensureYearlyGoalsLoaded(container);
+
+    const years = getYearlyYears();
+    if (!STATE.yearlyGoalsYear || !years.includes(STATE.yearlyGoalsYear)) {
+        const d = new Date();
+        STATE.yearlyGoalsYear = String(d.getFullYear() > 2025 ? d.getFullYear() : 2026);
+    }
+    const yr = STATE.yearlyGoalsYear;
+
+    // 탭
+    let h = '<div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">';
+    h += '<button onclick="setTab(\'dashboard\', \'quarterly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap text-on-surface-variant hover:text-primary">분기별</button>';
+    h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap border-b-2 border-primary text-primary font-bold">연간 도전 목표</button>';
+    h += '</div>';
+
+    // 연도 선택
+    h += '<div class="mb-5 w-full flex items-center gap-3">';
+    h += '<select onchange="setYearlyYear(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    years.forEach(y => { h += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}년</option>`; });
+    h += '</select>';
+    h += '</div>';
+
+    const goalsOfYear = (STATE.yearlyGoals || []).filter(g => String(g.year) === yr);
+
+    // 전체 요약 카드
+    const norm = s => { const v = (s || '').toLowerCase(); return (v === 'pass' || v === 'fail') ? v : 'ing'; };
+    const total = goalsOfYear.length;
+    const passN = goalsOfYear.filter(g => norm(g.status) === 'pass').length;
+    const failN = goalsOfYear.filter(g => norm(g.status) === 'fail').length;
+    const ingN = total - passN - failN;
+    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-5 flex items-center gap-6 flex-wrap">';
+    h += `<div class="text-[13px] font-bold text-on-surface-variant">${yr}년 전체</div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-success"></div><span class="text-[13px] font-bold text-on-surface">Pass ${passN}</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-[13px] font-bold text-on-surface">Fail ${failN}</span></div>`;
+    h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><span class="text-[13px] font-bold text-on-surface">진행중 ${ingN}</span></div>`;
+    h += `<div class="text-[13px] text-on-surface-variant/70 ml-auto">총 ${total}건</div>`;
+    h += '</div>';
+
+    if (total === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 rounded-xl py-16 flex items-center justify-center"><p class="text-on-surface-variant font-bold text-[14px]">등록된 연간 도전 목표가 없습니다.</p></div>';
+        container.innerHTML = h;
+        return;
+    }
+
+    // 구성원별 그룹핑 (이름 가나다)
+    const byUser = {};
+    goalsOfYear.forEach(g => { if (!byUser[g.user_id]) byUser[g.user_id] = []; byUser[g.user_id].push(g); });
+    const userIds = Object.keys(byUser).sort((a, b) => {
+        const na = (STATE.members.find(m => m.user_id === a) || {}).name || '';
+        const nb = (STATE.members.find(m => m.user_id === b) || {}).name || '';
+        return na.localeCompare(nb, 'ko');
+    });
+
+    h += '<div class="space-y-4">';
+    userIds.forEach(uid => {
+        const member = STATE.members.find(m => m.user_id === uid) || {};
+        const list = byUser[uid];
+        const p = list.filter(g => norm(g.status) === 'pass').length;
+        const f = list.filter(g => norm(g.status) === 'fail').length;
+        const i = list.length - p - f;
+        h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">';
+        // 헤더: 멤버 + 요약
+        h += '<div class="flex items-center justify-between px-5 py-3.5 border-b border-blue-50 bg-surface-container/30">';
+        h += '<div class="flex items-center gap-3">';
+        h += `${getAvatarHtml(member, 'w-8 h-8', 'text-[12px]')}`;
+        h += `<div><span class="font-bold text-on-surface text-[14px]">${member.name || list[0].user_name || '알 수 없음'}</span><p class="text-[11px] text-on-surface-variant">${member.team || ''} · ${member.position || ''}</p></div>`;
+        h += '</div>';
+        h += `<div class="flex items-center gap-3 text-[12px] font-bold"><span class="text-success">P ${p}</span><span class="text-red-500">F ${f}</span><span class="text-amber-600">진행 ${i}</span></div>`;
+        h += '</div>';
+        // 목표 리스트
+        h += '<div class="divide-y divide-blue-50">';
+        list.forEach(g => {
+            const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
+            const statusVal = norm(g.status) === 'ing' ? '진행중' : norm(g.status);
+            h += '<div class="flex items-start gap-3 px-5 py-3">';
+            h += `<span class="inline-block px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full shrink-0 mt-0.5">${g.category || '기타'}</span>`;
+            h += `<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-on-surface break-words">${(g.title || '').replace(/</g, '&lt;')}</p>`;
+            if (g.description) h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${g.description.replace(/</g, '&lt;')}</p>`;
+            h += '</div>';
+            h += `<div class="shrink-0">${yearlyStatusBadge(statusVal)}</div>`;
+            h += '</div>';
+        });
+        h += '</div></div>';
+    });
+    h += '</div>';
+    container.innerHTML = h;
+}
+
 function renderGoalsSet(container) {
     const drafts = STATE.allGoals.filter(g => g.userId === STATE.user.id && g.periodType === STATE.goalsSetTab && g.periodValue === STATE.goalsSetPeriodValue);
     if(drafts.length === 0) {
@@ -2023,7 +2121,6 @@ function renderGoalsSet(container) {
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex justify-between items-start">
@@ -2057,6 +2154,8 @@ function renderGoalsSet(container) {
 }
 
 function renderGoalsManage(container) {
+    // 연간 탭은 '연간 도전 목표(Pass/Fail)' 전용 뷰로 분기
+    if (STATE.goalsManageTab === 'yearly') { renderYearlyGoalsMyView(container); return; }
     // 현재 선택된 기간이 마감인지 확인
     const currentPeriodSetting = STATE.periodSettings.find(p => p.period_type === STATE.goalsManageTab && p.period_value === STATE.goalsManagePeriodValue);
     const isAdmin = STATE.user && (STATE.user.position === '대표' || STATE.user.position === 'CCO' || STATE.user.position === '본부장' || STATE.user.position === '팀장' || STATE.user.id === 'pms1');
@@ -2130,7 +2229,7 @@ function renderGoalsManage(container) {
     container.innerHTML = `
         <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
             <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all ${STATE.goalsManageTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간 도전 목표<span class="text-[12px] text-on-surface-variant/60 ml-1">(선택)</span></button>
         </div>
         <div class="mb-4 w-full flex items-center justify-between">
             <select onchange="setPeriod('goals_manage', this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">
@@ -2153,6 +2252,213 @@ function renderGoalsManage(container) {
         </div>
     `;
 }
+
+// ===== 연간 도전 목표 (Pass/Fail) =====
+const YEARLY_CATEGORIES = ['자기계발', '비즈니스 임팩트', '기술 향상', '기타'];
+const YEARLY_CAT_COLOR = {
+    '자기계발': 'bg-blue-50 text-blue-600',
+    '비즈니스 임팩트': 'bg-purple-50 text-purple-600',
+    '기술 향상': 'bg-emerald-50 text-emerald-600',
+    '기타': 'bg-gray-100 text-gray-500'
+};
+
+function getYearlyYears() {
+    const d = new Date();
+    const cur = d.getFullYear() > 2025 ? d.getFullYear() : 2026;
+    return [cur + 1, cur, cur - 1].map(String); // 내년/올해/작년
+}
+
+async function ensureYearlyGoalsLoaded(container) {
+    if (STATE.yearlyGoalsLoaded) return true;
+    if (container) container.innerHTML = '<div class="flex items-center justify-center h-40"><p class="text-on-surface-variant">로딩 중...</p></div>';
+    try {
+        STATE.yearlyGoals = await YearlyGoalsAPI.list();
+        STATE.yearlyGoalsLoaded = true;
+    } catch (e) {
+        console.error('Yearly goals load error:', e);
+        STATE.yearlyGoals = [];
+        STATE.yearlyGoalsLoaded = true;
+    }
+    return true;
+}
+
+function yearlyStatusBadge(status) {
+    if (status === 'pass') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-success/10 text-success text-[12px] font-bold rounded-full">✓ Pass</span>';
+    if (status === 'fail') return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-500 text-[12px] font-bold rounded-full">✕ Fail</span>';
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 text-[12px] font-bold rounded-full">진행중</span>';
+}
+
+async function renderYearlyGoalsMyView(container) {
+    await ensureYearlyGoalsLoaded(container);
+
+    const years = getYearlyYears();
+    if (!STATE.yearlyGoalsYear || !years.includes(STATE.yearlyGoalsYear)) {
+        const d = new Date();
+        STATE.yearlyGoalsYear = String(d.getFullYear() > 2025 ? d.getFullYear() : 2026);
+    }
+    const yr = STATE.yearlyGoalsYear;
+
+    const myGoals = (STATE.yearlyGoals || []).filter(g => g.user_id === STATE.user.id && String(g.year) === yr);
+
+    // 탭 + 연도 선택
+    let h = `
+        <div class="flex items-center gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full">
+            <button onclick="setTab('goals_manage', 'quarterly')" class="pb-3 text-lg transition-all text-on-surface-variant hover:text-primary">분기별</button>
+            <button onclick="setTab('goals_manage', 'yearly')" class="pb-3 text-lg transition-all border-b-2 border-primary text-primary font-bold">연간 도전 목표<span class="text-[12px] text-on-surface-variant/60 ml-1">(선택)</span></button>
+        </div>`;
+
+    h += '<div class="bg-primary/5 border border-primary/10 rounded-xl px-5 py-4 mb-5">';
+    h += '<p class="text-[13px] text-on-surface leading-relaxed">자기계발·비즈니스 임팩트·기술 향상 등 <strong>1년 단위의 도전적 목표</strong>를 자유롭게 적어보세요. 분기 OKR과 달리 진척률·승인 없이 <strong>연말에 Pass / Fail</strong>로만 돌아봅니다. (작성은 선택사항)</p>';
+    h += '</div>';
+
+    h += '<div class="mb-5 w-full flex items-center justify-between gap-3">';
+    h += '<select onchange="setYearlyYear(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    years.forEach(y => { h += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}년</option>`; });
+    h += '</select>';
+    h += `<button onclick="addYearlyGoal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-[13px] rounded-lg hover:bg-primary-dim transition-all shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>목표 추가</button>`;
+    h += '</div>';
+
+    if (myGoals.length === 0) {
+        h += '<div class="bg-white/50 border border-dashed border-blue-200 rounded-xl py-16 flex flex-col items-center justify-center gap-2"><p class="text-on-surface-variant font-bold text-[14px]">아직 등록한 연간 도전 목표가 없습니다.</p><p class="text-on-surface-variant/70 text-[12px]">\'목표 추가\'를 눌러 올해의 도전을 적어보세요.</p></div>';
+        container.innerHTML = h;
+        return;
+    }
+
+    h += '<div class="space-y-3">';
+    myGoals.forEach(g => {
+        const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
+        const st = (g.status || '진행중').toLowerCase();
+        const statusVal = (st === 'pass' || st === 'fail') ? st : '진행중';
+        h += '<div class="bg-white rounded-xl border border-blue-50 shadow-sm overflow-hidden">';
+        h += '<div class="px-5 py-4">';
+        // 상단: 카테고리 + 상태배지 + 액션
+        h += '<div class="flex items-start justify-between gap-3 mb-2">';
+        h += `<span class="inline-block px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full">${g.category || '기타'}</span>`;
+        h += `<div class="flex items-center gap-2">${yearlyStatusBadge(statusVal)}`;
+        h += `<button onclick="editYearlyGoal('${g.id}')" class="text-on-surface-variant/60 hover:text-primary p-1" title="수정"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>`;
+        h += `<button onclick="deleteYearlyGoal('${g.id}')" class="text-on-surface-variant/60 hover:text-red-500 p-1" title="삭제"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>`;
+        h += '</div></div>';
+        // 제목
+        h += `<p class="text-[15px] font-bold text-on-surface mb-1 break-words">${(g.title || '').replace(/</g, '&lt;')}</p>`;
+        // 설명
+        if (g.description) h += `<p class="text-[13px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words">${g.description.replace(/</g, '&lt;')}</p>`;
+        // Pass/Fail 판정 토글
+        h += '<div class="flex items-center gap-2 mt-3 pt-3 border-t border-blue-50">';
+        h += '<span class="text-[12px] text-on-surface-variant font-bold mr-1">판정</span>';
+        const btn = (val, label, onCls) => `<button onclick="setYearlyStatus('${g.id}','${val}')" class="px-3 py-1.5 text-[12px] font-bold rounded-lg transition-all ${statusVal===val ? onCls : 'bg-surface-container text-on-surface-variant hover:bg-blue-50'}">${label}</button>`;
+        h += btn('진행중', '진행중', 'bg-amber-500 text-white');
+        h += btn('pass', 'Pass', 'bg-success text-white');
+        h += btn('fail', 'Fail', 'bg-red-500 text-white');
+        h += '</div>';
+        h += '</div></div>';
+    });
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+window.setYearlyYear = function(y) {
+    STATE.yearlyGoalsYear = y;
+    renderCurrentView();
+};
+
+window.addYearlyGoal = function() {
+    openYearlyGoalModal(null);
+};
+
+window.editYearlyGoal = function(id) {
+    const g = (STATE.yearlyGoals || []).find(x => String(x.id) === String(id));
+    if (g) openYearlyGoalModal(g);
+};
+
+function openYearlyGoalModal(existing) {
+    const isEdit = !!existing;
+    const cat = existing ? (existing.category || '기타') : '기술 향상';
+    const title = existing ? (existing.title || '') : '';
+    const desc = existing ? (existing.description || '') : '';
+    const catOptions = YEARLY_CATEGORIES.map(c => `<option value="${c}" ${c === cat ? 'selected' : ''}>${c}</option>`).join('');
+    const body = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[13px] font-bold text-on-surface-variant mb-1.5">카테고리</label>
+                <select id="yg-category" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] text-on-surface outline-none focus:border-primary">${catOptions}</select>
+            </div>
+            <div>
+                <label class="block text-[13px] font-bold text-on-surface-variant mb-1.5">목표 제목</label>
+                <input id="yg-title" type="text" value="${title.replace(/"/g, '&quot;')}" placeholder="예: AWS 솔루션즈 아키텍트 자격증 취득" class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[14px] text-on-surface outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="block text-[13px] font-bold text-on-surface-variant mb-1.5">설명 <span class="font-normal text-on-surface-variant/60">(선택 · 왜 도전적인지, 어떻게 달성할지)</span></label>
+                <textarea id="yg-desc" rows="4" placeholder="목표의 배경과 달성 전략을 자유롭게 적어주세요." class="w-full bg-white border border-blue-100 rounded-lg px-3 py-2 text-[13px] text-on-surface outline-none focus:border-primary resize-none">${desc.replace(/</g, '&lt;')}</textarea>
+            </div>
+        </div>`;
+    openModal(isEdit ? '연간 도전 목표 수정' : '연간 도전 목표 추가', body, async () => {
+        const category = document.getElementById('yg-category').value;
+        const t = document.getElementById('yg-title').value.trim();
+        const description = document.getElementById('yg-desc').value.trim();
+        if (!t) { alert('목표 제목을 입력해주세요.'); return; }
+        const now = new Date().toISOString();
+        try {
+            if (isEdit) {
+                await YearlyGoalsAPI.update(existing.id, { category, title: t, description, updated_at: now });
+                const idx = STATE.yearlyGoals.findIndex(x => x.id === existing.id);
+                if (idx !== -1) STATE.yearlyGoals[idx] = { ...existing, category, title: t, description, updated_at: now };
+                logActivity('연간목표', '수정', t, category);
+            } else {
+                const member = STATE.members.find(m => m.user_id === STATE.user.id) || {};
+                const row = {
+                    goal_id: 'yg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                    user_id: STATE.user.id,
+                    user_name: member.name || STATE.user.name || '',
+                    year: STATE.yearlyGoalsYear,
+                    category, title: t, description,
+                    status: '진행중',
+                    created_at: now, updated_at: now
+                };
+                const created = await YearlyGoalsAPI.create(row);
+                STATE.yearlyGoals.unshift({ ...row, id: created.id });
+                logActivity('연간목표', '작성', t, category);
+            }
+            closeModal();
+            renderCurrentView();
+        } catch (e) {
+            console.error('Yearly goal save error:', e);
+            alert('저장 중 오류가 발생했습니다.');
+        }
+    }, false);
+}
+
+window.setYearlyStatus = async function(id, status) {
+    const g = (STATE.yearlyGoals || []).find(x => String(x.id) === String(id));
+    if (!g) return;
+    const normalized = (status === 'pass' || status === 'fail') ? status : '진행중';
+    const now = new Date().toISOString();
+    try {
+        await YearlyGoalsAPI.update(g.id, { status: normalized, updated_at: now });
+        g.status = normalized;
+        g.updated_at = now;
+        const label = normalized === 'pass' ? 'Pass' : normalized === 'fail' ? 'Fail' : '진행중';
+        logActivity('연간목표', '판정', g.title || '연간 목표', label);
+        renderCurrentView();
+    } catch (e) {
+        console.error('Yearly status update error:', e);
+        alert('상태 변경 중 오류가 발생했습니다.');
+    }
+};
+
+window.deleteYearlyGoal = async function(id) {
+    const g = (STATE.yearlyGoals || []).find(x => String(x.id) === String(id));
+    if (!g) return;
+    if (!confirm('이 연간 도전 목표를 삭제하시겠습니까?')) return;
+    try {
+        await YearlyGoalsAPI.delete(g.id);
+        STATE.yearlyGoals = STATE.yearlyGoals.filter(x => x.id !== g.id);
+        logActivity('연간목표', '삭제', g.title || '연간 목표', '');
+        renderCurrentView();
+    } catch (e) {
+        console.error('Yearly goal delete error:', e);
+        alert('삭제 중 오류가 발생했습니다.');
+    }
+};
 
 function renderRequests(container) {
     const okrList = STATE.allGoals.filter(g => (g.requestType !== null || g.isProcessed === true || g.status === '거부') && g.periodType === STATE.requestsTab && g.periodValue === STATE.requestsPeriodValue);
@@ -2375,7 +2681,6 @@ function renderRequests(container) {
         <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full">
             <div class="flex items-center gap-8">
                 <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-lg transition-all ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             </div>
             <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
                 <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>
@@ -3362,7 +3667,6 @@ renderGoalsSet = function(container) {
     let h = `
         <div class="flex items-center gap-4 lg:gap-8 border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
             <button onclick="setTab('goals_set', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-            <button onclick="setTab('goals_set', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.goalsSetTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
         </div>
         <div class="mb-4 w-full">
             <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-start gap-3">
@@ -3469,7 +3773,6 @@ renderRequests = function(container) {
         <div class="flex items-center justify-between border-b-2 border-blue-50 mb-6 px-2 w-full overflow-x-auto">
             <div class="flex items-center gap-4 lg:gap-8">
                 <button onclick="setTab('requests', 'quarterly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'quarterly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">분기별</button>
-                <button onclick="setTab('requests', 'yearly')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap ${STATE.requestsTab === 'yearly' ? 'border-b-2 border-primary text-primary font-bold' : 'text-on-surface-variant hover:text-primary'}">연간</button>
             </div>
             <select onchange="setRequestsFilter(this.value)" class="bg-surface-container text-on-surface font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none mb-1">
                 <option value="pending" ${STATE.requestsFilter === 'pending' ? 'selected' : ''}>요청된 항목</option>
@@ -6327,6 +6630,7 @@ async function renderActivityLog(container) {
     // 카테고리별 배지 색상
     const catColor = {
         '목표': 'bg-primary/10 text-primary',
+        '연간목표': 'bg-indigo-100 text-indigo-600',
         '간트': 'bg-purple-100 text-purple-600',
         'R&R': 'bg-emerald-100 text-emerald-600',
         '월간업무': 'bg-amber-100 text-amber-600'
@@ -6338,6 +6642,7 @@ async function renderActivityLog(container) {
         '삭제': 'bg-red-50 text-red-500',
         '요청': 'bg-amber-50 text-amber-600',
         '체크인': 'bg-cyan-50 text-cyan-600',
+        '판정': 'bg-teal-50 text-teal-600',
         '승인': 'bg-success/10 text-success',
         '반려': 'bg-red-50 text-red-500'
     };

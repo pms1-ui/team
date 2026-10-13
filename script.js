@@ -2035,9 +2035,13 @@ async function renderDashboardYearly(container) {
         h += '</div>';
         h += `<div class="flex items-center gap-3 text-[12px] font-bold"><span class="text-success">P ${p}</span><span class="text-red-500">F ${f}</span><span class="text-amber-600">진행 ${i}</span></div>`;
         h += '</div>';
-        // 목표 리스트
+        // 목표 리스트 — 기본 3개까지만 노출, 초과분은 펼치기 토글 (기본 접힘)
+        const LIMIT = 3;
+        const expanded = STATE._yearlyDashExpanded && STATE._yearlyDashExpanded[uid];
+        const visibleList = expanded ? list : list.slice(0, LIMIT);
+        const hiddenCount = list.length - visibleList.length;
         h += '<div class="divide-y divide-blue-50">';
-        list.forEach(g => {
+        visibleList.forEach(g => {
             const catColor = YEARLY_CAT_COLOR[g.category] || 'bg-gray-100 text-gray-500';
             const statusVal = norm(g.status) === 'ing' ? '진행중' : norm(g.status);
             h += '<div class="flex items-start gap-3 px-5 py-3">';
@@ -2048,7 +2052,18 @@ async function renderDashboardYearly(container) {
             h += `<div class="shrink-0">${yearlyStatusBadge(statusVal)}</div>`;
             h += '</div>';
         });
-        h += '</div></div>';
+        h += '</div>';
+        // 펼치기/접기 버튼 (3개 초과 시에만)
+        if (list.length > LIMIT) {
+            h += `<button onclick="toggleYearlyDashExpand('${uid}')" class="w-full px-5 py-2.5 text-[12px] font-bold text-primary hover:bg-blue-50/50 border-t border-blue-50 transition-colors flex items-center justify-center gap-1">`;
+            if (expanded) {
+                h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>접기';
+            } else {
+                h += `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>${hiddenCount}개 더 보기`;
+            }
+            h += '</button>';
+        }
+        h += '</div>';
     });
     h += '</div>';
     container.innerHTML = h;
@@ -2358,6 +2373,13 @@ async function renderYearlyGoalsMyView(container) {
 
 window.setYearlyYear = function(y) {
     STATE.yearlyGoalsYear = y;
+    renderCurrentView();
+};
+
+// 대시보드 연간 - 구성원 카드 목표 목록 펼치기/접기 (기본 접힘)
+window.toggleYearlyDashExpand = function(uid) {
+    if (!STATE._yearlyDashExpanded) STATE._yearlyDashExpanded = {};
+    STATE._yearlyDashExpanded[uid] = !STATE._yearlyDashExpanded[uid];
     renderCurrentView();
 };
 

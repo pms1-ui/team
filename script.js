@@ -2050,15 +2050,20 @@ async function renderDashboardYearly(container) {
                 const descEsc = g.description.replace(/</g, '&lt;');
                 // 설명이 길면(대략 3줄 초과) 3줄 clamp + 더보기 토글
                 const descExpanded = STATE._yearlyDescExpanded && STATE._yearlyDescExpanded[g.id];
-                const isLong = g.description.length > 90 || g.description.split('\n').length > 3;
+                const isLong = g.description.length > 85 || g.description.split('\n').length > 3;
                 if (isLong && !descExpanded) {
-                    // 3줄 clamp + 3번째 줄 우측 끝에 '펼쳐보기'를 겹쳐 배치 (별도 행 미차지)
-                    h += `<div class="relative mt-0.5">`;
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${descEsc}</p>`;
-                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="absolute bottom-0 right-0 pl-6 text-[11px] font-bold text-primary hover:underline bg-gradient-to-l from-white via-white" style="padding-left:24px">펼쳐보기</button>`;
-                    h += `</div>`;
+                    // 글자 수/줄 수로 잘라 '… 펼쳐보기'를 텍스트 바로 뒤에 inline 배치
+                    const CLIP = 85;
+                    let clipped = g.description;
+                    // 3줄 초과면 3줄까지만
+                    const lines = clipped.split('\n');
+                    if (lines.length > 3) clipped = lines.slice(0, 3).join('\n');
+                    // 그래도 길면 글자 수로 자름
+                    if (clipped.length > CLIP) clipped = clipped.slice(0, CLIP).replace(/\s+$/, '');
+                    const clippedEsc = clipped.replace(/</g, '&lt;') + '…';
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${clippedEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline whitespace-nowrap">펼쳐보기</button></p>`;
                 } else if (isLong && descExpanded) {
-                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline">접기</button></p>`;
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc} <button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline whitespace-nowrap">접기</button></p>`;
                 } else {
                     h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
                 }

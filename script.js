@@ -2047,7 +2047,21 @@ async function renderDashboardYearly(container) {
             h += '<div class="flex items-start gap-3 px-5 py-3">';
             h += `<span class="inline-block px-2 py-0.5 ${catColor} text-[11px] font-bold rounded-full shrink-0 mt-0.5">${g.category || '기타'}</span>`;
             h += `<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-on-surface break-words">${(g.title || '').replace(/</g, '&lt;')}</p>`;
-            if (g.description) h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${g.description.replace(/</g, '&lt;')}</p>`;
+            if (g.description) {
+                const descEsc = g.description.replace(/</g, '&lt;');
+                // 설명이 길면(대략 3줄 초과) 3줄 clamp + 더보기 토글
+                const descExpanded = STATE._yearlyDescExpanded && STATE._yearlyDescExpanded[g.id];
+                const isLong = g.description.length > 90 || g.description.split('\n').length > 3;
+                if (isLong && !descExpanded) {
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${descEsc}</p>`;
+                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">더 보기</button>`;
+                } else if (isLong && descExpanded) {
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
+                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">접기</button>`;
+                } else {
+                    h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
+                }
+            }
             h += '</div>';
             h += `<div class="shrink-0">${yearlyStatusBadge(statusVal)}</div>`;
             h += '</div>';
@@ -2380,6 +2394,13 @@ window.setYearlyYear = function(y) {
 window.toggleYearlyDashExpand = function(uid) {
     if (!STATE._yearlyDashExpanded) STATE._yearlyDashExpanded = {};
     STATE._yearlyDashExpanded[uid] = !STATE._yearlyDashExpanded[uid];
+    renderCurrentView();
+};
+
+// 대시보드 연간 - 개별 목표 설명 더보기/접기 (기본 3줄 clamp)
+window.toggleYearlyDesc = function(goalId) {
+    if (!STATE._yearlyDescExpanded) STATE._yearlyDescExpanded = {};
+    STATE._yearlyDescExpanded[goalId] = !STATE._yearlyDescExpanded[goalId];
     renderCurrentView();
 };
 

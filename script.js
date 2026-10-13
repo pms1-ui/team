@@ -1208,9 +1208,21 @@ window.generateAIReport = async function(memberId, period, btn) {
             body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('webhook ' + res.status);
-        const text = await res.text();
+        let text = await res.text();
+        // 코드블록(```json ... ```) 감싸짐 방어 + 앞뒤 잡텍스트 제거
+        text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
         let data;
-        try { data = JSON.parse(text); } catch (e) { throw new Error('AI 응답 파싱 실패: ' + text.slice(0, 200)); }
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            // 본문 중 첫 { ~ 마지막 } 추출 재시도
+            const s = text.indexOf('{'), eI = text.lastIndexOf('}');
+            if (s !== -1 && eI !== -1) {
+                try { data = JSON.parse(text.slice(s, eI + 1)); } catch (e2) { throw new Error('AI 응답 파싱 실패: ' + text.slice(0, 200)); }
+            } else {
+                throw new Error('AI 응답 파싱 실패: ' + text.slice(0, 200));
+            }
+        }
 
         showAIReportModal(member, role, period, okrs, data);
         logActivity('피드백', '작성', (member.name || '') + ' AI 리포트', period);
@@ -1250,27 +1262,37 @@ function buildAIReportInner(member, role, period, okrs, data) {
     const d = data || {};
     const ov = d.overall || {};
     const tags = d.tags || {};
-    const okrListHtml = okrs.map(o => `<li><span>${esc(o.objective)}</span><span class="okr-pct">${o.progress}%</span></li>`).join('');
-    const achHtml = (d.achievements || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
-    const underHtml = (d.underperformed || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+
+    // OKR 달성 현황 — Objective + 하위 KR별 달성률
+    const okrListHtml = okrs.map(o => {
+        const krHtml = (o.keyResults || []).map(k =>
+            `<li style="padding-left:14px"><span style="color:#64748b">· ${esc(k.text)}</span><span class="okr-pct">${k.progress}%</span></li>`
+        ).join('');
+        return `<li style="font-weight:700"><span>${esc(o.objective)}</span><span class="okr-pct" style="background:#dbeafe;color:#1e40af">${o.progress}%</span></li>${krHtml}`;
+    }).join('');
+
+    // 종합 판단 4항목 (맨 앞)
     const overallRows = [
-        ['투입량 산정', ov.input],
-        ['비즈니스 임팩트 종합', ov.impact],
-        ['미착수 원인 분석', ov.cause],
-        ['R&R 대비 정합성', ov.rnrFit],
-        ['반복 운영 vs 도전적 업무 비율', ov.ratio],
-        ['다음 분기 방향성 제언', ov.suggestion]
-    ].filter(r => r[1]).map(r => `<p style="margin-bottom:8px"><b style="color:#2563EB">${r[0]}</b><br>${esc(r[1])}</p>`).join('');
+        ['종합 평가', ov.summary],
+        ['JD / R&R 부합도', ov.jdAlignment],
+        ['성과 우수성', ov.performance],
+        ['지원이 필요한 부분', ov.support]
+    ].filter(r => r[1]).map(r => `<p style="margin-bottom:10px"><b style="color:#2563EB">${esc(r[0])}</b><br>${esc(r[1])}</p>`).join('');
+
+    const achHtml = (d.achievements || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+    const chHtml = (d.challenges || d.underperformed || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+
     const strengthTags = (tags.strength || []).map(t => `<span class="tag tag-s">${esc(t)}</span>`).join('');
-    const improveTags = (tags.improve || []).map(t => `<span class="tag tag-i">${esc(t)}</span>`).join('');
+    const supportTags = (tags.support || tags.improve || []).map(t => `<span class="tag tag-i">${esc(t)}</span>`).join('');
+
     return `<div class="page">
 <div class="person-header"><div><div class="person-name">${esc(member.name)}</div><div class="person-role">${esc(role)} · ${esc(period)}</div></div></div>
 <div class="st">OKR 달성 현황</div>
 <ul class="okr-list">${okrListHtml}</ul>
-<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>${achHtml}</ul></div>
-<div class="eval-block"><div class="block-title">▸ 미착수/저성과</div><ul>${underHtml}</ul></div>
 <div class="eval-block"><div class="block-title">▸ 종합 판단</div>${overallRows}</div>
-<div class="tags">${strengthTags}${improveTags}</div>
+<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>${achHtml}</ul></div>
+<div class="eval-block"><div class="block-title">▸ 도전 · 실험 (격려)</div><ul>${chHtml}</ul></div>
+<div class="tags">${strengthTags}${supportTags}</div>
 </div>`;
 }
 

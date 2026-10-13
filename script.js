@@ -1165,6 +1165,128 @@ window.requestDeleteOKR = function(id) {
 };
 
 
+// --- AI 피드백 리포트 생성 ---
+const AI_REPORT_WEBHOOK = "https://n8n.childylab.com/webhook/ai-feedback-report";
+
+window.generateAIReport = async function(memberId, period, btn) {
+    const member = STATE.members.find(m => m.user_id === memberId);
+    if (!member) { alert('구성원 정보를 찾을 수 없습니다.'); return; }
+
+    // 해당 기간 합의 완료 OKR + KR 진척률 수집
+    const isQuarterly = /Q/.test(period);
+    const goals = STATE.allGoals.filter(g =>
+        g.userId === memberId &&
+        g.status === '합의 완료' &&
+        g.periodType === (isQuarterly ? 'quarterly' : 'yearly') &&
+        g.periodValue === period
+    );
+    if (goals.length === 0) { alert('해당 기간에 합의 완료된 OKR이 없습니다.'); return; }
+
+    const okrs = goals.map(g => {
+        const krs = (g.keyResults || []).map(k => ({ text: k.text, progress: parseInt(k.progress) || 0 }));
+        const avg = krs.length ? Math.round(krs.reduce((s, k) => s + k.progress, 0) / krs.length) : 0;
+        return { objective: g.text, progress: avg, keyResults: krs };
+    });
+
+    // R&R
+    const rnrRow = (STATE.rnrData || []).find(r => r.user_id === memberId);
+    const rnrText = rnrRow ? [rnrRow.job, (rnrRow.rnr || rnrRow.content)].filter(Boolean).join('\n\n') : '';
+
+    const role = `${member.job || member.position || ''} · ${member.team || ''} · ${member.position || ''}`;
+    const payload = { name: member.name, role, period, rnr: rnrText, okrs };
+
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="animate-pulse">AI 생성 중...</span>'; }
+
+    try {
+        const res = await fetch(AI_REPORT_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('webhook ' + res.status);
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch (e) { throw new Error('AI 응답 파싱 실패: ' + text.slice(0, 200)); }
+
+        const html = buildAIReportHTML(member, role, period, okrs, data);
+        const win = window.open('', '_blank');
+        if (win) { win.document.open(); win.document.write(html); win.document.close(); }
+        else alert('팝업이 차단되었습니다. 팝업을 허용해주세요.');
+
+        logActivity('피드백', '작성', (member.name || '') + ' AI 리포트', period);
+    } catch (e) {
+        console.error('AI report error:', e);
+        alert('AI 리포트 생성 중 오류가 발생했습니다.\n' + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    }
+};
+
+// 실측 리포트(DESIGN_REPORT.md) 기반 고정 HTML 템플릿
+function buildAIReportHTML(member, role, period, okrs, data) {
+    const esc = s => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const d = data || {};
+    const ov = d.overall || {};
+    const tags = d.tags || {};
+
+    const okrListHtml = okrs.map(o =>
+        `<li><span>${esc(o.objective)}</span><span class="okr-pct">${o.progress}%</span></li>`
+    ).join('');
+
+    const achHtml = (d.achievements || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+    const underHtml = (d.underperformed || []).map(a => `<li>${esc(a)}</li>`).join('') || '<li>해당 없음</li>';
+
+    const overallRows = [
+        ['투입량 산정', ov.input],
+        ['비즈니스 임팩트 종합', ov.impact],
+        ['미착수 원인 분석', ov.cause],
+        ['R&R 대비 정합성', ov.rnrFit],
+        ['반복 운영 vs 도전적 업무 비율', ov.ratio],
+        ['다음 분기 방향성 제언', ov.suggestion]
+    ].filter(r => r[1]).map(r => `<p style="margin-bottom:8px"><b style="color:#2563EB">${r[0]}</b><br>${esc(r[1])}</p>`).join('');
+
+    const strengthTags = (tags.strength || []).map(t => `<span class="tag tag-s">${esc(t)}</span>`).join('');
+    const improveTags = (tags.improve || []).map(t => `<span class="tag tag-i">${esc(t)}</span>`).join('');
+
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(period)} AI 피드백 — ${esc(member.name)}</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Pretendard',sans-serif;color:#1e293b;font-size:13px;line-height:1.6;background:#e2e8f0}
+@page{size:210mm 297mm;margin:0}
+@media print{html,body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.page{margin:0!important;box-shadow:none!important}.eval-block{page-break-inside:avoid}.pdf-btn{display:none!important}}
+.page{width:210mm;min-height:297mm;padding:18mm;margin:12px auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);position:relative}
+.st{color:#2563EB;font-size:16px;font-weight:700;margin:18px 0 12px;padding-bottom:5px;border-bottom:2px solid #2563EB;display:inline-block}
+.person-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.person-name{font-size:18px;font-weight:700}.person-role{font-size:12px;color:#475569}
+.okr-list{list-style:none;padding:0;margin:12px 0 18px}
+.okr-list li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.okr-list li:last-child{border-bottom:none}
+.okr-pct{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9}
+.eval-block{background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:10px}
+.eval-block .block-title{font-size:12px;font-weight:700;color:#2563EB;margin-bottom:6px}
+.eval-block ul{padding-left:16px;margin:0}
+.eval-block li{font-size:12px;color:#334155;margin-bottom:3px}
+.eval-block p{font-size:12px;color:#334155;line-height:1.7}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500}
+.tag-s{background:#dbeafe;color:#1e40af}.tag-i{background:#fef3c7;color:#92400e}
+.pdf-btn{position:fixed;top:16px;right:16px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:0 2px 6px rgba(37,99,235,.3);z-index:9999}
+.pdf-btn:hover{background:#1e40af}
+</style></head><body>
+<button class="pdf-btn" onclick="window.print()">📄 PDF 내려받기</button>
+<div class="page">
+<div class="person-header"><div><div class="person-name">${esc(member.name)}</div><div class="person-role">${esc(role)} · ${esc(period)}</div></div></div>
+<div class="st">OKR 달성 현황</div>
+<ul class="okr-list">${okrListHtml}</ul>
+<div class="eval-block"><div class="block-title">▸ 핵심 성과</div><ul>${achHtml}</ul></div>
+<div class="eval-block"><div class="block-title">▸ 미착수/저성과</div><ul>${underHtml}</ul></div>
+<div class="eval-block"><div class="block-title">▸ 종합 판단</div>${overallRows}</div>
+<div class="tags">${strengthTags}${improveTags}</div>
+</div></body></html>`;
+}
+
 // --- 알림 웹훅 발송 ---
 function sendNotificationWebhook(params) {
     const baseUrl = "https://n8n.childylab.com/webhook/7b666c7f-b12d-447f-bef7-957d4c896219";
@@ -4441,11 +4563,19 @@ function renderFeedback(container) {
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 제출
                             </button>
+                            <button onclick="generateAIReport('${selectedMemberId}','${selectedPeriod}', this)" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                                AI 리포트 생성
+                            </button>
                         ` : `
                             <span class="text-[13px] font-bold text-on-surface-variant">Grade: ${existingFeedback[0]?.score || '-'}</span>
                             <button disabled class="flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container text-on-surface-variant font-bold text-[13px] rounded-lg cursor-not-allowed shadow-sm border border-blue-100">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 피드백 완료
+                            </button>
+                            <button onclick="generateAIReport('${selectedMemberId}','${selectedPeriod}', this)" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-800 text-white font-bold text-[13px] rounded-lg hover:bg-gray-900 transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                                AI 리포트 생성
                             </button>
                         `}
                     </div>

@@ -1981,27 +1981,26 @@ async function renderDashboardYearly(container) {
     h += '<button onclick="setTab(\'dashboard\', \'yearly\')" class="pb-3 text-sm lg:text-lg transition-all whitespace-nowrap border-b-2 border-primary text-primary font-bold">연간 도전 목표</button>';
     h += '</div>';
 
-    // 연도 선택
-    h += '<div class="mb-5 w-full flex items-center gap-3">';
-    h += '<select onchange="setYearlyYear(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
-    years.forEach(y => { h += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}년</option>`; });
-    h += '</select>';
-    h += '</div>';
-
     const goalsOfYear = (STATE.yearlyGoals || []).filter(g => String(g.year) === yr);
 
-    // 전체 요약 카드
+    // 전체 요약 계산
     const norm = s => { const v = (s || '').toLowerCase(); return (v === 'pass' || v === 'fail') ? v : 'ing'; };
     const total = goalsOfYear.length;
     const passN = goalsOfYear.filter(g => norm(g.status) === 'pass').length;
     const failN = goalsOfYear.filter(g => norm(g.status) === 'fail').length;
     const ingN = total - passN - failN;
-    h += '<div class="bg-white rounded-2xl border border-blue-50 shadow-sm px-5 py-4 mb-5 flex items-center gap-6 flex-wrap">';
-    h += `<div class="text-[13px] font-bold text-on-surface-variant">${yr}년 전체</div>`;
+
+    // 연도 선택 + 전체 요약 (한 줄: 좌측 드롭다운, 우측 요약)
+    h += '<div class="mb-5 w-full flex items-center justify-between gap-3 flex-wrap">';
+    h += '<select onchange="setYearlyYear(this.value)" class="bg-surface-container text-primary font-bold border border-blue-50 rounded-lg text-[13px] px-3 py-1.5 outline-none">';
+    years.forEach(y => { h += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}년</option>`; });
+    h += '</select>';
+    h += '<div class="flex items-center gap-4 flex-wrap">';
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-success"></div><span class="text-[13px] font-bold text-on-surface">Pass ${passN}</span></div>`;
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-[13px] font-bold text-on-surface">Fail ${failN}</span></div>`;
     h += `<div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><span class="text-[13px] font-bold text-on-surface">진행중 ${ingN}</span></div>`;
-    h += `<div class="text-[13px] text-on-surface-variant/70 ml-auto">총 ${total}건</div>`;
+    h += `<span class="text-[12px] text-on-surface-variant/70">총 ${total}건</span>`;
+    h += '</div>';
     h += '</div>';
 
     if (total === 0) {
@@ -2054,7 +2053,7 @@ async function renderDashboardYearly(container) {
                 const isLong = g.description.length > 90 || g.description.split('\n').length > 3;
                 if (isLong && !descExpanded) {
                     h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${descEsc}</p>`;
-                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">더 보기</button>`;
+                    h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">펼쳐보기</button>`;
                 } else if (isLong && descExpanded) {
                     h += `<p class="text-[12px] text-on-surface-variant leading-relaxed whitespace-pre-wrap break-words mt-0.5">${descEsc}</p>`;
                     h += `<button onclick="toggleYearlyDesc('${g.id}')" class="text-[11px] font-bold text-primary hover:underline mt-1">접기</button>`;
